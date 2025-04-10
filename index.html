@@ -550,6 +550,29 @@
         .temp-change.neutral {
             color: #666;
         }
+
+        .forecast-section {
+            margin-top: 30px;
+        }
+
+        .forecast-title {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .weather-finder-link {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .weather-finder-link img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -625,8 +648,11 @@
             </div>
         </div>
 
-        <div class="forecast">
-            <!-- Forecast cards will be dynamically added here -->
+        <div class="forecast-section">
+            <h2 class="forecast-title">Weather Forecast</h2>
+            <div class="forecast">
+                <!-- Forecast cards will be dynamically added here -->
+            </div>
         </div>
     </div>
 
@@ -656,6 +682,13 @@
     <!-- Credits Section -->
     <div class="credits">
         <p>Created with the Grace of God by Jesse Hasty with <a href="https://cursor.sh" target="_blank">Cursor</a></p>
+    </div>
+
+    <!-- USA Weather Finder Link -->
+    <div class="weather-finder-link">
+        <a href="https://usaweatherfinder.com/">
+            <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
+        </a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
