@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Weather Dashboard</title>
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12"></script>
     <style>
         * {
             margin: 0;
@@ -134,7 +137,23 @@
         .temp-value {
             font-size: 56px;
             font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            animation: pulse 3s infinite ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 0.9;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         .condition-text {
@@ -421,23 +440,119 @@
 
         .credits {
             text-align: center;
-            padding: 20px;
             margin-top: 30px;
             color: #666;
+            font-size: 0.9em;
+        }
+
+        .bible-verse {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            color: #444;
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .bible-verse p {
+            margin: 5px 0;
+        }
+
+        .verse-reference {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .weather-finder-link {
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .weather-finder-link img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .sun-times {
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+        }
+
+        .sun-times h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .sun-timeline {
+            padding: 10px;
+        }
+
+        .timeline-container {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .timeline {
+            position: relative;
+            height: 60px;
+            background: #f0f0f0;
+            border-radius: 30px;
+            margin: 0 20px;
+            overflow: hidden;
+        }
+
+        .timeline-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(to right, #ffd700, #ff8c00);
+            opacity: 0.3;
+        }
+
+        .sun-icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .sun-icon svg {
+            fill: #ff8c00;
+        }
+
+        .sunrise {
+            left: 0;
+        }
+
+        .sunset {
+            right: 0;
+        }
+
+        .time-labels {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            margin-top: 5px;
             font-size: 14px;
-            border-top: 1px solid #eee;
+            color: #666;
         }
 
-        .credits a {
-            color: #4CAF50;
-            text-decoration: none;
-            font-weight: bold;
-            transition: color 0.3s;
-        }
-
-        .credits a:hover {
-            color: #45a049;
-            text-decoration: underline;
+        .day-length {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
         }
 
         .unit-toggle {
@@ -563,23 +678,251 @@
             font-weight: 600;
         }
 
-        .weather-finder-link {
-            text-align: center;
-            margin-top: 20px;
-            margin-bottom: 30px;
+        .header-links {
+            margin-top: 15px;
+            position: relative;
         }
 
-        .weather-finder-link img {
+        .menu-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+
+        .menu-button:hover {
+            background-color: #f0f0f0;
+            transform: scale(1.05);
+        }
+
+        .menu-button:active {
+            transform: scale(0.95);
+        }
+
+        .menu-popup {
+            position: fixed;
+            top: 70px;
+            left: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            padding: 10px 0;
+            min-width: 150px;
+            display: none;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .menu-popup.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+            animation: popIn 0.3s ease forwards;
+        }
+
+        .menu-popup.closing {
+            animation: fadeOut 0.3s ease forwards;
+        }
+
+        @keyframes popIn {
+            0% {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95);
+            }
+            70% {
+                transform: translateY(5px) scale(1.05);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-10px) scale(0.95);
+            }
+        }
+
+        .menu-item {
+            display: block;
+            padding: 10px 20px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            transform-origin: left;
+        }
+
+        .menu-item:hover {
+            background-color: #f5f5f5;
+            transform: translateX(5px);
+        }
+
+        .trends-link {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 20px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .trends-link:hover {
+            background-color: #45a049;
+        }
+
+        /* Weather Cameras Styles */
+        .cameras-section {
+            margin-top: 30px;
+        }
+
+        .cameras-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .camera-feed {
+            position: relative;
+            border-radius: 8px;
+            overflow: visible;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            background: #000;
+            height: 250px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .camera-feed:hover {
+            transform: scale(1.02);
+        }
+
+        .camera-feed img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-info {
+            position: relative;
+            background: #f5f5f5;
+            color: #333;
+            padding: 10px;
+            font-size: 14px;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            text-align: center;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .camera-placeholder {
+            text-align: center;
+            padding: 40px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            color: #666;
+            height: 250px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .camera-modal.visible {
+            display: flex;
+        }
+
+        .camera-modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 90%;
+            max-height: 90vh;
+            position: relative;
+        }
+
+        .camera-modal img {
             max-width: 100%;
-            height: auto;
+            max-height: 70vh;
+        }
+
+        .camera-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+        }
+
+        /* Video.js Custom Styles */
+        .video-js {
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+        }
+
+        .vjs-poster {
+            border-radius: 8px;
+        }
+
+        .camera-modal .video-js {
+            height: 70vh;
+            width: 100%;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Milton Weather Station</h1>
+            <h1>Weather Dashboard</h1>
             <p id="location">Loading location...</p>
+            <button id="menu-button" class="menu-button">
+                <svg viewBox="0 0 24 24" width="24" height="24">
+                    <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
+                </svg>
+            </button>
+            <div id="menu-popup" class="menu-popup">
+                <a href="index.html" class="menu-item">Dashboard</a>
+                <a href="trends.html" class="menu-item">Weather Trends</a>
+            </div>
             <p id="last-update">Last updated: --:--:--</p>
             <p id="next-update">Next update in: --:--</p>
             <p id="temp-change" class="temp-change">Temperature change: --°F</p>
@@ -654,6 +997,46 @@
                 <!-- Forecast cards will be dynamically added here -->
             </div>
         </div>
+
+        <!-- Weather Cameras Section -->
+        <div class="weather-card cameras-section">
+            <h3>Weather Cameras</h3>
+            <div class="cameras-grid" id="cameras-grid">
+                <!-- Camera feeds will be dynamically inserted here -->
+                <div class="camera-placeholder">
+                    <p>Loading camera feeds...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sunrise/Sunset Card -->
+        <div class="weather-card sun-times">
+            <h3>Sunrise & Sunset Times</h3>
+            <div class="sun-timeline">
+                <div class="timeline-container">
+                    <div class="timeline">
+                        <div class="sun-icon sunrise">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path d="M12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-12c-.28 0-.5-.22-.5-.5V2c0-.28.22-.5.5-.5s.5.22.5.5v2.5c0 .28-.22.5-.5.5zm0 14c-.28 0-.5.22-.5.5V22c0 .28.22.5.5.5s.5-.22.5-.5v-2.5c0-.28-.22-.5-.5-.5zM3.5 12c0 .28-.22.5-.5.5H.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5H3c.28 0 .5.22.5.5zm20 0c0 .28.22.5.5.5h2.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5H24c-.28 0-.5.22-.5.5zM4.93 4.93c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zm14.14 14.14c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zM4.93 19.07c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71zm14.14-14.14c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71z"/>
+                            </svg>
+                        </div>
+                        <div class="timeline-bar"></div>
+                        <div class="sun-icon sunset">
+                            <svg viewBox="0 0 24 24" width="24" height="24">
+                                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 12c-.28 0-.5.22-.5.5V22c0 .28.22.5.5.5s.5-.22.5-.5v-2.5c0-.28-.22-.5-.5-.5zM3.5 12c0 .28-.22.5-.5.5H.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5H3c.28 0 .5.22.5.5zm20 0c0 .28.22.5.5.5h2.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5H24c-.28 0-.5.22-.5.5zM4.93 4.93c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zm14.14 14.14c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zM4.93 19.07c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71zm14.14-14.14c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="time-labels">
+                        <span id="sunrise-time">--:-- AM</span>
+                        <span id="sunset-time">--:-- PM</span>
+                    </div>
+                </div>
+                <div class="day-length">
+                    <span id="day-length">Day length: --:--</span>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Notification for outdated data -->
@@ -681,7 +1064,15 @@
 
     <!-- Credits Section -->
     <div class="credits">
-        <p>Created with the Grace of God by Jesse Hasty with <a href="https://cursor.sh" target="_blank">Cursor</a></p>
+        <p>Weather data provided by <a href="https://www.weather.gov/" target="_blank">National Weather Service</a> and <a href="https://ambientweather.com/" target="_blank">Ambient Weather</a></p>
+        <p>Icons by <a href="https://www.amcharts.com/free-animated-svg-weather-icons/" target="_blank">amCharts</a></p>
+
+        <p>Created with the Grace of God by Jesse Hasty (JesseLikesWeather, LaprasLover), with <a href="https://www.cursor.com">Cursor</a></p>
+    </div>
+
+    <div class="bible-verse">
+        <p>"Trust in the Lord with all your heart, and lean not on your own understanding; in all your ways acknowledge Him, and He shall direct your paths."</p>
+        <p class="verse-reference">- Proverbs 3:5-6 (NKJV)</p>
     </div>
 
     <!-- USA Weather Finder Link -->
@@ -693,6 +1084,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
+    <script src="cameras.js"></script>
 
     <!-- Weather metric graphs -->
     <div id="tempGraph" class="weather-graph">

@@ -20,7 +20,7 @@ const activeGraphs = new Set();
 // Global variables for update tracking
 let lastTemperature = null;
 let lastUpdateTime = null;
-let updateInterval = 300000; // 5 minutes in milliseconds
+const updateInterval = 1.5 * 60 * 1000; // 1 minute and 30 seconds in milliseconds
 
 // Function to convert degrees to compass direction
 function degreesToCompass(degrees) {
@@ -144,14 +144,13 @@ function getColorRangeForTemp(temp) {
 function animateTemperature(element, targetTemp, duration = 2000) {
     // Extract the numeric value from the target temperature
     const targetValue = Math.round(parseFloat(targetTemp));
-    const isNegative = targetValue < 0;
     
-    // Set initial value
-    let currentValue = 0;
-    element.textContent = `${currentValue}°F`;
+    // Get the current displayed temperature
+    const currentDisplayedTemp = parseFloat(element.textContent);
+    const startValue = isNaN(currentDisplayedTemp) ? 0 : currentDisplayedTemp;
     
     // Get initial color
-    const initialColor = getColorForTemp(0);
+    const initialColor = getColorForTemp(startValue);
     element.style.color = initialColor;
     
     // Start the animation
@@ -162,11 +161,10 @@ function animateTemperature(element, targetTemp, duration = 2000) {
         const progress = Math.min(elapsedTime / duration, 1);
         
         // Use easing function to slow down as we approach the target
-        // This creates a more natural, smooth animation
         const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
         
         // Calculate current value based on eased progress
-        currentValue = Math.round(easedProgress * targetValue);
+        const currentValue = Math.round(startValue + (targetValue - startValue) * easedProgress);
         
         // Update the element
         element.textContent = `${currentValue}°F`;
@@ -262,6 +260,39 @@ function updateTemperatureDifference(currentTemp) {
     lastTemperature = currentTemp;
 }
 
+// Function to format time for sunrise/sunset
+function formatSunTime(date) {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const formattedHours = hours % 12 || 12;
+    return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+}
+
+// Function to calculate day length
+function calculateDayLength(sunrise, sunset) {
+    const diff = sunset - sunrise;
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}:${minutes.toString().padStart(2, '0')}`;
+}
+
+// Function to update sunrise/sunset times
+function updateSunTimes(sunrise, sunset) {
+    document.getElementById('sunrise-time').textContent = formatSunTime(sunrise);
+    document.getElementById('sunset-time').textContent = formatSunTime(sunset);
+    document.getElementById('day-length').textContent = `Day length: ${calculateDayLength(sunrise, sunset)}`;
+    
+    // Update timeline bar position based on current time
+    const now = new Date();
+    const totalDayLength = sunset - sunrise;
+    const timeSinceSunrise = now - sunrise;
+    const progress = Math.min(Math.max(timeSinceSunrise / totalDayLength, 0), 1);
+    
+    const timelineBar = document.querySelector('.timeline-bar');
+    timelineBar.style.width = `${progress * 100}%`;
+}
+
 // Function to update the weather data
 async function updateWeather() {
     try {
@@ -287,6 +318,16 @@ async function updateWeather() {
         // Get Ambient Weather data
         const ambientResponse = await fetch(`${AMBIENT_WEATHER_BASE_URL}/devices?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
         const ambientData = await ambientResponse.json();
+
+        // Get sunrise/sunset data
+        const sunDataResponse = await fetch(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`);
+        const sunData = await sunDataResponse.json();
+        
+        if (sunData.status === 'OK') {
+            const sunrise = new Date(sunData.results.sunrise);
+            const sunset = new Date(sunData.results.sunset);
+            updateSunTimes(sunrise, sunset);
+        }
 
         // Update current conditions
         if (ambientData && ambientData.length > 0) {
@@ -476,7 +517,7 @@ function getChartConfig(metric, data) {
                 label: config.label,
                 data: data,
                 borderColor: config.color,
-                tension: 0.1,
+                tension: 0.4,
                 fill: false
             }]
         },
@@ -686,6 +727,44 @@ document.addEventListener('DOMContentLoaded', function() {
     unitToggle.addEventListener('click', function(event) {
         console.log("Unit toggle clicked:", this.checked);
         console.log("Click event:", event);
+    });
+
+    // Menu functionality
+    const menuButton = document.getElementById('menu-button');
+    const menuPopup = document.getElementById('menu-popup');
+
+    // Toggle menu popup
+    menuButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (menuPopup.classList.contains('visible')) {
+            menuPopup.classList.add('closing');
+            setTimeout(() => {
+                menuPopup.classList.remove('visible', 'closing');
+            }, 300); // Match the animation duration
+        } else {
+            menuPopup.classList.add('visible');
+        }
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!menuPopup.contains(e.target) && !menuButton.contains(e.target)) {
+            menuPopup.classList.add('closing');
+            setTimeout(() => {
+                menuPopup.classList.remove('visible', 'closing');
+            }, 300); // Match the animation duration
+        }
+    });
+
+    // Close menu when clicking a menu item
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach(item => {
+        item.addEventListener('click', () => {
+            menuPopup.classList.add('closing');
+            setTimeout(() => {
+                menuPopup.classList.remove('visible', 'closing');
+            }, 300); // Match the animation duration
+        });
     });
 });
 
@@ -1024,4 +1103,61 @@ function updateDisplayedUnits(isMetric) {
     } catch (error) {
         console.error("Error updating displayed units:", error);
     }
+}
+
+function createGraph(canvasId, data, label, color, unit) {
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    return new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.labels,
+            datasets: [{
+                label: label,
+                data: data.values,
+                borderColor: color,
+                backgroundColor: color + '20',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4, // Add curve to the lines
+                pointRadius: 0, // Hide points for smoother appearance
+                pointHoverRadius: 5 // Show points on hover
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y}${unit}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false
+                    }
+                },
+                y: {
+                    beginAtZero: false,
+                    grid: {
+                        color: '#f0f0f0'
+                    }
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
 } 
