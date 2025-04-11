@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embed Weather Widget</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #3498db;
+            margin: 25px 0 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            overflow-x: auto;
+            font-family: monospace;
+            font-size: 14px;
+        }
+
+        .code-block code {
+            color: #e83e8c;
+        }
+
+        .widget-preview {
+            max-width: 400px;
+            margin: 30px auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .widget-preview iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+        }
+
+        .steps {
+            margin: 20px 0;
+            padding-left: 20px;
+        }
+
+        .steps li {
+            margin-bottom: 10px;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .button {
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 20px;
+            transition: background 0.3s;
+        }
+
+        .button:hover {
+            background: #2980b9;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .location-container {
+            display: flex;
+            align-items: center;
+        }
+
+        .location {
+            margin-left: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #3498db;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+    <div class="container">
+        <div class="header">
+            <div class="location-container">
+                <h1>Weather Dashboard</h1>
+            </div>
+            <p class="location">Milton, FL, USA</p>
+        </div>
+        
+        <p>Insert my weather stations weather widget on your website. The widget displays real-time weather data from Milton, FL.</p>
+        
+        <h2>Widget Preview</h2>
+        <div class="widget-preview">
+            <iframe src="widget.html" title="Weather Widget"></iframe>
+        </div>
+        
+        <h2>How to Embed</h2>
+        <p>To embed the weather widget on your website, follow these steps:</p>
+        
+        <ol class="steps">
+            <li>Copy the following HTML code:</li>
+        </ol>
+        
+        <div class="code-block">
+            <code>&lt;iframe src="https://jessewx2011.github.io/Milton-Weather-Page/widget.html" width="400" height="300" frameborder="0" title="Weather Widget"&gt;&lt;/iframe&gt;</code>
+        </div>
+        
+        <ol class="steps" start="2">
+            <li>Paste the code into your website's HTML where you want the widget to appear.</li>
+            <li>Adjust the width and height values as needed to fit your website's layout.</li>
+        </ol>
+        
+        
+        <h2>Customization Options</h2>
+        <p>You can customize the widget by modifying the CSS in the widget.html file. The widget is responsive and will adapt to different screen sizes.</p>
+        
+
+        <h2>Download Widget Files</h2>
+        <p>To use the widget on your own website, you'll need to download and host these files:</p>
+        <ul class="steps">
+            <li><a href="widget.html" download>widget.html</a> - The main widget file</li>
+            <li><a href="widget.js" download>widget.js</a> - The JavaScript file that fetches weather data</li>
+        </ul>
+        
+        <div class="footer">
+            <p>Milton Weather Station &copy; 2023-2025 | Powered by Ambient Weather & National Weather Service</p>
+        </div>
+    </div>
+</body>
+</html> 

@@ -10,9 +10,9 @@ const CAMERA_CONFIG = {
         },
         {
             id: 'camera2',
-            name: 'FL511 Traffic Cam 2',
+            name: 'Navarre Beach Cam',
             url: 'https://1-or.vdn.terrafox.net/NBL/nbl-1.stream/chunks_dvr.m3u8',
-            location: 'Florida Highway',
+            location: 'Navarre Cam',
             type: 'application/x-mpegURL'
         }
     ]
@@ -65,7 +65,7 @@ class CameraManager {
         const cameraElement = document.createElement('div');
         cameraElement.className = 'camera-feed';
         cameraElement.innerHTML = `
-            <video id="camera-${source.id}" class="video-js" controls>
+            <video id="camera-${source.id}" class="video-js" autoplay muted playsinline>
                 <source src="${source.url}" type="application/x-mpegURL">
             </video>
             <div class="camera-info">${source.name}</div>

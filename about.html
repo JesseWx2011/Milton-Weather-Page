@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Milton Weather Station</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #3498db;
+            margin: 25px 0 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        .profile-section {
+            display: flex;
+            align-items: center;
+            margin: 30px 0;
+            gap: 20px;
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #3498db;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .station-info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .station-info h3 {
+            color: #3498db;
+            margin-bottom: 10px;
+        }
+
+        .station-info ul {
+            list-style-type: none;
+        }
+
+        .station-info li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .station-info i {
+            margin-right: 10px;
+            color: #3498db;
+            width: 20px;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #3498db;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+    <div class="container">
+        <h1>About Milton Weather Station</h1>
+        
+        <div class="profile-section">
+            <img src="profileheader.JPG" alt="Weather Station Operator" class="profile-image">
+            <div class="profile-info">
+                <h2>Jesse Weather Station Operator</h2>
+                <p>Hi! I'm Jesse, I'm a 14 year old teenager who has a passion for Jesus Christ and the weather. I started coding at the age of 12, and it's a skill I developed by myself, this entire project started in 2023, when I was building a test weather app that unexpectedly became a reality.</p>
+                <p>I have developed a passion for weather at the age of 4, when I started familarizing myself with weather radars, I had no idea how far this would take me.</p>
+            </div>
+        </div>
+        
+        <h2>About the Station</h2>
+        <div class="station-info">
+            <h3>Station Details</h3>
+            <ul>
+                <li><i class="fas fa-map-marker-alt"></i> Location: Milton, Florida, USA</li>
+                <li><i class="fas fa-calendar-alt"></i> Established: 2023 (With this Page Established in 2025)</li>
+                <li><i class="fas fa-tachometer-alt"></i> Update Frequency: Every 1 1/2 minutes</li>
+                <li><i class="fas fa-database"></i> Data Source: Ambient Weather API & National Weather Service</li>
+            </ul>
+        </div>
+        
+        <h2>Equipment</h2>
+        <p>The Milton Weather Station is equipped with professional-grade weather monitoring equipment, including:</p>
+        <ul>
+            <li>Ambient Weather WS-2000 Weather Station</li>
+            <li>WW31H Lightning Detector</li>
+        </ul>
+        
+        <h2>Social Media</h2>
+        <p>I post on these platforms, so check them out!</p>
+        <ul>
+            <li><i class="fab fa-instagram"></i> Instagram: @jesselikesweather</li>
+            <li><i class="fab fa-youtube"></i> YouTube: @JesseLikesWeather</li>
+            <li><i class="fab fa-twitter"></i> Twitter: @JesseWeather000</li>
+        </ul>
+        
+        <div class="footer">
+            <p>Milton Weather Station &copy; 2023-2025 | Powered by Ambient Weather & National Weather Service</p>
+        </div>
+    </div>
+</body>
+</html> 

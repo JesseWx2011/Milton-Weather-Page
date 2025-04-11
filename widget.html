@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Widget</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .widget-container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            font-size: 14px;
+        }
+
+        .widget-header {
+            background: linear-gradient(135deg, #4a90e2, #2c3e50);
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .widget-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .widget-location {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .widget-content {
+            padding: 15px;
+        }
+
+        .widget-main {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .widget-temp {
+            font-size: 36px;
+            font-weight: 700;
+            margin-right: 15px;
+        }
+
+        .widget-icon {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .widget-icon i {
+            font-size: 40px;
+        }
+
+        .widget-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .widget-detail {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .widget-detail-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .widget-detail-value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .widget-footer {
+            background: #f0f0f0;
+            padding: 10px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .widget-footer a {
+            color: #4a90e2;
+            text-decoration: none;
+        }
+
+        .widget-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .widget-update {
+            font-size: 11px;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="widget-container">
+        <div class="widget-header">
+            <div class="widget-title">Milton Weather Station</div>
+            <div class="widget-location" id="location">Loading location...</div>
+        </div>
+        <div class="widget-content">
+            <div class="widget-main">
+                <div class="widget-temp" id="current-temp">--°F</div>
+                <div class="widget-icon">
+                    <i class="fas fa-sun" id="weather-icon"></i>
+                </div>
+            </div>
+            <div class="widget-details">
+                <div class="widget-detail">
+                    <div class="widget-detail-label">Feels Like</div>
+                    <div class="widget-detail-value" id="feels-like">--°F</div>
+                </div>
+                <div class="widget-detail">
+                    <div class="widget-detail-label">Humidity</div>
+                    <div class="widget-detail-value" id="humidity">--%</div>
+                </div>
+                <div class="widget-detail">
+                    <div class="widget-detail-label">Wind</div>
+                    <div class="widget-detail-value" id="wind">-- mph</div>
+                </div>
+                <div class="widget-detail">
+                    <div class="widget-detail-label">Dew Point</div>
+                    <div class="widget-detail-value" id="dew-point">--°F</div>
+                </div>
+            </div>
+            <div class="widget-update" id="last-update">Last updated: --</div>
+        </div>
+        <div class="widget-footer">
+            <a href="index.html" target="_blank">View Full Dashboard</a>
+            <div class="widget-update">Powered by Ambient Weather & NWS</div>
+        </div>
+    </div>
+
+    <script src="widget.js"></script>
+</body>
+</html> 

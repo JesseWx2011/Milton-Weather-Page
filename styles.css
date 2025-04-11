@@ -1,0 +1,110 @@
+.forecast-day {
+    text-align: center;
+    padding: 15px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.forecast-day h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.forecast-day img {
+    width: 50px;
+    height: 50px;
+    margin: 10px 0;
+}
+
+.forecast-temp {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 5px 0;
+    color: #2196F3;
+}
+
+.forecast-condition {
+    font-size: 0.9em;
+    color: #666;
+    margin: 5px 0;
+}
+
+.forecast-details {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.forecast-precip, .forecast-wind {
+    font-size: 0.9em;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.forecast-precip i {
+    color: #2196F3;
+}
+
+.forecast-wind i {
+    color: #4CAF50;
+}
+
+.location-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 5px;
+    position: relative;
+}
+
+.reload-button {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    color: #666;
+}
+
+.reload-button:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #333;
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.reload-button:active {
+    transform: translateY(-50%) rotate(360deg);
+}
+
+.reload-button svg {
+    width: 24px;
+    height: 24px;
+}
+
+.location {
+    color: #666;
+    font-size: 1.2em;
+    margin: 0 0 15px 0;
+    font-weight: 300;
+    text-align: center;
+}
+
+.temp-feel {
+    font-size: 0.5em;
+    color: #666;
+    margin-top: 5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+} 

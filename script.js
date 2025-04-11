@@ -72,7 +72,7 @@ function getTempTextColor(temp) {
     if (temp < 43) return "#90caf9"; // Pale Blue
     if (temp < 55) return "#bbdefb"; // Very Light Blue
     if (temp < 66) return "#e3f2fd"; // Extremely Light Blue
-    if (temp < 79) return "#f5f5f5"; // Light Gray
+    if (temp < 79) return "#fff3e0"; // Light Gray
     if (temp < 87) return "#ffccbc"; // Light Orange
     if (temp < 95) return "#ffab91"; // Orange
     if (temp < 99) return "#ff7043"; // Deep Orange
@@ -117,7 +117,7 @@ function getColorForTemp(temp) {
     if (temp < 43) return "#90caf9"; // Pale Blue
     if (temp < 55) return "#bbdefb"; // Very Light Blue
     if (temp < 66) return "#e3f2fd"; // Extremely Light Blue
-    if (temp < 79) return "#f5f5f5"; // Light Gray
+    if (temp < 79) return "#fff3e0"; // Light Gray
     if (temp < 87) return "#ffccbc"; // Light Orange
     if (temp < 95) return "#ffab91"; // Orange
     if (temp < 99) return "#ff7043"; // Deep Orange
@@ -133,7 +133,7 @@ function getColorRangeForTemp(temp) {
     if (temp < 43) return { min: 32, max: 43, minColor: "#7986cb", maxColor: "#90caf9" };
     if (temp < 55) return { min: 43, max: 55, minColor: "#90caf9", maxColor: "#bbdefb" };
     if (temp < 66) return { min: 55, max: 66, minColor: "#bbdefb", maxColor: "#e3f2fd" };
-    if (temp < 79) return { min: 66, max: 79, minColor: "#e3f2fd", maxColor: "#f5f5f5" };
+    if (temp < 79) return { min: 66, max: 79, minColor: "#fff3e0", maxColor: "#ffe0b2" };
     if (temp < 87) return { min: 79, max: 87, minColor: "#f5f5f5", maxColor: "#ffccbc" };
     if (temp < 95) return { min: 87, max: 95, minColor: "#ffccbc", maxColor: "#ffab91" };
     if (temp < 99) return { min: 95, max: 99, minColor: "#ffab91", maxColor: "#ff7043" };
@@ -143,7 +143,7 @@ function getColorRangeForTemp(temp) {
 // Function to animate temperature counting up or down
 function animateTemperature(element, targetTemp, duration = 2000) {
     // Extract the numeric value from the target temperature
-    const targetValue = Math.round(parseFloat(targetTemp));
+    const targetValue = parseFloat(targetTemp);
     
     // Get the current displayed temperature
     const currentDisplayedTemp = parseFloat(element.textContent);
@@ -164,10 +164,10 @@ function animateTemperature(element, targetTemp, duration = 2000) {
         const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
         
         // Calculate current value based on eased progress
-        const currentValue = Math.round(startValue + (targetValue - startValue) * easedProgress);
+        const currentValue = startValue + (targetValue - startValue) * easedProgress;
         
         // Update the element
-        element.textContent = `${currentValue}°F`;
+        element.textContent = `${currentValue.toFixed(1)}°F`;
         
         // Get the color range for the current temperature
         const colorRange = getColorRangeForTemp(currentValue);
@@ -186,7 +186,7 @@ function animateTemperature(element, targetTemp, duration = 2000) {
             requestAnimationFrame(updateTemperature);
         } else {
             // Ensure final value is exactly the target
-            element.textContent = `${targetValue}°F`;
+            element.textContent = `${targetValue.toFixed(1)}°F`;
             element.style.color = getColorForTemp(targetValue);
         }
     }
@@ -291,6 +291,34 @@ function updateSunTimes(sunrise, sunset) {
     
     const timelineBar = document.querySelector('.timeline-bar');
     timelineBar.style.width = `${progress * 100}%`;
+    
+    // Check if it's past sunset
+    if (now > sunset) {
+        // Calculate time until next sunrise
+        const nextSunrise = new Date(sunrise);
+        nextSunrise.setDate(nextSunrise.getDate() + 1); // Set to next day
+        
+        const timeUntilSunrise = nextSunrise - now;
+        const hoursUntilSunrise = Math.floor(timeUntilSunrise / (1000 * 60 * 60));
+        const minutesUntilSunrise = Math.floor((timeUntilSunrise % (1000 * 60 * 60)) / (1000 * 60));
+        
+        // Create or update the sunset message
+        let sunsetMessage = document.getElementById('sunset-message');
+        if (!sunsetMessage) {
+            sunsetMessage = document.createElement('div');
+            sunsetMessage.id = 'sunset-message';
+            sunsetMessage.className = 'sunset-message';
+            document.querySelector('.day-length').after(sunsetMessage);
+        }
+        
+        sunsetMessage.textContent = `Sunset has already occurred today. Sunrise is in ${hoursUntilSunrise} hrs & ${minutesUntilSunrise} mins`;
+    } else {
+        // Remove the sunset message if it exists
+        const sunsetMessage = document.getElementById('sunset-message');
+        if (sunsetMessage) {
+            sunsetMessage.remove();
+        }
+    }
 }
 
 // Function to update the weather data
@@ -306,22 +334,27 @@ async function updateWeather() {
         // Get NWS forecast data
         const nwsResponse = await fetch(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
         const nwsData = await nwsResponse.json();
+        console.log('NWS Points API Response:', nwsData);
         
         // Get forecast data
         const forecastResponse = await fetch(nwsData.properties.forecast);
         const forecastData = await forecastResponse.json();
+        console.log('NWS Forecast API Response:', forecastData);
 
         // Get current conditions from NWS
         const currentConditionsResponse = await fetch(`${NWS_API_BASE_URL}/stations/KNDZ/observations/latest`);
         const currentConditions = await currentConditionsResponse.json();
+        console.log('NWS Current Conditions API Response:', currentConditions);
 
         // Get Ambient Weather data
         const ambientResponse = await fetch(`${AMBIENT_WEATHER_BASE_URL}/devices?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
         const ambientData = await ambientResponse.json();
+        console.log('Ambient Weather API Response:', ambientData);
 
         // Get sunrise/sunset data
         const sunDataResponse = await fetch(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`);
         const sunData = await sunDataResponse.json();
+        console.log('Sunrise/Sunset API Response:', sunData);
         
         if (sunData.status === 'OK') {
             const sunrise = new Date(sunData.results.sunrise);
@@ -332,7 +365,7 @@ async function updateWeather() {
         // Update current conditions
         if (ambientData && ambientData.length > 0) {
             const currentData = ambientData[0].lastData;
-            const currentTemp = Math.round(currentData.tempf);
+            const currentTemp = currentData.tempf;
             
             // Update temperature difference
             updateTemperatureDifference(currentTemp);
@@ -344,26 +377,23 @@ async function updateWeather() {
             // Update other elements
             document.getElementById('temp-feel').textContent = getTempFeel(currentData.tempf);
             document.getElementById('temp-feel').style.color = getTempTextColor(currentData.tempf);
-            document.getElementById('feels-like').textContent = `${Math.round(currentData.feelsLike)}°F`;
+            document.getElementById('feels-like').textContent = `${currentData.feelsLike.toFixed(1)}°F`;
             document.getElementById('humidity').textContent = `${currentData.humidity}%`;
             document.getElementById('wind').textContent = `${degreesToCompass(currentData.winddir)} ${currentData.windspeedmph} mph`;
             document.getElementById('pressure').textContent = `${currentData.baromrelin.toFixed(2)} inHg`;
-            document.getElementById('dew-point').textContent = `${Math.round(currentData.dewPoint)}°F`;
+            document.getElementById('dew-point').textContent = `${currentData.dewPoint.toFixed(1)}°F`;
             document.getElementById('rain-today').textContent = `${currentData.dailyrainin}"`;
 
             // Add current weather condition from NWS
             if (currentConditions && currentConditions.properties) {
                 const weatherIcon = document.getElementById('weather-icon');
-                const condition = isDaytime() ? "Sunny" : "Clear";
+                const condition = currentConditions.properties.textDescription || (isDaytime() ? "Sunny" : "Clear");
                 weatherIcon.innerHTML = `
                     <img src="${currentConditions.properties.icon}" alt="${condition}">
                     <p class="condition-text">${condition}</p>
                 `;
             }
         }
-
-        // Update location
-        document.getElementById('location').textContent = `${nwsData.properties.relativeLocation.properties.city}, ${nwsData.properties.relativeLocation.properties.state}, USA`;
 
         // Update forecast
         const forecastContainer = document.querySelector('.forecast');
@@ -375,8 +405,18 @@ async function updateWeather() {
             forecastDay.innerHTML = `
                 <h3>${period.name}</h3>
                 <img src="${period.icon}" alt="${period.shortForecast}" style="width: 50px; height: 50px;">
-                <p>${Math.round(period.temperature)}°F</p>
-                <p>${period.shortForecast}</p>
+                <p class="forecast-temp">${Math.round(period.temperature)}°F</p>
+                <p class="forecast-condition">${period.shortForecast}</p>
+                <div class="forecast-details">
+                    <p class="forecast-precip">
+                        <i class="fas fa-tint"></i> 
+                        Precip Chance: ${period.probabilityOfPrecipitation?.value || 0}%
+                    </p>
+                    <p class="forecast-wind">
+                        <i class="fas fa-wind"></i> 
+                        ${period.windSpeed} ${period.windDirection}
+                    </p>
+                </div>
             `;
             forecastContainer.appendChild(forecastDay);
         });
@@ -681,6 +721,21 @@ document.addEventListener('DOMContentLoaded', function() {
             showNotification();
         }
     }, 60000);
+    
+    // Add reload button event listener
+    const reloadButton = document.getElementById('reload-weather');
+    reloadButton.addEventListener('click', function() {
+        // Add a spinning animation class
+        this.classList.add('spinning');
+        
+        // Update the weather
+        updateWeather().finally(() => {
+            // Remove the spinning animation after a short delay
+            setTimeout(() => {
+                this.classList.remove('spinning');
+            }, 1000);
+        });
+    });
     
     // Initial weather update
     updateWeather();
@@ -1047,7 +1102,7 @@ function updateDisplayedUnits(isMetric) {
             return;
         }
         
-        const tempValue = parseFloat(currentTemp.textContent);
+        const tempValue = parseFloat(currentTemp.textContent.replace('°F', '').replace('°C', ''));
         console.log("Current temperature:", tempValue);
         
         currentTemp.textContent = isMetric ? 
@@ -1056,7 +1111,7 @@ function updateDisplayedUnits(isMetric) {
 
         // Feels like
         const feelsLike = document.getElementById('feels-like');
-        const feelsLikeValue = parseFloat(feelsLike.textContent);
+        const feelsLikeValue = parseFloat(feelsLike.textContent.replace('°F', '').replace('°C', ''));
         feelsLike.textContent = isMetric ? 
             `${fahrenheitToCelsius(feelsLikeValue).toFixed(1)}°C` : 
             `${feelsLikeValue.toFixed(1)}°F`;
@@ -1064,28 +1119,28 @@ function updateDisplayedUnits(isMetric) {
         // Wind speed
         const wind = document.getElementById('wind');
         const windParts = wind.textContent.split(' ');
-        const windSpeed = parseFloat(windParts[1]);
+        const windSpeed = parseFloat(windParts[1].replace('mph', '').replace('km/h', ''));
         wind.textContent = isMetric ? 
             `${windParts[0]} ${mphToKmh(windSpeed).toFixed(1)} km/h` : 
             `${windParts[0]} ${windSpeed.toFixed(1)} mph`;
 
         // Pressure
         const pressure = document.getElementById('pressure');
-        const pressureValue = parseFloat(pressure.textContent);
+        const pressureValue = parseFloat(pressure.textContent.replace('inHg', '').replace('hPa', ''));
         pressure.textContent = isMetric ? 
             `${inHgToHpa(pressureValue).toFixed(1)} hPa` : 
             `${pressureValue.toFixed(2)} inHg`;
 
         // Dew point
         const dewPoint = document.getElementById('dew-point');
-        const dewPointValue = parseFloat(dewPoint.textContent);
+        const dewPointValue = parseFloat(dewPoint.textContent.replace('°F', '').replace('°C', ''));
         dewPoint.textContent = isMetric ? 
             `${fahrenheitToCelsius(dewPointValue).toFixed(1)}°C` : 
             `${dewPointValue.toFixed(1)}°F`;
 
         // Rain today
         const rainToday = document.getElementById('rain-today');
-        const rainValue = parseFloat(rainToday.textContent);
+        const rainValue = parseFloat(rainToday.textContent.replace('"', '').replace('mm', ''));
         rainToday.textContent = isMetric ? 
             `${inchesToMm(rainValue).toFixed(1)} mm` : 
             `${rainValue.toFixed(1)}"`;
@@ -1093,8 +1148,8 @@ function updateDisplayedUnits(isMetric) {
         // Update forecast temperatures
         const forecastDays = document.querySelectorAll('.forecast-day p');
         forecastDays.forEach(day => {
-            if (day.textContent.includes('°F')) {
-                const temp = parseFloat(day.textContent);
+            if (day.textContent.includes('°F') || day.textContent.includes('°C')) {
+                const temp = parseFloat(day.textContent.replace('°F', '').replace('°C', ''));
                 day.textContent = isMetric ? 
                     `${fahrenheitToCelsius(temp).toFixed(1)}°C` : 
                     `${temp.toFixed(1)}°F`;

@@ -162,10 +162,11 @@
         }
 
         .temp-feel {
-            font-size: 0.5em;
-            color: #666;
-            margin-top: 5px;
-        }
+    font-size: 0.5em;
+    color: #666;
+    margin-top: 5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+} 
 
         .weather-graph {
             display: none;
@@ -555,6 +556,17 @@
             margin-top: 10px;
         }
 
+        .sunset-message {
+            text-align: center;
+            font-size: 14px;
+            color: #e74c3c;
+            margin-top: 10px;
+            padding: 8px;
+            background-color: rgba(231, 76, 60, 0.1);
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
         .unit-toggle {
             position: absolute;
             top: 20px;
@@ -907,21 +919,65 @@
             height: 70vh;
             width: 100%;
         }
+
+        .location-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .reload-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+
+        .reload-button:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333;
+            transform: rotate(180deg);
+        }
+
+        .reload-button:active {
+            transform: rotate(360deg);
+        }
+
+        .reload-button svg {
+            width: 24px;
+            height: 24px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Weather Dashboard</h1>
-            <p id="location">Loading location...</p>
+            <div class="location-container">
+                <h1>Weather Dashboard</h1>
+                <button id="reload-weather" class="reload-button" title="Refresh weather data">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="location">Milton, FL, USA</p>
             <button id="menu-button" class="menu-button">
                 <svg viewBox="0 0 24 24" width="24" height="24">
                     <path fill="currentColor" d="M3 6h18v2H3V6zm0 5h18v2H3v-2zm0 5h18v2H3v-2z"/>
                 </svg>
             </button>
             <div id="menu-popup" class="menu-popup">
-                <a href="index.html" class="menu-item">Dashboard</a>
                 <a href="trends.html" class="menu-item">Weather Trends</a>
+                <a href="cameras.html" class="menu-item">Weather Cameras</a>
+                <a href="embed.html" class="menu-item">Embed Widget</a>
+                <a href="about.html" class="menu-item">About</a>
             </div>
             <p id="last-update">Last updated: --:--:--</p>
             <p id="next-update">Next update in: --:--</p>
