@@ -162,11 +162,11 @@
         }
 
         .temp-feel {
-    font-size: 0.5em;
-    color: #666;
-    margin-top: 5px;
-    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-} 
+            font-size: 0.5em;
+            color: #666;
+            margin-top: 5px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        } 
 
         .weather-graph {
             display: none;
@@ -954,6 +954,28 @@
             width: 24px;
             height: 24px;
         }
+
+        /* Error Alert Box */
+        .error-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: red;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 3000;
+            display: none; /* Hidden by default */
+        }
+
+        .error-alert h1 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .error-alert p {
+            margin: 5px 0 0;
+        }
     </style>
 </head>
 <body>
@@ -975,7 +997,6 @@
             </button>
             <div id="menu-popup" class="menu-popup">
                 <a href="trends.html" class="menu-item">Weather Trends</a>
-                <a href="cameras.html" class="menu-item">Weather Cameras</a>
                 <a href="embed.html" class="menu-item">Embed Widget</a>
                 <a href="about.html" class="menu-item">About</a>
             </div>
@@ -1095,6 +1116,12 @@
         </div>
     </div>
 
+    <!-- Error Alert Box -->
+    <div class="error-alert" id="error-alert">
+        <h1>Error</h1>
+        <p>An error has occurred, reload this page.</p>
+    </div>
+
     <!-- Notification for outdated data -->
     <div id="outdated-notification" class="notification">
         <div class="notification-content">
@@ -1137,6 +1164,7 @@
             <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
         </a>
     </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
     <script src="cameras.js"></script>

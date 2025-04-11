@@ -321,6 +321,21 @@ function updateSunTimes(sunrise, sunset) {
     }
 }
 
+// Function to retry fetching data until successful
+async function fetchWithRetry(url, options = {}, retries = 5, delay = 1000) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            return await response.json();
+        } catch (error) {
+            console.error(`Fetch attempt ${i + 1} failed: ${error.message}`);
+            if (i < retries - 1) await new Promise(res => setTimeout(res, delay));
+        }
+    }
+    throw new Error('Max retries reached');
+}
+
 // Function to update the weather data
 async function updateWeather() {
     try {
@@ -332,28 +347,23 @@ async function updateWeather() {
         const { latitude, longitude } = position.coords;
 
         // Get NWS forecast data
-        const nwsResponse = await fetch(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
-        const nwsData = await nwsResponse.json();
+        const nwsData = await fetchWithRetry(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
         console.log('NWS Points API Response:', nwsData);
         
         // Get forecast data
-        const forecastResponse = await fetch(nwsData.properties.forecast);
-        const forecastData = await forecastResponse.json();
+        const forecastData = await fetchWithRetry(nwsData.properties.forecast);
         console.log('NWS Forecast API Response:', forecastData);
 
         // Get current conditions from NWS
-        const currentConditionsResponse = await fetch(`${NWS_API_BASE_URL}/stations/KNDZ/observations/latest`);
-        const currentConditions = await currentConditionsResponse.json();
+        const currentConditions = await fetchWithRetry(`${NWS_API_BASE_URL}/stations/kNDZ/observations/latest`);
         console.log('NWS Current Conditions API Response:', currentConditions);
 
         // Get Ambient Weather data
-        const ambientResponse = await fetch(`${AMBIENT_WEATHER_BASE_URL}/devices?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
-        const ambientData = await ambientResponse.json();
+        const ambientData = await fetchWithRetry(`${AMBIENT_WEATHER_BASE_URL}/devices?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
         console.log('Ambient Weather API Response:', ambientData);
 
         // Get sunrise/sunset data
-        const sunDataResponse = await fetch(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`);
-        const sunData = await sunDataResponse.json();
+        const sunData = await fetchWithRetry(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`);
         console.log('Sunrise/Sunset API Response:', sunData);
         
         if (sunData.status === 'OK') {
@@ -388,10 +398,20 @@ async function updateWeather() {
             if (currentConditions && currentConditions.properties) {
                 const weatherIcon = document.getElementById('weather-icon');
                 const condition = currentConditions.properties.textDescription || (isDaytime() ? "Sunny" : "Clear");
-                weatherIcon.innerHTML = `
-                    <img src="${currentConditions.properties.icon}" alt="${condition}">
+
+                weatherIconSrc = currentConditions.properties.icon
+               
+                if (weatherIconSrc = null) {
+                weatherIcon.innerHTML = ` 
+                    <img src="./NA.jpg">
                     <p class="condition-text">${condition}</p>
                 `;
+            } else {
+                weatherIcon.innerHTML = ` 
+                <img src="${currentConditions.properties.icon}">
+                <p class="condition-text">${condition}</p>
+            `;
+            }
             }
         }
 
@@ -427,8 +447,7 @@ async function updateWeather() {
         document.getElementById('last-update').textContent = `Last updated: ${formatDate(now)}`;
 
         // Check for alerts
-        const alertsResponse = await fetch(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
-        const alertsData = await alertsResponse.json();
+        const alertsData = await fetchWithRetry(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
         
         const alertsContainer = document.getElementById('alerts');
         const currentTime = new Date().getTime();
@@ -851,18 +870,12 @@ function formatDifference(value1, value2, unit = '') {
 async function getNearbyStations(latitude, longitude) {
     try {
         // First get the grid endpoint for the location
-        const gridResponse = await fetch(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
-        if (!gridResponse.ok) {
-            throw new Error(`Failed to get grid data: ${gridResponse.status}`);
-        }
-        const gridData = await gridResponse.json();
+        const gridResponse = await fetchWithRetry(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
+        const gridData = gridResponse;
         
         // Then get the stations for that grid
-        const stationsResponse = await fetch(`${NWS_API_BASE_URL}/gridpoints/${gridData.properties.gridId}/${gridData.properties.gridX},${gridData.properties.gridY}/stations`);
-        if (!stationsResponse.ok) {
-            throw new Error(`Failed to get stations data: ${stationsResponse.status}`);
-        }
-        const stationsData = await stationsResponse.json();
+        const stationsResponse = await fetchWithRetry(`${NWS_API_BASE_URL}/gridpoints/${gridData.properties.gridId}/${gridData.properties.gridX},${gridData.properties.gridY}/stations`);
+        const stationsData = stationsResponse;
         
         // Filter stations to only include those with current observations and within 40 miles
         const activeStations = stationsData.features.filter(station => {
@@ -904,8 +917,8 @@ async function getNearbyStations(latitude, longitude) {
 // Function to get METAR data for a station
 async function getMetarData(stationId) {
     try {
-        const response = await fetch(`${NWS_API_BASE_URL}/stations/${stationId}/observations/latest`);
-        const data = await response.json();
+        const response = await fetchWithRetry(`${NWS_API_BASE_URL}/stations/${stationId}/observations/latest`);
+        const data = response;
         return data;
     } catch (error) {
         console.error(`Error fetching METAR data for station ${stationId}:`, error);
