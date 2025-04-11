@@ -2,6 +2,8 @@
 <div>
   <center>
     This is a small weather page for my weather data.
-    <img src="Banner.jpg">
   </center>
+</div>
+<div>
+      <img src="Banner.jpg">
 </div>
