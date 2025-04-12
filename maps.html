@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12"></script>
+    <link rel="icon" type="image/png" sizes="512x512" href="Favicon.png">
+    </head>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Verdana, sans-serif;
+        }
+
+        p {
+            font-size: 15px;
+        }
+        .header {
+            text-align: center;
+            padding-top: 20px;
+        }
+        .subheader {
+            text-align: center;
+            padding-top: 10px;
+        }
+        .map-grid-left {
+            width: 48%;
+         }
+        .map-image {
+            width: 550px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex; /* Change to flex for centering */
+            justify-content: center; /* Center the image horizontally */
+            align-items: center; /* Center the image vertically */
+            margin: 0 auto; /* Center the image */
+            margin-top: 10px;
+            transition: transform 0.3s ease; /* Add transition for smooth effect */
+        }
+
+        .map-image:hover {
+            transform: scale(1.05); /* Slightly expand the image on hover */
+        }
+        .map-title {
+           text-align: center;
+        }
+        .padding-item {
+            height: 20px;
+        }
+
+        a:hover {
+            transition: all 0.5s;
+            color: palevioletred;
+            text-underline-offset: 1000000px;
+        }
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #3498db;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+        .right-map-grid {
+            width: 48%;
+            margin-left: 48%;
+            position: absolute;
+            padding-top: 1.5px;
+        }
+    </style>
+    <body>
+        <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+        <h1 class="header">Weather Maps</h1>
+        <p class="subheader">Maps come from <a href="https://www.wkrg.com/weather/maps/">WKRG-TV</a></p>
+ 
+        <div class="right-map-grid">
+        <div class="map-item">
+            <h2 class="map-title">Dew Points</h2>
+            <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/dma_dewpoints.jpg" alt="Dew Points Map">
+        </div>
+
+        <div class="padding-item"></div>
+
+        <div class="map-item">
+            <h2 class="map-title">Flood Alerts Map</h2>
+            <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_flood.jpg" alt="Flood AlertsMap">
+        </div>
+
+        <div class="padding-item"></div>
+
+        <div class="map-item">
+            <h2 class="map-title">Today's Fire Weather Threat</h2>
+            <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/fire_day1.jpg" alt="Fire Weather Forecast Map">
+        </div>
+
+        <div class="padding-item"></div>
+
+        <div class="map-item">
+            <h2 class="map-title">Today's Tornado Threat</h2>
+            <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/spc_day1_tor.jpg" alt="Day 1 Tornado Threat Map">
+        </div>
+
+        <div class="padding-item"></div>
+
+        <div class="map-item">
+            <h2 class="map-title">Today's Wind Threat</h2>
+            <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/spc_day1_wind.jpg" alt="Day 1 Damaging Wind Threat Map">
+        </div>
+
+        <div class="padding-item"></div>
+
+        <div class="map-item">
+            <h2 class="map-title">Tommorow's Tornado Threat</h2>
+            <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/spc_day2_tor.jpg" alt="Day 2 Tornado Threat Map">
+        </div>
+
+        <div class="padding-item"></div>
+
+        <div class="map-item">
+            <h2 class="map-title">Southeast US Temperature Forecast</h2>
+            <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/se_temps.jpg?w=876" alt="Southeast US Temperature Forecast Map">
+        </div>
+
+        <div class="padding-item"></div>
+
+        <div class="map-item">
+            <h2 class="map-title">Tommorow's Fire Threat</h2>
+            <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/fire_day2.jpg" alt="Day 2 Fire Threat Map">
+        </div>
+        
+    </div>
+        <!-- Left Map Grid -->
+        <div class="map-grid-left">
+            <div class="map-item">
+                <h2 class="map-title">Current Temperatures</h2>
+                <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/dma_temps.jpg" alt="Temperature Map">
+            </div>
+
+            <div class="padding-item"></div>
+
+            <div class="map-item">
+                <h2 class="map-title">Doppler Radar</h2>
+                <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/radar.gif" alt="Radar Map">
+            </div>
+
+            <div class="padding-item"></div>
+
+            <div class="map-item">
+                <h2 class="map-title">Current Winds</h2>
+                <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/dma_winds.jpg" alt="Winds Map">
+            </div>
+
+            <div class="padding-item"></div>
+
+            <div class="map-item">
+                <h2 class="map-title">Severe Weather Alerts</h2>
+                <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_severe.jpg" alt="Severe Weather Alerts Map">
+            </div>
+
+            <div class="padding-item"></div>
+
+            <div class="map-item">
+                <h2 class="map-title">Today's Severe Weather Forecast</h2>
+                <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/spc_day1.jpg" alt="Day 1 Severe Weather Forecast Map">
+            </div>
+
+            <div class="padding-item"></div>
+
+            <div class="map-item">
+                <h2 class="map-title">Tommorow's Severe Weather Forecast</h2>
+                <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/spc_day2.jpg" alt="Day 2 Severe Weather Forecast Map">
+            </div>
+
+            <div class="padding-item"></div>
+
+            <div class="map-item">
+                <h2 class="map-title">Heat Alerts</h2>
+                <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_heat.jpg" alt="Heat Alerts">
+            </div>
+
+            <div class="padding-item"></div>
+
+            <div class="map-item">
+                <h2 class="map-title">Wind Alerts</h2>
+                <img class="map-image" src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_wind.jpg" alt="Wind Alerts">
+            </div>
+        </div>
+    </div>
+    </body>
+    </html>

@@ -121,6 +121,11 @@
             background: white;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease; /* Added transition for smooth effect */
+        }
+
+        .forecast-day:hover {
+            transform: scale(1.05);
         }
 
         .alerts {
@@ -1006,6 +1011,8 @@
                 <a href="trends.html" class="menu-item">Weather Trends</a>
                 <a href="embed.html" class="menu-item">Embed Widget</a>
                 <a href="about.html" class="menu-item">About</a>
+                <a href="maps.html" class="menu-item">Weather Maps</a>
+                <a href="noaawxradio.html" class="menu-item">NOAA Weather Radio</a>
             </div>
             <p id="last-update">Last updated: --:--:--</p>
             <p id="next-update">Next update in: --:--</p>
@@ -1015,13 +1022,13 @@
         </div>
 
         <!-- Unit Toggle -->
-        <div class="unit-toggle">
+        <div class="unit-toggle" style="display: none;">
             <span class="unit-label-text">Units:</span>
             <div class="toggle-container">
                 <input type="checkbox" id="unit-toggle" class="unit-checkbox">
                 <label for="unit-toggle" class="toggle-label">
-                    <span class="unit-text imperial">Imperial</span>
-                    <span class="unit-text metric">Metric</span>
+                    <span class="unit-text imperial"></span>
+                    <span class="unit-text metric"></span>
                 </label>
             </div>
         </div>

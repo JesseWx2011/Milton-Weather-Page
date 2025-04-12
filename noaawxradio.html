@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOAA Weather Radio</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="Favicon.png">
+</head>
+<body>
+    <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+    <h1 class="header">NOAA Weather Radio</h1>
+    <h2 class="subheader">KEC83 - Pensacola, FL - 162.400 MHz</h2>
+
+    <div class="audio-container">
+        <audio controls>
+            <source src="https://broadcastify.cdnstream1.com/37380" type="audio/mpeg">
+            Your browser does not support the audio eleme`nt.
+        </audio>
+</div>
+<h2 class="subheader">What is NOAA Weather Radio?</h2>
+<p class="subheader">NOAA Weather Radio is a nationwide network of stations that provide 24/7 weather alerts and information. There are hundreds of networks actively broadcasting weather information across the United States & it's territories.</p>
+<p class="subheader">Here is a map of the coverage NOAA Weather Radio provides for the United States:</p>
+<img class="placeholder-image" src="./images/noaa-weather-radio/NWR_Propagation.png" alt="NOAA Weather Radio Coverage Map">
+
+<h2 class="subheader">List of NOAA Weather Radio Stations in the Pensacola, FL area:</h2>
+<p class="subheader">KEC86 - Pensacola, FL - 162.400 MHz</p>
+<p class="subheader">WNG646 - Brewton, AL - 162.475 MHz</p>
+<p class="subheader">KEC61 - Mobile, AL - 162.550 MHz</p>
+
+<p class="subheader">Find more information about NOAA Weather Radio <a href="https://www.weather.gov/nwr">here</a>.</p>
+</div>
+</body>
+</html>
+<style>
+    * {
+        font-family: Verdana, sans-serif;
+    }
+    body {
+        background-color: #f0f0f0;
+    }
+    .header {
+        text-align: center;
+        padding-top: 20px;
+    }
+    .subheader {
+        text-align: center;
+        padding-top: 20px;
+    }
+
+    .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #3498db;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+        .audio-container {
+            display: flex; /* Add this to enable flexbox */
+            flex-direction: column; /* Align items in a column */
+            align-items: center; /* Center items horizontally */
+            height: auto;
+        }
+        .placeholder-image {
+            width: auto;
+            height: auto;
+            margin-top: 20px;
+            display: block; /* Ensure it behaves like a block element */
+            margin-left: auto; /* Center the image */
+            margin-right: auto; /* Center the image */
+            transition: transform 0.3s ease; /* Add transition for smooth effect */
+        }
+
+        .placeholder-image:hover {
+            transform: scale(1.05); /* Slightly expand the image on hover */
+        }
+</style>
