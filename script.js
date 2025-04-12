@@ -371,6 +371,7 @@ async function updateWeather() {
             const sunset = new Date(sunData.results.sunset);
             updateSunTimes(sunrise, sunset);
         }
+        document.getElementById('loading-message').remove();
 
         // Update current conditions
         if (ambientData && ambientData.length > 0) {
@@ -722,6 +723,7 @@ window.addEventListener('resize', positionGraphs);
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
+
     console.log("DOM Content Loaded");
     
     // Update weather every 5 minutes
@@ -740,7 +742,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showNotification();
         }
     }, 60000);
-    
+
     // Add reload button event listener
     const reloadButton = document.getElementById('reload-weather');
     reloadButton.addEventListener('click', function() {
@@ -1228,4 +1230,5 @@ function createGraph(canvasId, data, label, color, unit) {
             }
         }
     });
+
 } 
