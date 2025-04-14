@@ -206,13 +206,17 @@ function isDataOutdated(lastUpdateTime) {
 // Function to show notification
 function showNotification() {
     const notification = document.getElementById('outdated-notification');
-    notification.classList.add('visible');
+    if (notification) {
+        notification.classList.add('visible');
+    }
 }
 
 // Function to hide notification
 function hideNotification() {
     const notification = document.getElementById('outdated-notification');
-    notification.classList.remove('visible');
+    if (notification) {
+        notification.classList.remove('visible');
+    }
 }
 
 // Function to format time remaining
@@ -230,12 +234,15 @@ function updateCountdown() {
     const nextUpdate = lastUpdateTime.getTime() + updateInterval;
     const timeRemaining = nextUpdate - now;
     
-    if (timeRemaining <= 0) {
-        document.getElementById('next-update').textContent = 'Updating...';
-        return;
+    const nextUpdateElement = document.getElementById('next-update');
+    if (nextUpdateElement) {
+        if (timeRemaining <= 0) {
+            nextUpdateElement.textContent = 'Updating...';
+            return;
+        }
+        
+        nextUpdateElement.textContent = `Next update in: ${formatTimeRemaining(timeRemaining)}`;
     }
-    
-    document.getElementById('next-update').textContent = `Next update in: ${formatTimeRemaining(timeRemaining)}`;
 }
 
 // Function to update temperature difference
@@ -243,19 +250,23 @@ function updateTemperatureDifference(currentTemp) {
     const tempChangeElement = document.getElementById('temp-change');
     
     if (lastTemperature === null) {
-        tempChangeElement.textContent = 'Temperature change: --°F';
-        tempChangeElement.className = 'temp-change neutral';
+        if (tempChangeElement) {
+            tempChangeElement.textContent = 'Temperature change: --°F';
+            tempChangeElement.className = 'temp-change neutral';
+        }
         lastTemperature = currentTemp;
         return;
     }
     
     const tempDiff = currentTemp - lastTemperature;
     const sign = tempDiff > 0 ? '+' : '';
-    tempChangeElement.textContent = `Temperature change: ${sign}${tempDiff.toFixed(1)}°F`;
-    
-    // Update class for color
-    tempChangeElement.className = 'temp-change ' + 
-        (tempDiff > 0 ? 'positive' : tempDiff < 0 ? 'negative' : 'neutral');
+    if (tempChangeElement) {
+        tempChangeElement.textContent = `Temperature change: ${sign}${tempDiff.toFixed(1)}°F`;
+        
+        // Update class for color
+        tempChangeElement.className = 'temp-change ' + 
+            (tempDiff > 0 ? 'positive' : tempDiff < 0 ? 'negative' : 'neutral');
+    }
     
     lastTemperature = currentTemp;
 }
@@ -279,9 +290,19 @@ function calculateDayLength(sunrise, sunset) {
 
 // Function to update sunrise/sunset times
 function updateSunTimes(sunrise, sunset) {
-    document.getElementById('sunrise-time').textContent = formatSunTime(sunrise);
-    document.getElementById('sunset-time').textContent = formatSunTime(sunset);
-    document.getElementById('day-length').textContent = `Day length: ${calculateDayLength(sunrise, sunset)}`;
+    const sunriseTimeElement = document.getElementById('sunrise-time');
+    const sunsetTimeElement = document.getElementById('sunset-time');
+    const dayLengthElement = document.getElementById('day-length');
+    
+    if (sunriseTimeElement) {
+        sunriseTimeElement.textContent = formatSunTime(sunrise);
+    }
+    if (sunsetTimeElement) {
+        sunsetTimeElement.textContent = formatSunTime(sunset);
+    }
+    if (dayLengthElement) {
+        dayLengthElement.textContent = `Day length: ${calculateDayLength(sunrise, sunset)}`;
+    }
     
     // Update timeline bar position based on current time
     const now = new Date();
@@ -290,7 +311,9 @@ function updateSunTimes(sunrise, sunset) {
     const progress = Math.min(Math.max(timeSinceSunrise / totalDayLength, 0), 1);
     
     const timelineBar = document.querySelector('.timeline-bar');
-    timelineBar.style.width = `${progress * 100}%`;
+    if (timelineBar) {
+        timelineBar.style.width = `${progress * 100}%`;
+    }
     
     // Check if it's past sunset
     if (now > sunset) {
@@ -308,7 +331,10 @@ function updateSunTimes(sunrise, sunset) {
             sunsetMessage = document.createElement('div');
             sunsetMessage.id = 'sunset-message';
             sunsetMessage.className = 'sunset-message';
-            document.querySelector('.day-length').after(sunsetMessage);
+            const dayLengthElement = document.querySelector('.day-length');
+            if (dayLengthElement) {
+                dayLengthElement.after(sunsetMessage);
+            }
         }
         
         sunsetMessage.textContent = `Sunset has already occurred today. Sunrise is in ${hoursUntilSunrise} hrs & ${minutesUntilSunrise} mins`;
@@ -322,7 +348,7 @@ function updateSunTimes(sunrise, sunset) {
 }
 
 // Function to retry fetching data until successful
-async function fetchWithRetry(url, options = {}, retries = 5, delay = 1000) {
+async function fetchWithRetry(url, options = {}, retries = 15, delay = 1000) {
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url, options);
@@ -371,7 +397,11 @@ async function updateWeather() {
             const sunset = new Date(sunData.results.sunset);
             updateSunTimes(sunrise, sunset);
         }
-        document.getElementById('loading-message').remove();
+        
+        const loadingMessage = document.getElementById('loading-message');
+        if (loadingMessage) {
+            loadingMessage.remove();
+        }
 
         // Update current conditions
         if (ambientData && ambientData.length > 0) {
@@ -386,66 +416,103 @@ async function updateWeather() {
             animateTemperature(tempElement, currentTemp);
             
             // Update other elements
-            document.getElementById('temp-feel').textContent = getTempFeel(currentData.tempf);
-            document.getElementById('temp-feel').style.color = getTempTextColor(currentData.tempf);
-            document.getElementById('feels-like').textContent = `${currentData.feelsLike.toFixed(1)}°F`;
-            document.getElementById('humidity').textContent = `${currentData.humidity}%`;
-            document.getElementById('wind').textContent = `${degreesToCompass(currentData.winddir)} ${currentData.windspeedmph} mph`;
-            document.getElementById('pressure').textContent = `${currentData.baromrelin.toFixed(2)} inHg`;
-            document.getElementById('dew-point').textContent = `${currentData.dewPoint.toFixed(1)}°F`;
-            document.getElementById('rain-today').textContent = `${currentData.dailyrainin}"`;
+            const tempFeelElement = document.getElementById('temp-feel');
+            if (tempFeelElement) {
+                tempFeelElement.textContent = getTempFeel(currentData.tempf);
+                tempFeelElement.style.color = getTempTextColor(currentData.tempf);
+            }
+            const feelsLikeElement = document.getElementById('feels-like');
+            if (feelsLikeElement) {
+                feelsLikeElement.textContent = `${currentData.feelsLike.toFixed(1)}°F`;
+            }
+            const humidityElement = document.getElementById('humidity');
+            if (humidityElement) {
+                humidityElement.textContent = `${currentData.humidity}%`;
+            }
+            const windElement = document.getElementById('wind');
+            if (windElement) {
+                windElement.textContent = `${degreesToCompass(currentData.winddir)} ${currentData.windspeedmph} mph`;
+            }
+            const pressureElement = document.getElementById('pressure');
+            if (pressureElement) {
+                pressureElement.textContent = `${currentData.baromrelin.toFixed(2)} inHg`;
+            }
+            const dewPointElement = document.getElementById('dew-point');
+            if (dewPointElement) {
+                dewPointElement.textContent = `${currentData.dewPoint.toFixed(1)}°F`;
+            }
+            const rainTodayElement = document.getElementById('rain-today');
+            if (rainTodayElement) {
+                rainTodayElement.textContent = `${currentData.dailyrainin}"`;
+            }
+
+            // Update UV Index
+            const uvIndexElement = document.getElementById('uv-index');
+            if (uvIndexElement) {
+                uvIndexElement.textContent = currentData.uv || '--';
+            }
+
+            // Update Solar Radiation
+            const solarRadiationElement = document.getElementById('solar-radiation');
+            if (solarRadiationElement) {
+                solarRadiationElement.textContent = `${currentData.solarradiation.toFixed(2)} W/m²`;
+            }
 
             // Add current weather condition from NWS
             if (currentConditions && currentConditions.properties) {
                 const weatherIcon = document.getElementById('weather-icon');
                 const condition = currentConditions.properties.textDescription || (isDaytime() ? "Sunny" : "Clear");
 
-                weatherIconSrc = currentConditions.properties.icon
-               
-                if (weatherIconSrc = null) {
-                weatherIcon.innerHTML = ` 
-                    <img src="./NA.jpg">
+                const weatherIconSrc = currentConditions.properties.icon;
+                if (!weatherIconSrc) {
+                    weatherIcon.innerHTML = ` 
+                        <img src="./NA.jpg">
+                        <p class="condition-text">${condition}</p>
+                    `;
+                } else {
+                    weatherIcon.innerHTML = ` 
+                    <img src="${currentConditions.properties.icon}">
                     <p class="condition-text">${condition}</p>
                 `;
-            } else {
-                weatherIcon.innerHTML = ` 
-                <img src="${currentConditions.properties.icon}">
-                <p class="condition-text">${condition}</p>
-            `;
-            }
+                }
             }
         }
 
         // Update forecast
         const forecastContainer = document.querySelector('.forecast');
-        forecastContainer.innerHTML = ''; // Clear existing forecast
+        if (forecastContainer) {
+            forecastContainer.innerHTML = ''; // Clear existing forecast
 
-        forecastData.properties.periods.slice(0, 5).forEach(period => {
-            const forecastDay = document.createElement('div');
-            forecastDay.className = 'forecast-day';
-            forecastDay.innerHTML = `
-                <h3>${period.name}</h3>
-                <img src="${period.icon}" alt="${period.shortForecast}" style="width: 50px; height: 50px;">
-                <p class="forecast-temp">${Math.round(period.temperature)}°F</p>
-                <p class="forecast-condition">${period.shortForecast}</p>
-                <div class="forecast-details">
-                    <p class="forecast-precip">
-                        <i class="fas fa-tint"></i> 
-                        Precip Chance: ${period.probabilityOfPrecipitation?.value || 0}%
-                    </p>
-                    <p class="forecast-wind">
-                        <i class="fas fa-wind"></i> 
-                        ${period.windSpeed} ${period.windDirection}
-                    </p>
-                </div>
-            `;
-            forecastContainer.appendChild(forecastDay);
-        });
+            forecastData.properties.periods.slice(0, 5).forEach(period => {
+                const forecastDay = document.createElement('div');
+                forecastDay.className = 'forecast-day';
+                forecastDay.innerHTML = `
+                    <h3>${period.name}</h3>
+                    <img src="${period.icon}" alt="${period.shortForecast}" style="width: 50px; height: 50px;">
+                    <p class="forecast-temp">${Math.round(period.temperature)}°F</p>
+                    <p class="forecast-condition">${period.shortForecast}</p>
+                    <div class="forecast-details">
+                        <p class="forecast-precip">
+                            <i class="fas fa-tint"></i> 
+                            Precip Chance: ${period.probabilityOfPrecipitation?.value || 0}%
+                        </p>
+                        <p class="forecast-wind">
+                            <i class="fas fa-wind"></i> 
+                            ${period.windSpeed} ${period.windDirection}
+                        </p>
+                    </div>
+                `;
+                forecastContainer.appendChild(forecastDay);
+            });
+        }
 
         // Update last update time
         const now = new Date();
         lastUpdateTime = now;
-        document.getElementById('last-update').textContent = `Last updated: ${formatDate(now)}`;
+        const lastUpdateElement = document.getElementById('last-update');
+        if (lastUpdateElement) {
+            lastUpdateElement.textContent = `Last updated: ${formatDate(now)}`;
+        }
 
         // Check for alerts
         const alertsData = await fetchWithRetry(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
@@ -479,7 +546,19 @@ async function updateWeather() {
 
     } catch (error) {
         console.error('Error updating weather:', error);
-        document.getElementById('location').textContent = 'Error loading weather data';
+        
+        // Check for specific error code
+        if (error.message.includes('429')) {
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                loadingMessage.textContent = 'Too Many requests for the API to handle, wait a minute, then try again.';
+            }
+        } else {
+            const locationElement = document.getElementById('location');
+            if (locationElement) {
+                locationElement.textContent = 'Error loading weather data';
+            }
+        }
     }
 }
 
@@ -526,6 +605,14 @@ function getHistoricalData(metric, currentValue) {
                 randomValue = baseValue + (Math.random() * 0.2);
                 randomValue = Math.max(randomValue, 0);
                 break;
+            case 'uv':
+                randomValue = baseValue + (Math.random() * 2 - 1); // Simulate UV Index
+                randomValue = Math.max(randomValue, 0); // UV Index can't be negative
+                break;
+            case 'solar':
+                randomValue = baseValue + (Math.random() * 50 - 25); // Simulate Solar Radiation
+                randomValue = Math.max(randomValue, 0); // Solar Radiation can't be negative
+                break;
         }
         data.push(Math.round(randomValue * 10) / 10);
     }
@@ -565,10 +652,25 @@ function getChartConfig(metric, data) {
             label: 'Rain (inches)',
             color: 'rgb(54, 162, 235)',
             title: 'Rain - Last 12 Hours'
+        },
+        uv: {
+            label: 'UV Index',
+            color: 'rgb(255, 215, 0)', // Yellow color for UV Index
+            title: 'UV Index - Last 12 Hours'
+        },
+        solar: {
+            label: 'Solar Radiation (W/m²)',
+            color: 'rgb(255, 165, 0)', // Orange color for Solar Radiation
+            title: 'Solar Radiation - Last 12 Hours'
         }
     };
 
     const config = configs[metric];
+    if (!config) {
+        console.error(`No configuration found for metric: ${metric}`);
+        return null; // Return null if no config is found
+    }
+
     return {
         type: 'line',
         data: {
@@ -698,9 +800,16 @@ function createWeatherGraph(metric) {
     }
     
     // Get current value from the DOM
-    const currentValue = document.getElementById(metric === 'temp' ? 'feels-like' : 
-                                             metric === 'dew-point' ? 'dew-point' : 
-                                             metric === 'rain' ? 'rain-today' : metric).textContent;
+    let currentValue;
+    if (metric === 'uv') {
+        currentValue = document.getElementById('uv-index').textContent;
+    } else if (metric === 'solar') {
+        currentValue = document.getElementById('solar-radiation').textContent;
+    } else {
+        currentValue = document.getElementById(metric === 'temp' ? 'feels-like' : 
+                                                 metric === 'dew-point' ? 'dew-point' : 
+                                                 metric === 'rain' ? 'rain-today' : metric).textContent;
+    }
     
     // Extract numeric value
     const numericValue = parseFloat(currentValue);
@@ -735,11 +844,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check for outdated data every minute
     setInterval(() => {
         const lastUpdateElement = document.getElementById('last-update');
-        const lastUpdateText = lastUpdateElement.textContent;
-        const lastUpdateTime = new Date(lastUpdateText.replace('Last updated: ', ''));
-        
-        if (isDataOutdated(lastUpdateTime)) {
-            showNotification();
+        if (lastUpdateElement) {
+            const lastUpdateText = lastUpdateElement.textContent;
+            const lastUpdateTime = new Date(lastUpdateText.replace('Last updated: ', ''));
+            
+            if (isDataOutdated(lastUpdateTime)) {
+                showNotification();
+            }
         }
     }, 60000);
 
@@ -1230,5 +1341,4 @@ function createGraph(canvasId, data, label, color, unit) {
             }
         }
     });
-
 } 

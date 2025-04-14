@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Imagery</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="Favicon.png">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .satellite-image {
+            width: 500px;
+            height: auto;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #3498db;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal img {
+            max-width: 90%;
+            max-height: 90%;
+            transform: scale(0);
+            animation: pop-in 0.85s forwards, ease;
+        }
+
+        @keyframes pop-in {
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .close-button {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+        }
+
+        /* Warning modal styles */
+        .warning-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: red; /* Red background */
+            color: white; /* White text */
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .warning-modal.show {
+            display: block;
+        }
+
+        .warning-content {
+            margin: 10px 0;
+        }
+
+        .event-button {
+            color: white;
+            display: inline-block;
+            border-radius: 4px;
+            padding: 8px 16px;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .event-button:hover {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Satellite Imagery</h1>
+            <h2>Southeast USA</h2>
+            <img class="satellite-image" src="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/smv/GEOCOLOR/2400x2400.jpg" alt="Satellite Imagery">
+            <p>Most recent satellite image of the Southeast USA.</p>
+            <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+        </div>
+    </div>
+    <div class="modal">
+        <img class="modal-img" src="" alt="Satellite Imagery">
+        <span class="close-button">&times;</span>
+    </div>
+</body>
+</html>
+<script>
+    // Start Generation Here
+    document.addEventListener('DOMContentLoaded', function() {
+        const satelliteImage = document.querySelector('.satellite-image');
+        const modal = document.querySelector('.modal');
+        const modalImg = document.querySelector('.modal-img');
+        const closeButton = document.querySelector('.close-button');
+
+        // Check for device compatibility
+        const isOldDevice = () => {
+            const userAgent = navigator.userAgent;
+            const isIOS = /iPhone|iPad|iPod/.test(userAgent) && !/OS [1-12]_\d/.test(userAgent);
+            const isWindows = /Windows/.test(userAgent) && /(?:Windows 8\.1|Windows NT 6\.3)/.test(userAgent);
+            const isMac = /Macintosh/.test(userAgent) && /Mac OS X 10\.(\d{1,2})/.test(userAgent) && parseInt(RegExp.$1) < 11;
+
+            return isIOS || isWindows || isMac;
+        };
+
+        satelliteImage.addEventListener('click', function() {
+            if (isOldDevice() && !localStorage.getItem('dontShowWarning')) {
+                const warningModal = document.createElement('div');
+                warningModal.classList.add('warning-modal');
+                warningModal.innerHTML = `
+                    <div class="warning-content">
+                        <p>Warning, high data usage ahead, proceed with caution.</p>
+                        <label>
+                            <input type="checkbox" id="dont-show-again"> Don't show me this alert again
+                        </label>
+                        <button id="close-warning" class="event-button">Close</button>
+                    </div>
+                `;
+                document.body.appendChild(warningModal);
+                warningModal.classList.add('show');
+
+                document.getElementById('close-warning').addEventListener('click', function() {
+                    if (document.getElementById('dont-show-again').checked) {
+                        localStorage.setItem('dontShowWarning', 'true');
+                    }
+                    warningModal.classList.remove('show');
+                    document.body.removeChild(warningModal);
+                });
+            } else {
+                showImage();
+            }
+        });
+
+        function showImage() {
+            modalImg.src = satelliteImage.src;
+            modal.classList.add('show');
+        }
+
+        closeButton.addEventListener('click', function() {
+            modal.classList.remove('show');
+        });
+
+        modal.addEventListener('click', function() {
+            modal.classList.remove('show');
+        });
+    });
+</script>

@@ -1014,6 +1014,7 @@
                 <a href="maps.html" class="menu-item">Weather Maps</a>
                 <a href="noaawxradio.html" class="menu-item">NOAA Weather Radio</a>
                 <a href="./weather-event-log/weather-event-log.html" class="menu-item">Weather Events Log</a>
+                <a href="satellite.html" class="menu-item">Satellite Imagery</a>
             </div>
             <p id="last-update">Last updated: --:--:--</p>
             <p id="next-update">Next update in: --:--</p>
@@ -1038,7 +1039,7 @@
             <!-- Weather alerts will be displayed here -->
         </div>
 
-        <div class="weather-grid">
+        <div class="weather-grid" style="grid-template-columns: repeat(3, 1fr);">
             <div class="weather-card current-conditions">
                 <div class="main-temp">
                     <div class="weather-icon-container">
@@ -1078,6 +1079,16 @@
                     <div class="detail-item" data-metric="rain">
                         <span>Rain Today:</span>
                         <span id="rain-today">-- in</span>
+                        <span class="graph-icon">📈</span>
+                    </div>
+                    <div class="detail-item" data-metric="uv">
+                        <span>UV Index:</span>
+                        <span id="uv-index">--</span>
+                        <span class="graph-icon">📈</span>
+                    </div>
+                    <div class="detail-item" data-metric="solar">
+                        <span>Solar Radiation:</span>
+                        <span id="solar-radiation">-- W/m²</span>
                         <span class="graph-icon">📈</span>
                     </div>
                 </div>
@@ -1238,6 +1249,26 @@
         </div>
         <div class="graph-container">
             <canvas id="rainChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Add new graph elements for UV Index and Solar Radiation -->
+    <div id="uvGraph" class="weather-graph">
+        <div class="graph-header">
+            <div class="graph-title">UV Index - Last 12 Hours</div>
+            <button class="close-graph" onclick="closeGraph('uv')">×</button>
+        </div>
+        <div class="graph-container">
+            <canvas id="uvChart"></canvas>
+        </div>
+    </div>
+    <div id="solarGraph" class="weather-graph">
+        <div class="graph-header">
+            <div class="graph-title">Solar Radiation - Last 12 Hours</div>
+            <button class="close-graph" onclick="closeGraph('solar')">×</button>
+        </div>
+        <div class="graph-container">
+            <canvas id="solarChart"></canvas>
         </div>
     </div>
 </body>
