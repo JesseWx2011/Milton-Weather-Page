@@ -1,0 +1,75 @@
+[
+    "January", {
+        "6": "First Quarter",
+        "13": "Full Moon",
+        "21": "Last Quarter",
+        "29": "New Moon"
+    },
+    "February", {
+        "5": "First Quarter",
+        "12": "Full Moon",
+        "20": "Last Quarter",
+        "27": "New Moon"
+    },
+    "March", {
+        "6": "First Quarter",
+        "14": "Full Moon",
+        "22": "Last Quarter",
+        "29": "New Moon"
+    },
+    "April", {
+        "4": "First Quarter",
+        "12": "Full Moon",
+        "20": "Last Quarter",
+        "27": "New Moon"
+    },
+    "May", {
+        "4": "First Quarter",
+        "12": "Full Moon",
+        "20": "Last Quarter",
+        "26": "New Moon"
+    },
+    "June", {
+        "2": "First Quarter",
+        "11": "Full Moon",
+        "18": "Last Quarter",
+        "25": "New Moon"
+    },
+    "July", {
+        "2": "First Quarter",
+        "10": "Full Moon",
+        "17": "Last Quarter",
+        "24": "New Moon"
+    },
+    "August", {
+        "1": "First Quarter",
+        "9": "Full Moon",
+        "16": "Last Quarter",
+        "23": "New Moon",
+        "31": "First Quarter"
+    },
+    "September", {
+        "7": "Full Moon",
+        "14": "Last Quarter",
+        "21": "New Moon",
+        "29": "First Quarter"
+    },
+    "October", {
+        "6": "Full Moon",
+        "13": "Last Quarter",
+        "21": "New Moon",
+        "29": "First Quarter"
+    },
+    "November", {
+        "5": "Full Moon",
+        "11": "Last Quarter",
+        "20": "New Moon",
+        "28": "First Quarter"
+    },
+    "December", {
+        "4": "Full Moon",
+        "11": "Last Quarter",
+        "19": "New Moon",
+        "27": "First Quarter"
+    }
+]

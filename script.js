@@ -953,6 +953,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300); // Match the animation duration
         });
     });
+
+    // Call updateMoonPhases when the DOM is loaded
+    updateMoonPhases();
 });
 
 // Make closeGraph function globally available
@@ -1340,5 +1343,75 @@ function createGraph(canvasId, data, label, color, unit) {
                 intersect: false
             }
         }
+    });
+}
+
+// Function to format date in mm/dd/yyyy
+function formatDateToMMDDYYYY(date) {
+    const month = String(date.getMonth() - 2).padStart(0, '0'); // Months are zero-based
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${month}/${day}/${year}`;
+}
+
+// Function to fetch moon phases from the local JSON file
+async function fetchMoonPhases() {
+    try {
+        const response = await fetch('./json/2025moonphases.json');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        const now = new Date();
+        const currentMonth = now.toLocaleString('default', { month: 'long' });
+        const currentYear = now.getFullYear();
+        const moonPhases = [];
+
+        // Find the current month in the data
+        const monthIndex = data.findIndex(month => month === currentMonth);
+        if (monthIndex !== -1) {
+            const phases = data[monthIndex + 1]; // Get the phases object for the current month
+            for (const [day, phase] of Object.entries(phases)) {
+                const phaseDate = new Date(currentYear, monthIndex, day);
+                if (phaseDate >= now) { // Only include future phases
+                    moonPhases.push({ name: phase, date: formatDateToMMDDYYYY(phaseDate) });
+                }
+            }
+        }
+
+        // Get the next three months' phases
+        for (let i = 1; i <= 3; i++) {
+            const nextMonthIndex = (monthIndex + i) % 12;
+            const nextMonth = data[nextMonthIndex * 2]; // Get the month name
+            const nextPhases = data[nextMonthIndex * 2 + 1]; // Get the phases object
+
+            for (const [day, phase] of Object.entries(nextPhases)) {
+                const phaseDate = new Date(currentYear, nextMonthIndex, day);
+                moonPhases.push({ name: phase, date: formatDateToMMDDYYYY(phaseDate) });
+            }
+        }
+
+        return moonPhases.slice(0, 4); // Return the next four moon phases
+    } catch (error) {
+        console.error('Error fetching moon phases:', error);
+        return []; // Return an empty array on error
+    }
+}
+
+// Function to update the moon phases table
+async function updateMoonPhases() {
+    const moonPhases = await fetchMoonPhases();
+    const moonPhasesTable = document.getElementById('moon-phases-table');
+    
+    moonPhasesTable.innerHTML = ''; // Clear existing rows
+    
+    moonPhases.forEach(phase => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${phase.name}</td>
+            <td>${phase.date}</td>
+        `;
+        moonPhasesTable.appendChild(row);
     });
 } 

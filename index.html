@@ -988,6 +988,49 @@
             font-size: 1.5em;
             color: #333;
         }
+
+        /* Moon Phases Card */
+        .weather-card moon-phases {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .weather-card moon-phases h3 {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .weather-card moon-phases table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .weather-card moon-phases th,
+        .weather-card moon-phases td {
+            padding: 5px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .weather-card moon-phases th {
+            background-color: #f0f0f0;
+        }
+
+        .weather-card moon-phases tbody {
+            display: block;
+            overflow-y: auto;
+            max-height: 200px;
+        }
+
+        .weather-card moon-phases tbody tr {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .weather-card moon-phases tbody td {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
@@ -1140,6 +1183,22 @@
                     <span id="day-length">Day length: --:--</span>
                 </div>
             </div>
+        </div>
+        
+        <!-- Moon Phases Card -->
+        <div class="weather-card moon-phases" style="width: calc(50% - 10px);">
+            <h3>Upcoming Moon Phases</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="text-align: left; border-bottom: 1px solid #ccc;">Phase</th>
+                        <th style="text-align: left; border-bottom: 1px solid #ccc;">Date</th>
+                    </tr>
+                </thead>
+                <tbody id="moon-phases-table">
+                    <!-- Moon phases will be dynamically added here -->
+                </tbody>
+            </table>
         </div>
     </div>
 
