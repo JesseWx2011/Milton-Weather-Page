@@ -1,7 +1,7 @@
 # Milton Weather Page
 <div>
   <center>
-    This is a small weather page for my weather data.
+    Welcome to the Milton Weather Page, this simple web document displays data off of my weather station, this GitHub repo is the source code for it. Enjy :)
   </center>
 </div>
 <div>
