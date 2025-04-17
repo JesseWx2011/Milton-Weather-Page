@@ -8,7 +8,11 @@
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12"></script>
     <link rel="icon" type="image/png" sizes="512x512" href="Favicon.png">
-    <meta name="google-site-verification" content="n7OEw7zJxI1OvA9c8Fno94jbnbjxVw6eUoumPgDXbPc" />
+    <title>Milton Weather Dashboard</title>
+    <meta name="description" content="A Personal Weather Station for Milton, Florida, including weather alerts, forecasts, and current conditions.">
+    <meta name="author" content="Jesse Hasty">
+    <meta name="keywords" content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station">
+    <meta name="date" content="2025-04-10">
     <style>
         * {
             margin: 0;
@@ -35,10 +39,15 @@
         }
 
         .weather-grid {
+            width: 1276px;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
+            margin: 0 auto;
             margin-bottom: 30px;
+            position: relative; /* Added for centering */
+            left: 50%; /* Move to the center */
+            transform: translateX(-50%); /* Adjust to center */
         }
 
         .weather-card {
@@ -1031,6 +1040,35 @@
 
         .weather-card moon-phases tbody td {
             flex: 1;
+        }
+
+        .uv-level {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            color: white; /* Text color */
+            font-weight: bold;
+        }
+
+        .low {
+            background-color: darkgreen; /* Dark Green for Low */
+        }
+
+        .moderate {
+            background-color: yellow; /* Yellow for Moderate */
+            color: black; /* Change text color for visibility */
+        }
+
+        .high {
+            background-color: orange; /* Orange for High */
+        }
+
+        .very-high {
+            background-color: red; /* Red for Very High */
+        }
+
+        .extreme {
+            background-color: violet; /* Violet for Extreme */
         }
     </style>
 </head>

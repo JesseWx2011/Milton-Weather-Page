@@ -362,6 +362,33 @@ async function fetchWithRetry(url, options = {}, retries = 15, delay = 1000) {
     throw new Error('Max retries reached');
 }
 
+// Function to get Beaufort scale description based on wind speed
+function getBeaufortScale(windSpeed) {
+    if (windSpeed < 1) return "Calm";
+    if (windSpeed < 4) return "Light Air";
+    if (windSpeed < 8) return "Light Breeze";
+    if (windSpeed < 13) return "Gentle Breeze";
+    if (windSpeed < 18) return "Moderate Breeze";
+    if (windSpeed < 24) return "Fresh Breeze";
+    if (windSpeed < 31) return "Strong Breeze";
+    if (windSpeed < 38) return "Near Gale";
+    if (windSpeed < 46) return "Gale";
+    if (windSpeed < 55) return "Strong Gale";
+    if (windSpeed < 64) return "Storm";
+    return "Hurricane";
+}
+
+// Update the wind display function to include Beaufort scale
+function updateWindDisplay(currentData) {
+    const windElement = document.getElementById('wind');
+    const windSpeed = currentData.windspeedmph; // Assuming wind speed is in mph
+    const beaufortScale = getBeaufortScale(windSpeed);
+
+    if (windElement) {
+        windElement.textContent = `${degreesToCompass(currentData.winddir)} ${windSpeed} mph (${beaufortScale})`;
+    }
+}
+
 // Function to update the weather data
 async function updateWeather() {
     try {
@@ -429,27 +456,24 @@ async function updateWeather() {
             if (humidityElement) {
                 humidityElement.textContent = `${currentData.humidity}%`;
             }
-            const windElement = document.getElementById('wind');
-            if (windElement) {
-                windElement.textContent = `${degreesToCompass(currentData.winddir)} ${currentData.windspeedmph} mph`;
-            }
-            const pressureElement = document.getElementById('pressure');
-            if (pressureElement) {
-                pressureElement.textContent = `${currentData.baromrelin.toFixed(2)} inHg`;
-            }
-            const dewPointElement = document.getElementById('dew-point');
-            if (dewPointElement) {
-                dewPointElement.textContent = `${currentData.dewPoint.toFixed(1)}°F`;
-            }
-            const rainTodayElement = document.getElementById('rain-today');
-            if (rainTodayElement) {
-                rainTodayElement.textContent = `${currentData.dailyrainin}"`;
-            }
+
+            // Update wind display with Beaufort scale
+            updateWindDisplay(currentData);
 
             // Update UV Index
             const uvIndexElement = document.getElementById('uv-index');
             if (uvIndexElement) {
-                uvIndexElement.textContent = currentData.uv || '--';
+                const uvIndex = currentData.uv || '--';
+                const uvLevel = getUVIndexLevel(uvIndex);
+                
+                // Create a span for the UV level
+                const uvLevelElement = document.createElement('span');
+                uvLevelElement.textContent = uvLevel;
+                uvLevelElement.className = `uv-level ${uvLevel.toLowerCase()}`; // Add class for styling
+
+                // Clear previous content and append new elements
+                uvIndexElement.innerHTML = `${uvIndex} `;
+                uvIndexElement.appendChild(uvLevelElement);
             }
 
             // Update Solar Radiation
@@ -1414,4 +1438,18 @@ async function updateMoonPhases() {
         `;
         moonPhasesTable.appendChild(row);
     });
+}
+
+function getUVIndexLevel(uvIndex) {
+    if (uvIndex < 3) {
+        return "Low";
+    } else if (uvIndex < 6) {
+        return "Moderate";
+    } else if (uvIndex < 8) {
+        return "High";
+    } else if (uvIndex < 11) {
+        return "Very High";
+    } else {
+        return "Extreme";
+    }
 } 
