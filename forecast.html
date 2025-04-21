@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7-Day Forecast 30.59°N 86.94°W (Text-Only)</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="Favicon.png">
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f2f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 25px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .forecast-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .forecast-table th, .forecast-table td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        .forecast {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .forecast-tombstone {
+            margin: 10px;
+            flex: 1 1 150px;
+            text-align: center;
+        }
+
+        .forecast-icon {
+            width: 50px;
+            height: 50px;
+        }
+
+        .txt-ctr-caps {
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .warn {
+            color: red;
+            font-weight: bold;
+        }
+
+        .daytime, .nighttime {
+            display: flex; /* Use flexbox for horizontal layout */
+            justify-content: space-around; /* Space items evenly */
+            margin-bottom: 20px; /* Space between daytime and nighttime sections */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NWS Forecast for: 5 Miles E Bagdad FL</h1>
+        <p>Issued by: National Weather Service Mobile, AL</p>
+        <p><a href="https://www.weather.gov/glossary/index.php?word=Last+update"><b>Last Update: </b></a>3:14 pm CDT Apr 21, 2025</p>
+        
+        <table class="forecast-table">
+            <tbody>
+                <tr>
+                    <td colspan="2" align="center">
+                        <hr>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="center">
+                        <div class="daytime">
+                            <ul class="forecast">
+                                <!-- Daytime forecast items will be dynamically added here -->
+                            </ul>
+                        </div>
+                        <div class="nighttime">
+                            <ul class="forecast">
+                                <!-- Nighttime forecast items will be dynamically added here -->
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="left">
+                        5 Miles E Bagdad FL<br>
+                        30.59°N 86.94°W (Elev. 66 ft)<br>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2" align="left">
+                        Visit your local NWS office at: <a href="https://www.weather.gov/mob">https://www.weather.gov/mob</a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Function to fetch the weather forecast
+        async function fetchForecast() {
+            const apiUrl = 'https://api.weather.gov/gridpoints/MOB/90,67/forecast';
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                displayForecast(data);
+            } catch (error) {
+                console.error('There was a problem with the fetch operation:', error);
+            }
+        }
+
+        // Function to display the forecast data
+        function displayForecast(data) {
+            const daytimeContainer = document.querySelector('.daytime .forecast');
+            const nighttimeContainer = document.querySelector('.nighttime .forecast');
+            daytimeContainer.innerHTML = ''; // Clear existing content
+            nighttimeContainer.innerHTML = ''; // Clear existing content
+
+            // Separate daytime and nighttime forecasts
+            const daytimeForecasts = data.properties.periods.filter(period => period.isDaytime);
+            const nighttimeForecasts = data.properties.periods.filter(period => !period.isDaytime);
+
+            // Append daytime forecasts
+            daytimeForecasts.forEach(period => {
+                const forecastItem = document.createElement('li');
+                forecastItem.className = 'forecast-tombstone';
+                forecastItem.innerHTML = `
+                    <div>
+                        <p class="txt-ctr-caps">${period.name}</p>
+                        <p><img src="${period.icon}" alt="${period.shortForecast}" class="forecast-icon"></p>
+                        <p class="point-forecast-icons-high">High: ${period.temperature} °F</p>
+                        <p>${period.shortForecast}</p>
+                    </div>
+                `;
+                daytimeContainer.appendChild(forecastItem);
+            });
+
+            // Append nighttime forecasts
+            nighttimeForecasts.forEach(period => {
+                const forecastItem = document.createElement('li');
+                forecastItem.className = 'forecast-tombstone';
+                forecastItem.innerHTML = `
+                    <div>
+                        <p class="txt-ctr-caps">${period.name}</p>
+                        <p><img src="${period.icon}" alt="${period.shortForecast}" class="forecast-icon"></p>
+                        <p class="point-forecast-icons-low">Low: ${period.temperature} °F</p>
+                        <p>${period.shortForecast}</p>
+                    </div>
+                `;
+                nighttimeContainer.appendChild(forecastItem);
+            });
+        }
+
+        // Call the fetchForecast function when the page loads
+        window.onload = fetchForecast;
+    </script>
+</body>
+</html>

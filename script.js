@@ -391,16 +391,10 @@ function updateWindDisplay(currentData) {
 
 // Function to update the weather data
 async function updateWeather() {
-    try {
-        // Get user's location
-        const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
-
-        const { latitude, longitude } = position.coords;
+    
 
         // Get NWS forecast data
-        const nwsData = await fetchWithRetry(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
+        const nwsData = await fetchWithRetry(`${NWS_API_BASE_URL}/points/30.6319,-87.0372199`);
         console.log('NWS Points API Response:', nwsData);
         
         // Get forecast data
@@ -416,7 +410,7 @@ async function updateWeather() {
         console.log('Ambient Weather API Response:', ambientData);
 
         // Get sunrise/sunset data
-        const sunData = await fetchWithRetry(`https://api.sunrise-sunset.org/json?lat=${latitude}&lng=${longitude}&formatted=0`);
+        const sunData = await fetchWithRetry(`https://api.sunrise-sunset.org/json?lat=30.6319&lng=-87.0372199&formatted=0`);
         console.log('Sunrise/Sunset API Response:', sunData);
         
         if (sunData.status === 'OK') {
@@ -620,23 +614,7 @@ async function updateWeather() {
             lowTempElement.textContent = `↓ ${lowTemp}°F`;
         }
 
-    } catch (error) {
-        console.error('Error updating weather:', error);
-        
-        // Check for specific error code
-        if (error.message.includes('429')) {
-            const loadingMessage = document.getElementById('loading-message');
-            if (loadingMessage) {
-                loadingMessage.textContent = 'Too Many requests for the API to handle, wait a minute, then try again.';
-            }
-        } else {
-            const locationElement = document.getElementById('location');
-            if (locationElement) {
-                locationElement.textContent = 'Error loading weather data';
-            }
-        }
-    }
-}
+    } 
 
 // Function to get labels for the last 12 hours
 function getLast12HoursLabels() {
