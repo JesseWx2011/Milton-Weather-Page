@@ -614,7 +614,7 @@ async function updateWeather() {
             lowTempElement.textContent = `↓ ${lowTemp}°F`;
         }
 
-    } 
+    }
 
 // Function to get labels for the last 12 hours
 function getLast12HoursLabels() {
