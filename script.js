@@ -389,10 +389,37 @@ function updateWindDisplay(currentData) {
     }
 }
 
+// Function to fetch graph data from the specified API
+async function fetchGraphData() {
+    const apiUrl = 'https://api.weather.com/v2/pws/observations/all/1day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909';
+    
+    try {
+        const response = await fetch(apiUrl);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        
+        const data = await response.json();
+        processGraphData(data.observations);
+    } catch (error) {
+        console.error('Error fetching graph data:', error);
+    }
+}
+
+// Function to process the graph data
+function processGraphData(observations) {
+    // Extract relevant data for graphs
+    const temperatures = observations.map(obs => obs.imperial.tempAvg);
+    const humidity = observations.map(obs => obs.humidityAvg);
+    const windSpeeds = observations.map(obs => obs.imperial.windspeedAvg);
+    
+    // Call functions to create graphs
+    createGraph('tempChart', { labels: getLast12HoursLabels(), values: temperatures }, 'Temperature', 'rgb(255, 99, 132)', '°F');
+    createGraph('humidityChart', { labels: getLast12HoursLabels(), values: humidity }, 'Humidity', 'rgb(54, 162, 235)', '%');
+    createGraph('windChart', { labels: getLast12HoursLabels(), values: windSpeeds }, 'Wind Speed', 'rgb(75, 192, 192)', 'mph');
+}
+
 // Function to update the weather data
 async function updateWeather() {
-    
-
+    try {
         // Get NWS forecast data
         const nwsData = await fetchWithRetry(`${NWS_API_BASE_URL}/points/30.6319,-87.0372199`);
         console.log('NWS Points API Response:', nwsData);
@@ -525,6 +552,9 @@ async function updateWeather() {
                 `;
                 }
             }
+
+            // Call the new function to fetch graph data
+            fetchGraphData();
         }
 
         // Update forecast
@@ -562,7 +592,6 @@ async function updateWeather() {
         if (lastUpdateElement) {
             lastUpdateElement.textContent = `Last updated: ${formatDate(now)}`;
         }
-
 
         const latitude = 30.6319;
         const longitude = -87.0372199;
@@ -617,7 +646,11 @@ async function updateWeather() {
             lowTempElement.textContent = `↓ ${lowTemp}°F`;
         }
 
+    } catch (error) {
+        console.error('Error updating weather:', error);
+        // ... error handling remains unchanged ...
     }
+}
 
 // Function to get labels for the last 12 hours
 function getLast12HoursLabels() {
@@ -1483,6 +1516,6 @@ function getUVIndexLevel(uvIndex) {
     } else if (uvIndex < 11) {
         return "Very High";
     } else {
-        return "Extreme";
+        return "NA";
     }
 } 
