@@ -433,6 +433,8 @@ async function updateWeather() {
         // Update current conditions
         if (ambientData && ambientData.length > 0) {
             const currentData = ambientData[0].lastData;
+            console.log('Current Data:', currentData); // Log the current data to check available properties
+
             const currentTemp = currentData.tempf;
             
             // Update temperature difference
@@ -455,6 +457,35 @@ async function updateWeather() {
             const humidityElement = document.getElementById('humidity');
             if (humidityElement) {
                 humidityElement.textContent = `${currentData.humidity}%`;
+            }
+
+            // Update the pressure element
+            const pressureElement = document.getElementById('pressure');
+            if (pressureElement) {
+                pressureElement.textContent = `${currentData.baromabsin.toFixed(2)} inHg`;
+            }
+
+            // Update the dew point element
+            const dewPointElement = document.getElementById('dew-point');
+            if (dewPointElement) {
+                dewPointElement.textContent = `${currentData.dewPoint.toFixed(1)}°F`;
+            }
+
+            // Update the rain today element
+            const rainElement = document.getElementById('rain-today');
+            if (rainElement) {
+                rainElement.textContent = `${currentData.dailyrainin.toFixed(2)} in`;
+            }
+
+            // Update high and low temperatures
+            const highTempElement = document.getElementById('high-temp');
+            const lowTempElement = document.getElementById('low-temp');
+
+            // Check if the API provides high and low temperatures
+            if (highTempElement && lowTempElement) {
+                // Assuming the API provides these values
+                highTempElement.textContent = `↑ ${currentData.maxTemp ? currentData.maxTemp.toFixed(1) : '--'}°F`;
+                lowTempElement.textContent = `↓ ${currentData.minTemp ? currentData.minTemp.toFixed(1) : '--'}°F`;
             }
 
             // Update wind display with Beaufort scale
@@ -567,6 +598,27 @@ async function updateWeather() {
 
         // Hide notification after successful update
         hideNotification();
+
+        // Fetch daily summary data from Weather API
+        const dailySummaryResponse = await fetch('https://api.weather.com/v2/pws/dailysummary/7day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909');
+        const dailySummaryData = await dailySummaryResponse.json();
+        console.log('Daily Summary Data:', dailySummaryData); // Log the response for debugging
+
+        // Get the last summary object
+        const lastSummary = dailySummaryData.summaries[dailySummaryData.summaries.length - 1];
+        
+        // Extract high and low temperatures
+        const highTemp = lastSummary.imperial.tempHigh; // Assuming you want the imperial values
+        const lowTemp = lastSummary.imperial.tempLow;
+
+        // Update high and low temperatures in the dashboard
+        const highTempElement = document.getElementById('high-temp');
+        const lowTempElement = document.getElementById('low-temp');
+
+        if (highTempElement && lowTempElement) {
+            highTempElement.textContent = `↑ ${highTemp}°F`;
+            lowTempElement.textContent = `↓ ${lowTemp}°F`;
+        }
 
     } catch (error) {
         console.error('Error updating weather:', error);

@@ -11,8 +11,8 @@
     <title>Milton Weather Dashboard</title>
     <meta name="description" content="A Personal Weather Station in Milton, Florida, including weather alerts, forecasts, and current conditions.">
     <meta name="author" content="Jesse Hasty">
-    <meta name="keywords" content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl">    <meta name="date" content="2025-04-10">
-    <meta name="google-site-verification" content="n7OEw7zJxI1OvA9c8Fno94jbnbjxVw6eUoumPgDXbPc" />
+    <meta name="keywords" content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl">
+    <meta name="date" content="2025-04-10">
     <style>
         * {
             margin: 0;
@@ -182,7 +182,19 @@
             color: #666;
             margin-top: 5px;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-        } 
+        }
+
+        .temp-hover {
+            transition: color 0.3s ease; /* Smooth transition for color change */
+        }
+
+        .temp-hover:hover {
+            color: #ff4500; /* Change to a more vibrant color for high temp */
+        }
+
+        .temp-hover-low:hover {
+            color: #1e90ff; /* Change to a more vibrant color for low temp */
+        }
 
         .weather-graph {
             display: none;
@@ -1070,6 +1082,9 @@
         .extreme {
             background-color: violet; /* Violet for Extreme */
         }
+        .title-temp {
+            font-size: 0.5em;
+        }
     </style>
 </head>
 <body>
@@ -1106,6 +1121,7 @@
         </div>
 
         <!-- Unit Toggle -->
+         <!-- Apparently, this part of the code is required to make the moon phases card work properly. 4/21/2025 -->
         <div class="unit-toggle" style="display: none;">
             <span class="unit-label-text">Units:</span>
             <div class="toggle-container">
@@ -1130,7 +1146,11 @@
                     <div class="temp-container">
                         <span id="current-temp" class="temp-value">--°F</span>
                         <div id="temp-feel" class="temp-feel"></div>
-                    </div>
+                        <div>
+                            <div class="title-temp">High/Low</div>
+                            <span id="high-temp" class="temp-hover" style="font-size: 0.8em; color: red; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">--°F</span>
+                            <span id="low-temp" class="temp-hover-low" style="font-size: 0.8em; color: blue; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">--°F</span>
+                        </div>                    </div>
                 </div>
                 <div class="weather-details">
                     <div class="detail-item" data-metric="temp">
