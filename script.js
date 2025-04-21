@@ -563,6 +563,9 @@ async function updateWeather() {
             lastUpdateElement.textContent = `Last updated: ${formatDate(now)}`;
         }
 
+
+        const latitude = 30.6319;
+        const longitude = -87.0372199;
         // Check for alerts
         const alertsData = await fetchWithRetry(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
         
