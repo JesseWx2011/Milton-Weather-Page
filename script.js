@@ -613,7 +613,7 @@ async function updateWeather() {
         }
 
         // Update last update time
-        const now = new Date();
+        const now = new Date().toLocaleString("en-US", {timeZone: 'America/Chicago', month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'});
         // Store as a Date object
         lastUpdateTime = now;
         const lastUpdateElement = document.getElementById('last-update');
