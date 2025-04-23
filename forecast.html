@@ -23,7 +23,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1300px;
             margin: 25px auto;
             padding: 20px;
             background: white;
@@ -57,8 +57,9 @@
         }
 
         .forecast-tombstone {
-            margin: 10px;
-            flex: 1 1 150px;
+            width: 165px;
+            margin: 5px;
+            flex: 1 1 15px;
             text-align: center;
         }
 
@@ -68,7 +69,7 @@
         }
 
         .txt-ctr-caps {
-            text-transform: uppercase;
+            text-transform: capitalize;
             font-weight: bold;
         }
 
@@ -82,13 +83,34 @@
             justify-content: space-around; /* Space items evenly */
             margin-bottom: 20px; /* Space between daytime and nighttime sections */
         }
+        .back-button {
+            position: absolute;
+            top: 50px;
+            left: 130px;
+            text-decoration: none;
+            color: #3498db;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>NWS Forecast for: 5 Miles E Bagdad FL</h1>
+        <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+
+        <h1>NWS Forecast for: Milton, FL</h1>
         <p>Issued by: National Weather Service Mobile, AL</p>
-        <p><a href="https://www.weather.gov/glossary/index.php?word=Last+update"><b>Last Update: </b></a>3:14 pm CDT Apr 21, 2025</p>
+        <p id="last-update"><a href="https://www.weather.gov/glossary/index.php?word=Last+update"><b>Last Update: </b></a>3:14 pm CDT Apr 21, 2025</p>
         
         <table class="forecast-table">
             <tbody>
@@ -113,8 +135,8 @@
                 </tr>
                 <tr>
                     <td colspan="2" align="left">
-                        5 Miles E Bagdad FL<br>
-                        30.59°N 86.94°W (Elev. 66 ft)<br>
+                        Milton, FL<br>
+                        30.68°N 87.03°W (Elev. 66 ft)<br>
                     </td>
                 </tr>
                 <tr>
@@ -134,10 +156,13 @@
             try {
                 const response = await fetch(apiUrl);
                 if (!response.ok) {
-                    throw new Error('Network response was not ok');
+                    throw new Error('Network response was not ok. API Response: ' + response.status);
+                } else{
+                    console.log('API Fetch was successful! Displaying API Data...');
                 }
                 const data = await response.json();
                 displayForecast(data);
+                console.log(data)
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error);
             }
@@ -149,6 +174,29 @@
             const nighttimeContainer = document.querySelector('.nighttime .forecast');
             daytimeContainer.innerHTML = ''; // Clear existing content
             nighttimeContainer.innerHTML = ''; // Clear existing content
+
+            // Get the last update time
+            const lastUpdateTime = data.properties.generatedAt;
+            const dateObj = new Date(lastUpdateTime);
+            const parts = new Intl.DateTimeFormat('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'America/Chicago',
+                timeZoneName: 'short'
+            }).formatToParts(dateObj);
+            const get = type => parts.find(p => p.type === type).value;
+            const dateString = dateObj.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                timeZone: 'America/Chicago'
+            });
+            const lastUpdateTimeFormatted = `${get('hour')}:${get('minute')} ${get('dayPeriod').toLowerCase()} ${get('timeZoneName')} ${dateString}`;
+            const lastUpdateElement = document.getElementById('last-update');
+            if (lastUpdateElement) {
+                lastUpdateElement.textContent = `Last Update: ${lastUpdateTimeFormatted}`;
+            }
 
             // Separate daytime and nighttime forecasts
             const daytimeForecasts = data.properties.periods.filter(period => period.isDaytime);

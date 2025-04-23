@@ -1092,6 +1092,34 @@
         .title-temp {
             font-size: 0.5em;
         }
+
+        .mobile-alert {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ffcc00;
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        .mobile-alert button {
+            margin-top: 10px;
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .mobile-alert button:hover {
+            background-color: #555;
+        }
     </style>
 </head>
 <body>
@@ -1174,7 +1202,8 @@
                     <div class="detail-item" data-metric="wind">
                         <span>Wind:</span>
                         <span id="wind">-- mph</span>
-                        <span class="graph-icon">📈</span>
+                        <br>
+                        <span id="beaufort-scale">--</span>
                     </div>
                     <div class="detail-item" data-metric="pressure">
                         <span>Pressure:</span>
@@ -1317,9 +1346,18 @@
             <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
         </a>
     </div>
-    <div align='center'><a href='https://www.free-website-hit-counter.com'><img src='https://www.free-website-hit-counter.com/zc.php?d=7&id=8519&s=55' border='0' alt='Free Website Hit Counter'></a><br /><small><a href='https://www.free-website-hit-counter.com' title="Free Website Hit Counter"></a></small></div>
-    <div align='center'>Visitors since April 10th 2025</div>
+    <div align="center">
+        <script type="text/javascript" src="https://counter.websiteout.com/js/4/0/177/1"></script>
+        <div>Visitors since April 10th 2025</div>
+    </div>
 
+    <div id="mobile-alert" class="mobile-alert" style="display: none;">
+        <p>Our Website isn't mobile friendly yet, do be advised that some parts of the website will function strangely. We recommend moving to a larger device for the best experience.</p>
+        <label>
+            <input type="checkbox" id="dont-show-again"> Don't show me this again
+        </label>
+        <button id="close-alert">Close</button>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>

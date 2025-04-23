@@ -230,9 +230,9 @@ function formatTimeRemaining(milliseconds) {
 function updateCountdown() {
     if (!lastUpdateTime) return;
     
-    const now = Date.now();
+    const now = new Date();
     const nextUpdate = lastUpdateTime.getTime() + updateInterval;
-    const timeRemaining = nextUpdate - now;
+    const timeRemaining = nextUpdate - now.getTime();
     
     const nextUpdateElement = document.getElementById('next-update');
     if (nextUpdateElement) {
@@ -385,12 +385,14 @@ function updateWindDisplay(currentData) {
     const beaufortScale = getBeaufortScale(windSpeed);
 
     if (windElement) {
-        windElement.textContent = `${degreesToCompass(currentData.winddir)} ${windSpeed} mph (${beaufortScale})`;
+        windElement.textContent = `${degreesToCompass(currentData.winddir)} ${windSpeed} mph  
+`;
+        document.getElementById('beaufort-scale').textContent =  beaufortScale;
     }
 }
 
-// Function to fetch graph data from the specified API
-async function fetchGraphData() {
+// Function to fetch graph data and create graphs
+async function fetchAndCreateGraphs() {
     const apiUrl = 'https://api.weather.com/v2/pws/observations/all/1day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909';
     
     try {
@@ -398,27 +400,52 @@ async function fetchGraphData() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
-        processGraphData(data.observations);
+        const observations = data.observations;
+
+        // Filter observations to get data at 30-minute intervals
+        const filteredObservations = observations.filter((obs, index) => {
+            return index % 2 === 0; // Assuming the data is in 15-minute intervals, take every second observation
+        });
+
+        // Extract relevant data for graphs
+        const temperatures = filteredObservations.map(obs => obs.imperial.tempAvg);
+        const humidity = filteredObservations.map(obs => obs.humidityAvg);
+        const windSpeeds = filteredObservations.map(obs => obs.imperial.windspeedAvg);
+        
+        // Create graphs
+        createGraph('tempChart', { labels: getLast12HoursLabels(), values: temperatures }, 'Temperature', 'rgb(255, 99, 132)', '°F');
+        createGraph('humidityChart', { labels: getLast12HoursLabels(), values: humidity }, 'Humidity', 'rgb(54, 162, 235)', '%');
+        createGraph('windChart', { labels: getLast12HoursLabels(), values: windSpeeds }, 'Wind Speed', 'rgb(75, 192, 192)', 'mph');
+        
     } catch (error) {
         console.error('Error fetching graph data:', error);
     }
 }
 
-// Function to process the graph data
-function processGraphData(observations) {
-    // Extract relevant data for graphs
-    const temperatures = observations.map(obs => obs.imperial.tempAvg);
-    const humidity = observations.map(obs => obs.humidityAvg);
-    const windSpeeds = observations.map(obs => obs.imperial.windspeedAvg);
-    
-    // Call functions to create graphs
-    createGraph('tempChart', { labels: getLast12HoursLabels(), values: temperatures }, 'Temperature', 'rgb(255, 99, 132)', '°F');
-    createGraph('humidityChart', { labels: getLast12HoursLabels(), values: humidity }, 'Humidity', 'rgb(54, 162, 235)', '%');
-    createGraph('windChart', { labels: getLast12HoursLabels(), values: windSpeeds }, 'Wind Speed', 'rgb(75, 192, 192)', 'mph');
+// Function to show loading messages
+function showLoadingMessages() {
+    const loadingMessageElement = document.getElementById('loading-message');
+    if (!loadingMessageElement) return;
+
+    loadingMessageElement.textContent = "Loading...";
+
+    // Set timeouts for different messages
+    setTimeout(() => {
+        loadingMessageElement.textContent = "Hang in there..";
+    }, 5000); // After 5 seconds
+
+    setTimeout(() => {
+        loadingMessageElement.textContent = "Taking some time, please wait..";
+    }, 10000); // After 10 seconds
+
+    setTimeout(() => {
+        loadingMessageElement.textContent = "Something may have gone wrong, try reloading this page.";
+    }, 15000); // After 15 seconds
 }
 
 // Function to update the weather data
 async function updateWeather() {
+    showLoadingMessages(); // Show loading messages when starting to update weather
     try {
         // Get NWS forecast data
         const nwsData = await fetchWithRetry(`${NWS_API_BASE_URL}/points/30.6319,-87.0372199`);
@@ -553,8 +580,8 @@ async function updateWeather() {
                 }
             }
 
-            // Call the new function to fetch graph data
-            fetchGraphData();
+            // Call the new function to fetch graph data and create graphs
+            fetchAndCreateGraphs();
         }
 
         // Update forecast
@@ -587,6 +614,7 @@ async function updateWeather() {
 
         // Update last update time
         const now = new Date();
+        // Store as a Date object
         lastUpdateTime = now;
         const lastUpdateElement = document.getElementById('last-update');
         if (lastUpdateElement) {
@@ -599,7 +627,7 @@ async function updateWeather() {
         const alertsData = await fetchWithRetry(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
         
         const alertsContainer = document.getElementById('alerts');
-        const currentTime = new Date().getTime();
+        const currentTime = new Date().getTime("en-US", {timezone: "America/Chicago"});
         
         if (alertsData.features && alertsData.features.length > 0) {
             const activeAlerts = alertsData.features.filter(alert => {
@@ -1046,6 +1074,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Call updateMoonPhases when the DOM is loaded
     updateMoonPhases();
+
+    console.log(localStorage.getItem('dontShowMobileAlert'));
+
+    checkDeviceWidth();
+    document.getElementById('close-alert').addEventListener('click', function() {
+        const mobileAlert = document.getElementById('mobile-alert');
+        const checkbox = document.getElementById('dont-show-again');
+
+        if (checkbox.checked) {
+            localStorage.setItem('dontShowMobileAlert', 'true');
+        }
+        mobileAlert.style.display = 'none';
+    });
 });
 
 // Make closeGraph function globally available
@@ -1518,4 +1559,33 @@ function getUVIndexLevel(uvIndex) {
     } else {
         return "NA";
     }
-} 
+}
+
+// Function to check device width and show mobile alert if necessary
+function checkDeviceWidth() {
+    const mobileAlert = document.getElementById('mobile-alert');
+    const dontShowAgain = localStorage.getItem('dontShowMobileAlert');
+    console.log('Current width:', window.innerWidth);
+    console.log('Dont show again:', dontShowAgain);
+
+    if (window.innerWidth < 500 && !dontShowAgain) {
+        mobileAlert.style.display = 'block';
+    }
+}
+
+// Event listener for the close button
+document.getElementById('close-alert').addEventListener('click', function() {
+    const mobileAlert = document.getElementById('mobile-alert');
+    const checkbox = document.getElementById('dont-show-again');
+
+    if (checkbox.checked) {
+        localStorage.setItem('dontShowMobileAlert', 'true');
+    }
+    mobileAlert.style.display = 'none';
+});
+
+// Check device width on page load
+document.addEventListener('DOMContentLoaded', checkDeviceWidth);
+
+// Check device width on window resize
+window.addEventListener('resize', checkDeviceWidth); 
