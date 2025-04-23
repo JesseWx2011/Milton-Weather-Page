@@ -59,58 +59,51 @@ function getWeatherIcon(condition) {
 
 // Function to update weather data
 async function updateWeather() {
-    try {
-        // Get user's location
-        const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
+    const latitude = 30.6319;
+    const longitude = -87.0372199;
+    // Get NWS forecast data
+    const nwsResponse = await fetch(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
+    const nwsData = await nwsResponse.json();
+    
+    // Get current conditions from NWS
+    const currentConditionsResponse = await fetch(`${NWS_API_BASE_URL}/stations/KNDZ/observations/latest`);
+    const currentConditions = await currentConditionsResponse.json();
 
-        const { latitude, longitude } = position.coords;
+    // Get Ambient Weather data
+    const ambientResponse = await fetch(`${AMBIENT_WEATHER_BASE_URL}?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
+    const ambientData = await ambientResponse.json();
 
-        // Get NWS forecast data
-        const nwsResponse = await fetch(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
-        const nwsData = await nwsResponse.json();
+    // Update current conditions
+    if (ambientData && ambientData.length > 0) {
+        const currentData = ambientData[0].lastData;
         
-        // Get current conditions from NWS
-        const currentConditionsResponse = await fetch(`${NWS_API_BASE_URL}/stations/KNDZ/observations/latest`);
-        const currentConditions = await currentConditionsResponse.json();
+        // Update temperature
+        document.getElementById('current-temp').textContent = `${currentData.tempf.toFixed(1)}°F`;
+        
+        // Update other elements
+        document.getElementById('feels-like').textContent = `${currentData.feelsLike.toFixed(1)}°F`;
+        document.getElementById('humidity').textContent = `${currentData.humidity}%`;
+        document.getElementById('wind').textContent = `${degreesToCompass(currentData.winddir)} ${currentData.windspeedmph} mph`;
+        document.getElementById('dew-point').textContent = `${currentData.dewPoint.toFixed(1)}°F`;
 
-        // Get Ambient Weather data
-        const ambientResponse = await fetch(`${AMBIENT_WEATHER_BASE_URL}?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
-        const ambientData = await ambientResponse.json();
-
-        // Update current conditions
-        if (ambientData && ambientData.length > 0) {
-            const currentData = ambientData[0].lastData;
-            
-            // Update temperature
-            document.getElementById('current-temp').textContent = `${currentData.tempf.toFixed(1)}°F`;
-            
-            // Update other elements
-            document.getElementById('feels-like').textContent = `${currentData.feelsLike.toFixed(1)}°F`;
-            document.getElementById('humidity').textContent = `${currentData.humidity}%`;
-            document.getElementById('wind').textContent = `${degreesToCompass(currentData.winddir)} ${currentData.windspeedmph} mph`;
-            document.getElementById('dew-point').textContent = `${currentData.dewPoint.toFixed(1)}°F`;
-
-            // Add current weather condition from NWS
-            if (currentConditions && currentConditions.properties) {
-                const weatherIcon = document.getElementById('weather-icon');
-                const condition = isDaytime() ? "Sunny" : "Clear";
-                weatherIcon.className = `fas ${getWeatherIcon(condition)}`;
-            }
+        // Add current weather condition from NWS
+        if (currentConditions && currentConditions.properties) {
+            const weatherIcon = document.getElementById('weather-icon');
+            const condition = isDaytime() ? "Sunny" : "Clear";
+            weatherIcon.className = `fas ${getWeatherIcon(condition)}`;
         }
+    }
 
-        // Update location
-        document.getElementById('location').textContent = `${nwsData.properties.relativeLocation.properties.city}, ${nwsData.properties.relativeLocation.properties.state}`;
+    // Update location
+    document.getElementById('location').textContent = `${nwsData.properties.relativeLocation.properties.city}, ${nwsData.properties.relativeLocation.properties.state}`;
 
-        // Update last update time
-        const now = new Date();
-        lastUpdateTime = now;
-        document.getElementById('last-update').textContent = `Last updated: ${formatDate(now)}`;
-
-    } catch (error) {
-        console.error('Error updating weather data:', error);
-        document.getElementById('last-update').textContent = 'Error updating weather data';
+    // Update last update time
+    const now = new Date();
+    lastUpdateTime = now;
+    console.log('Current time for last update:', now);
+    const lastUpdateElement = document.getElementById('last-update');
+    if (lastUpdateElement) {
+        lastUpdateElement.textContent = `Last updated: ${formatDate(now)}`;
     }
 }
 
