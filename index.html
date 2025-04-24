@@ -55,6 +55,11 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease; /* Smooth transition for scaling */
+        }
+
+        .weather-card:hover {
+            transform: scale(1.05); /* Slightly enlarge the card on hover */
         }
 
         .current-conditions {
@@ -197,7 +202,7 @@
         }
 
         #wind {
-            margin-left: 3px;
+            margin-right: 50px;
         }
 
         .weather-graph {
@@ -1017,6 +1022,7 @@
 
         /* Moon Phases Card */
         .weather-card moon-phases {
+            margin-top: 25px;
             background-color: #f0f2f5;
             color: #333;
             line-height: 1.6;
@@ -1120,6 +1126,9 @@
         .mobile-alert button:hover {
             background-color: #555;
         }
+      .padding-div {
+        margin-top: 20px;
+      }
     </style>
 </head>
 <body>
@@ -1141,7 +1150,6 @@
             </button>
             <div id="menu-popup" class="menu-popup">
                 <a href="forecast.html" class="menu-item">Weather Forecast</a>
-                <a href="trends.html" class="menu-item">Weather Trends</a>
                 <a href="embed.html" class="menu-item">Embed Widget</a>
                 <a href="about.html" class="menu-item">About</a>
                 <a href="maps.html" class="menu-item">Weather Maps</a>
@@ -1202,8 +1210,6 @@
                     <div class="detail-item" data-metric="wind">
                         <span>Wind:</span>
                         <span id="wind">-- mph</span>
-                        <br>
-                        <span id="beaufort-scale">--</span>
                     </div>
                     <div class="detail-item" data-metric="pressure">
                         <span>Pressure:</span>
@@ -1251,7 +1257,7 @@
                 </div>
             </div>
         </div>
-
+<div class="padding-div"></div>
         <!-- Sunrise/Sunset Card -->
         <div class="weather-card sun-times">
             <h3>Sunrise & Sunset Times</h3>
@@ -1280,7 +1286,7 @@
                 </div>
             </div>
         </div>
-        
+        <div class="padding-div"></div>
         <!-- Moon Phases Card -->
         <div class="weather-card moon-phases" style="width: calc(50% - 10px);">
             <h3>Upcoming Moon Phases</h3>
@@ -1291,10 +1297,14 @@
                         <th style="text-align: left; border-bottom: 1px solid #ccc;">Date</th>
                     </tr>
                 </thead>
-                <tbody id="moon-phases-table">
+                <tbody class="moon-phases-table" id="moon-phases-table">
                     <!-- Moon phases will be dynamically added here -->
                 </tbody>
             </table>
+        </div>
+        <div class="weather-card radar-card" style="width: calc(50% - 10px);margin-left: 50%;height: fit-content;margin-top: -200px;">
+            <h3 style="margin-bottom: 10px;">Weather Radar</h3>
+            <img src="https://radar.weather.gov/ridge/standard/KMOB_loop.gif" alt="Weather Radar" style="width: 100%; height: auto; border-radius: 5px;" />
         </div>
     </div>
 

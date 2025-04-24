@@ -20,7 +20,7 @@ const activeGraphs = new Set();
 // Global variables for update tracking
 let lastTemperature = null;
 let lastUpdateTime = null;
-const updateInterval = 1.5 * 60 * 1000; // 1 minute and 30 seconds in milliseconds
+const updateInterval = 90000; // 1 minute & 30 seconds in milliseconds
 
 // Function to convert degrees to compass direction
 function degreesToCompass(degrees) {
@@ -221,9 +221,11 @@ function hideNotification() {
 
 // Function to format time remaining
 function formatTimeRemaining(milliseconds) {
-    const minutes = Math.floor(milliseconds / 60000);
-    const seconds = Math.floor((milliseconds % 60000) / 1000);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    const seconds = Math.floor((milliseconds / 1000) % 60);
+    const minutes = Math.floor((milliseconds / 1000 / 60) % 60);
+    const hours = Math.floor((milliseconds / 1000 / 60 / 60) % 24);
+    
+    return `${hours > 0 ? hours + 'h ' : ''}${minutes}m ${seconds}s`;
 }
 
 // Function to update countdown timer
@@ -385,9 +387,7 @@ function updateWindDisplay(currentData) {
     const beaufortScale = getBeaufortScale(windSpeed);
 
     if (windElement) {
-        windElement.textContent = `${degreesToCompass(currentData.winddir)} ${windSpeed} mph  
-`;
-        document.getElementById('beaufort-scale').textContent =  beaufortScale;
+        windElement.textContent = `${degreesToCompass(currentData.winddir)} ${windSpeed} mph (${beaufortScale})  `;
     }
 }
 
@@ -613,12 +613,10 @@ async function updateWeather() {
         }
 
         // Update last update time
-        const now = new Date().toLocaleString("en-US", {timeZone: 'America/Chicago', month: 'short', day: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'});
-        // Store as a Date object
-        lastUpdateTime = now;
+        lastUpdateTime = new Date();
         const lastUpdateElement = document.getElementById('last-update');
         if (lastUpdateElement) {
-            lastUpdateElement.textContent = `Last updated: ${formatDate(now)}`;
+            lastUpdateElement.textContent = `Last updated: ${formatDate(lastUpdateTime)}`;
         }
 
         const latitude = 30.6319;
