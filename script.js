@@ -1112,6 +1112,8 @@ function formatDifference(value1, value2, unit = '') {
 }
 
 // Function to get nearby METAR stations
+       const latitude = 30.6319;
+        const longitude = -87.0372199;
 async function getNearbyStations(latitude, longitude) {
     try {
         // First get the grid endpoint for the location
@@ -1189,15 +1191,9 @@ async function loadNearbyStations() {
     const stationsList = document.getElementById('stations-list');
     stationsList.innerHTML = '<p>Loading nearby stations...</p>';
 
-    try {
-        // Get user's location
-        const position = await new Promise((resolve, reject) => {
-            navigator.geolocation.getCurrentPosition(resolve, reject);
-        });
-
-        const { latitude, longitude } = position.coords;
-        
-        // Get nearby stations
+    const latitude = 30.6319;
+    const longitude = -87.0372199;
+                // Get nearby stations
         const stations = await getNearbyStations(latitude, longitude);
         
         if (!stations || stations.length === 0) {
@@ -1309,11 +1305,12 @@ async function loadNearbyStations() {
             ? validStations.join('')
             : '<p>No active weather stations found nearby.</p>';
 
+    } try { // Idk what to do with this
+
     } catch (error) {
         console.error('Error loading nearby stations:', error);
         stationsList.innerHTML = '<p>Error loading nearby stations. Please try again later.</p>';
     }
-}
 
 // Unit conversion functions
 function celsiusToFahrenheit(celsius) {
