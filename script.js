@@ -230,7 +230,10 @@ function formatTimeRemaining(milliseconds) {
 
 // Function to update countdown timer
 function updateCountdown() {
-    if (!lastUpdateTime) return;
+    if (!lastUpdateTime || !(lastUpdateTime instanceof Date)) {
+        console.error("lastUpdateTime is not a valid Date object:", lastUpdateTime);
+        return;
+    }
     
     const now = new Date();
     const nextUpdate = lastUpdateTime.getTime() + updateInterval;
@@ -243,7 +246,21 @@ function updateCountdown() {
             return;
         }
         
+        const formattedLastUpdateTime = lastUpdateTime.toLocaleString("en-US", {
+            timeZone: 'America/Chicago',
+            month: 'short',
+            day: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: 'numeric'
+        });
+        
         nextUpdateElement.textContent = `Next update in: ${formatTimeRemaining(timeRemaining)}`;
+        // Optionally display last update time somewhere
+        const lastUpdateElement = document.getElementById('last-update');
+        if (lastUpdateElement) {
+            lastUpdateElement.textContent = `Last updated: ${formattedLastUpdateTime}`;
+        }
     }
 }
 
@@ -297,10 +314,10 @@ function updateSunTimes(sunrise, sunset) {
     const dayLengthElement = document.getElementById('day-length');
     
     if (sunriseTimeElement) {
-        sunriseTimeElement.textContent = formatSunTime(sunrise);
+        sunriseTimeElement.textContent = new Date(sunrise).toLocaleString("en-US", {timeZone: 'America/Chicago', hour: 'numeric', minute:'2-digit'});
     }
     if (sunsetTimeElement) {
-        sunsetTimeElement.textContent = formatSunTime(sunset);
+        sunsetTimeElement.textContent = new Date(sunset).toLocaleString("en-US", {timeZone: 'America/Chicago', hour: 'numeric', minute:'2-digit'});
     }
     if (dayLengthElement) {
         dayLengthElement.textContent = `Day length: ${calculateDayLength(sunrise, sunset)}`;
@@ -616,7 +633,15 @@ async function updateWeather() {
         lastUpdateTime = new Date();
         const lastUpdateElement = document.getElementById('last-update');
         if (lastUpdateElement) {
-            lastUpdateElement.textContent = `Last updated: ${formatDate(lastUpdateTime)}`;
+            const formattedLastUpdateTime = lastUpdateTime.toLocaleString("en-US", {
+                timeZone: 'America/Chicago',
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: 'numeric'
+            });
+            lastUpdateElement.textContent = `Last updated: ${formattedLastUpdateTime}`;
         }
 
         const latitude = 30.6319;
