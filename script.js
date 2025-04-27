@@ -22,8 +22,6 @@ let lastTemperature = null;
 let lastUpdateTime = null;
 const updateInterval = 90000; // 1 minute & 30 seconds in milliseconds
 
-let isMetric = false; // false for imperial, true for metric
-
 // Function to convert degrees to compass direction
 function degreesToCompass(degrees) {
     const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
@@ -200,12 +198,12 @@ function animateTemperature(element, targetTemp, duration = 2000) {
 // Function to check if data is outdated (more than 10 minutes old)
 function isDataOutdated(lastUpdateTime) {
     const now = new Date();
-    const lastUpdate = new Date(lastUpdateTime).toLocaleString("en-US", {timeZone: 'America/Chicago'});
+    const lastUpdate = new Date(lastUpdateTime);
     const diffInMinutes = (now - lastUpdate) / (1000 * 60);
     return diffInMinutes > 10;
 }
 
-// Function to show notification for outdated data
+// Function to show notification
 function showNotification() {
     const notification = document.getElementById('outdated-notification');
     if (notification) {
@@ -218,22 +216,6 @@ function hideNotification() {
     const notification = document.getElementById('outdated-notification');
     if (notification) {
         notification.classList.remove('visible');
-    }
-}
-
-// Function to show error alert
-function showErrorAlert() {
-    const errorAlert = document.getElementById('error-alert');
-    if (errorAlert) {
-        errorAlert.style.display = 'block'; // Show the error alert
-    }
-}
-
-// Function to hide error alert
-function hideErrorAlert() {
-    const errorAlert = document.getElementById('error-alert');
-    if (errorAlert) {
-        errorAlert.style.display = 'none'; // Hide the error alert
     }
 }
 
@@ -422,7 +404,7 @@ function updateWindDisplay(currentData) {
     const beaufortScale = getBeaufortScale(windSpeed);
 
     if (windElement) {
-        windElement.textContent = `⠀    ${degreesToCompass(currentData.winddir)} ${windSpeed} mph  (${beaufortScale})  `;
+        windElement.textContent = `⠀${degreesToCompass(currentData.winddir)} ${windSpeed} mph ⠀(${beaufortScale})  `;
     }
 }
 
@@ -703,36 +685,21 @@ async function updateWeather() {
         const lastSummary = dailySummaryData.summaries[dailySummaryData.summaries.length - 1];
         
         // Extract high and low temperatures
-        let highTemp = lastSummary.imperial.tempHigh; // Assuming you want the imperial values
-        let lowTemp = lastSummary.imperial.tempLow;
+        const highTemp = lastSummary.imperial.tempHigh; // Assuming you want the imperial values
+        const lowTemp = lastSummary.imperial.tempLow;
 
         // Update high and low temperatures in the dashboard
         const highTempElement = document.getElementById('high-temp');
         const lowTempElement = document.getElementById('low-temp');
 
         if (highTempElement && lowTempElement) {
-            // Convert temperatures if in metric
-            if (isMetric) {
-                highTemp = fahrenheitToCelsius(highTemp).toFixed(1);
-                lowTemp = fahrenheitToCelsius(lowTemp).toFixed(1);
-            }
-            highTempElement.textContent = `↑ ${highTemp}°${isMetric ? 'C' : 'F'}`;
-            lowTempElement.textContent = `↓ ${lowTemp}°${isMetric ? 'C' : 'F'}`;
+            highTempElement.textContent = `↑ ${highTemp}°F`;
+            lowTempElement.textContent = `↓ ${lowTemp}°F`;
         }
-
-        // Update temperature display
-        const currentTempElement = document.getElementById('current-temp');
-        let currentTemp = currentConditions.properties.temperature; // Assuming this is in Fahrenheit
-
-        if (isMetric) {
-            currentTemp = fahrenheitToCelsius(currentTemp).toFixed(1);
-        }
-
-        currentTempElement.textContent = `${currentTemp}°${isMetric ? 'C' : 'F'}`;
 
     } catch (error) {
         console.error('Error updating weather:', error);
-        showErrorAlert(); // Show error alert if there's an error
+        // ... error handling remains unchanged ...
     }
 }
 
@@ -1077,9 +1044,11 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Add event listener for unit toggle
-    unitToggle.addEventListener('change', (event) => {
-        isMetric = event.target.checked; // Update the unit preference
-        updateWeather(); // Refresh the weather data display
+    unitToggle.addEventListener('change', function(event) {
+        console.log("Unit toggle changed:", this.checked);
+        console.log("Event:", event);
+        updateDisplayedUnits(this.checked);
+        localStorage.setItem('unitPreference', this.checked ? 'metric' : 'imperial');
     });
     
     // Add click event listener as a backup
@@ -1369,12 +1338,12 @@ async function loadNearbyStations() {
     }
 
 // Unit conversion functions
-function fahrenheitToCelsius(fahrenheit) {
-    return (fahrenheit - 32) * 5 / 9;
+function celsiusToFahrenheit(celsius) {
+    return (celsius * 9/5) + 32;
 }
 
-function celsiusToFahrenheit(celsius) {
-    return (celsius * 9 / 5) + 32;
+function fahrenheitToCelsius(fahrenheit) {
+    return (fahrenheit - 32) * 5/9;
 }
 
 function mphToKmh(mph) {
@@ -1414,11 +1383,8 @@ function updateDisplayedUnits(isMetric) {
         }
         
         const tempValue = parseFloat(currentTemp.textContent.replace('°F', '').replace('°C', ''));
-        if (isNaN(tempValue)) {
-            console.error("Invalid temperature value:", currentTemp.textContent);
-            return; // Exit if the temperature value is invalid
-        }
-
+        console.log("Current temperature:", tempValue);
+        
         currentTemp.textContent = isMetric ? 
             `${fahrenheitToCelsius(tempValue).toFixed(1)}°C` : 
             `${tempValue.toFixed(1)}°F`;
@@ -1426,11 +1392,9 @@ function updateDisplayedUnits(isMetric) {
         // Feels like
         const feelsLike = document.getElementById('feels-like');
         const feelsLikeValue = parseFloat(feelsLike.textContent.replace('°F', '').replace('°C', ''));
-        if (!isNaN(feelsLikeValue)) {
-            feelsLike.textContent = isMetric ? 
-                `${fahrenheitToCelsius(feelsLikeValue).toFixed(1)}°C` : 
-                `${feelsLikeValue.toFixed(1)}°F`;
-        }
+        feelsLike.textContent = isMetric ? 
+            `${fahrenheitToCelsius(feelsLikeValue).toFixed(1)}°C` : 
+            `${feelsLikeValue.toFixed(1)}°F`;
 
         // Wind speed
         const wind = document.getElementById('wind');
@@ -1450,11 +1414,9 @@ function updateDisplayedUnits(isMetric) {
         // Dew point
         const dewPoint = document.getElementById('dew-point');
         const dewPointValue = parseFloat(dewPoint.textContent.replace('°F', '').replace('°C', ''));
-        if (!isNaN(dewPointValue)) {
-            dewPoint.textContent = isMetric ? 
-                `${fahrenheitToCelsius(dewPointValue).toFixed(1)}°C` : 
-                `${dewPointValue.toFixed(1)}°F`;
-        }
+        dewPoint.textContent = isMetric ? 
+            `${fahrenheitToCelsius(dewPointValue).toFixed(1)}°C` : 
+            `${dewPointValue.toFixed(1)}°F`;
 
         // Rain today
         const rainToday = document.getElementById('rain-today');
@@ -1468,32 +1430,15 @@ function updateDisplayedUnits(isMetric) {
         forecastDays.forEach(day => {
             if (day.textContent.includes('°F') || day.textContent.includes('°C')) {
                 const temp = parseFloat(day.textContent.replace('°F', '').replace('°C', ''));
-                if (!isNaN(temp)) {
-                    day.textContent = isMetric ? 
-                        `${fahrenheitToCelsius(temp).toFixed(1)}°C` : 
-                        `${temp.toFixed(1)}°F`;
-                }
+                day.textContent = isMetric ? 
+                    `${fahrenheitToCelsius(temp).toFixed(1)}°C` : 
+                    `${temp.toFixed(1)}°F`;
             }
         });
     } catch (error) {
         console.error("Error updating displayed units:", error);
     }
 }
-
-// Event listeners for unit buttons
-document.getElementById('metric-button').addEventListener('click', () => {
-    if (!isMetric) { // Only update if the current unit is not metric
-        isMetric = true; // Set to metric
-        updateDisplayedUnits(isMetric); // Update displayed units
-    }
-});
-
-document.getElementById('imperial-button').addEventListener('click', () => {
-    if (isMetric) { // Only update if the current unit is not imperial
-        isMetric = false; // Set to imperial
-        updateDisplayedUnits(isMetric); // Update displayed units
-    }
-});
 
 function createGraph(canvasId, data, label, color, unit) {
     const ctx = document.getElementById(canvasId).getContext('2d');

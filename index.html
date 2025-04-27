@@ -271,7 +271,7 @@
             padding: 15px 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            z-index: 1000;
+            z-index: 2000;
             opacity: 0;
             transform: translateY(-20px);
             transition: opacity 0.5s ease, transform 0.5s ease;
@@ -608,13 +608,14 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            display: none;
+            display: flex;
             align-items: center;
             gap: 10px;
             background: white;
             padding: 8px 15px;
             border-radius: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
         }
 
         .unit-label-text {
@@ -1000,7 +1001,7 @@
             color: white;
             padding: 15px;
             border-radius: 10px;
-            z-index: 1000;
+            z-index: 3000;
             display: none; /* Hidden by default */
         }
 
@@ -1161,11 +1162,18 @@
             <p id="temp-change" class="temp-change">Temperature change: --°F</p>
             <button id="compare-stations" class="compare-button">Compare Nearby Stations</button>
             <p id="loading-message">Loading...</p>
+        </div>
 
-            <!-- Unit Toggle -->
-            <div class="unit-toggle" style="display: none;">
-                <button id="metric-button" style="display: none;" class="unit-button">Metric</button>
-                <button id="imperial-button" style="display: none;" class="unit-button">Imperial</button>
+        <!-- Unit Toggle -->
+         <!-- Apparently, this part of the code is required to make the moon phases card work properly. 4/21/2025 -->
+        <div class="unit-toggle" style="display: none;">
+            <span class="unit-label-text">Units:</span>
+            <div class="toggle-container">
+                <input type="checkbox" id="unit-toggle" class="unit-checkbox">
+                <label for="unit-toggle" class="toggle-label">
+                    <span class="unit-text imperial"></span>
+                    <span class="unit-text metric"></span>
+                </label>
             </div>
         </div>
 
