@@ -264,8 +264,8 @@
         /* Notification styles */
         .notification {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 140px;
+            right: 132px;
             background-color: #ff9800;
             color: white;
             padding: 15px 20px;
@@ -605,6 +605,8 @@
         }
 
         .unit-toggle {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-weight: 800;
             position: absolute;
             top: 20px;
             right: 20px;
@@ -615,15 +617,19 @@
             padding: 8px 15px;
             border-radius: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 100;
+            z-index: 3000;
         }
 
         .unit-label-text {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-weight: 800;
             color: #666;
             font-size: 14px;
         }
 
         .toggle-container {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-weight: 800;
             position: relative;
             width: 120px;
             height: 30px;
@@ -638,6 +644,8 @@
         }
 
         .toggle-label {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-weight: 800;
             position: absolute;
             top: 0;
             left: 0;
@@ -651,6 +659,8 @@
         }
 
         .unit-text {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            font-weight: 800;
             position: absolute;
             width: 50%;
             height: 100%;
@@ -995,14 +1005,14 @@
         /* Error Alert Box */
         .error-alert {
             position: fixed;
-            top: 20px;
+            top: 100px;
             right: 20px;
             background-color: red;
             color: white;
             padding: 15px;
-            border-radius: 10px;
-            z-index: 3000;
-            display: none; /* Hidden by default */
+            border-radius: 8px;
+            z-index: 2000;
+            display: none;
         }
 
         .error-alert h1 {
@@ -1171,8 +1181,8 @@
             <div class="toggle-container">
                 <input type="checkbox" id="unit-toggle" class="unit-checkbox">
                 <label for="unit-toggle" class="toggle-label">
-                    <span class="unit-text imperial"></span>
-                    <span class="unit-text metric"></span>
+                    <span class="unit-text imperial" style="font-family: Verdana, Geneva, Tahoma, sans-serif; font-weight: 800;"></span>
+                    <span class="unit-text metric" style="font-family: Verdana, Geneva, Tahoma, sans-serif' font-weight: 800;"></span>
                 </label>
             </div>
         </div>
@@ -1181,7 +1191,7 @@
             <!-- Weather alerts will be displayed here -->
         </div>
 
-        <div class="weather-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="weather-grid" style="grid-template-columns: repeat(3, 1fr)">
             <div class="weather-card current-conditions">
                 <div class="main-temp">
                     <div class="weather-icon-container">

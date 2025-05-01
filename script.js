@@ -37,7 +37,8 @@ function formatDate(date) {
         day: 'numeric',
         year: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        timezone: 'America/Chicago'
     });
 }
 
@@ -154,10 +155,10 @@ function animateTemperature(element, targetTemp, duration = 2000) {
     element.style.color = initialColor;
     
     // Start the animation
-    const startTime = Date.now();
+    const startTime = Date.now("en-US", {timezone: 'America/Chicago'});
     
     function updateTemperature() {
-        const elapsedTime = Date.now() - startTime;
+        const elapsedTime = Date.now("en-US", {timezone: 'America/Chicago'}) - startTime;
         const progress = Math.min(elapsedTime / duration, 1);
         
         // Use easing function to slow down as we approach the target
@@ -197,8 +198,8 @@ function animateTemperature(element, targetTemp, duration = 2000) {
 
 // Function to check if data is outdated (more than 10 minutes old)
 function isDataOutdated(lastUpdateTime) {
-    const now = new Date();
-    const lastUpdate = new Date(lastUpdateTime);
+    const now = new Date("en-US", {timezone: 'America/Chicago'});
+    const lastUpdate = new Date(lastUpdateTime, "en-US", {timeZone: 'America/Chicago'});
     const diffInMinutes = (now - lastUpdate) / (1000 * 60);
     return diffInMinutes > 10;
 }
@@ -207,7 +208,10 @@ function isDataOutdated(lastUpdateTime) {
 function showNotification() {
     const notification = document.getElementById('outdated-notification');
     if (notification) {
-        notification.classList.add('visible');
+        notification.classList.add('visible'); // Add a class to show the notification
+        setTimeout(() => {
+            notification.classList.remove('visible'); // Hide after a delay
+        }, 5000); // Adjust the duration as needed
     }
 }
 
@@ -234,34 +238,47 @@ function updateCountdown() {
         console.error("lastUpdateTime is not a valid Date object:", lastUpdateTime);
         return;
     }
-    
-    const now = new Date();
-    const nextUpdate = lastUpdateTime.getTime() + updateInterval;
-    const timeRemaining = nextUpdate - now.getTime();
-    
+
+    // Convert lastUpdateTime to UTC for comparison
+    const lastUpdateTimeUTC = new Date(lastUpdateTime.getTime() + lastUpdateTime.getTimezoneOffset() * 60000);
+    const nowUTC = new Date(); // Current time in UTC
+    const nextUpdate = new Date(lastUpdateTimeUTC.getTime() + updateInterval);
+    const timeRemaining = nextUpdate.getTime() - nowUTC.getTime();
+
     const nextUpdateElement = document.getElementById('next-update');
     if (nextUpdateElement) {
         if (timeRemaining <= 0) {
             nextUpdateElement.textContent = 'Updating...';
             return;
         }
-        
+
+        // Calculate minutes and seconds
+        const minutes = Math.floor((timeRemaining / 1000 / 60) % 60);
+        const seconds = Math.floor((timeRemaining / 1000) % 60);
+
+        // Format the countdown message
+        const countdownMessage = `Next update in: ${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
+
+        nextUpdateElement.textContent = countdownMessage;
+
+        // Format last update time for display in America/Chicago timezone
         const formattedLastUpdateTime = lastUpdateTime.toLocaleString("en-US", {
             timeZone: 'America/Chicago',
             month: 'short',
             day: '2-digit',
             year: 'numeric',
             hour: '2-digit',
-            minute: 'numeric'
+            minute: 'numeric',
+            hour12: true
         });
-        
-        nextUpdateElement.textContent = `Next update in: ${formatTimeRemaining(timeRemaining)}`;
+
         // Optionally display last update time somewhere
         const lastUpdateElement = document.getElementById('last-update');
         if (lastUpdateElement) {
             lastUpdateElement.textContent = `Last updated: ${formattedLastUpdateTime}`;
         }
     }
+
 }
 
 // Function to update temperature difference
@@ -679,7 +696,6 @@ async function updateWeather() {
         // Fetch daily summary data from Weather API
         const dailySummaryResponse = await fetch('https://api.weather.com/v2/pws/dailysummary/7day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909');
         const dailySummaryData = await dailySummaryResponse.json();
-        console.log('Daily Summary Data:', dailySummaryData); // Log the response for debugging
 
         // Get the last summary object
         const lastSummary = dailySummaryData.summaries[dailySummaryData.summaries.length - 1];
@@ -973,7 +989,6 @@ window.addEventListener('resize', positionGraphs);
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-
     console.log("DOM Content Loaded");
     
     // Update weather every 5 minutes
@@ -995,6 +1010,25 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 60000);
 
+    // Set up unit toggle
+    const unitToggle = document.getElementById('unit-toggle');
+    if (unitToggle) {
+        // Add event listener for the unit toggle
+        unitToggle.addEventListener('change', function() {
+            const isMetric = unitToggle.checked; // true if metric is selected
+            updateDisplayedUnits(isMetric); // Call a function to update the displayed units
+        });
+
+        // Load saved preference
+        const savedUnitPreference = localStorage.getItem('unitPreference');
+        if (savedUnitPreference) {
+            unitToggle.checked = savedUnitPreference === 'metric';
+            updateDisplayedUnits(unitToggle.checked);
+        }
+    } else {
+        console.error('Unit toggle element not found!');
+    }
+    
     // Add reload button event listener
     const reloadButton = document.getElementById('reload-weather');
     reloadButton.addEventListener('click', function() {
@@ -1024,39 +1058,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Set up unit toggle
-    const unitToggle = document.getElementById('unit-toggle');
-    console.log("Unit toggle element:", unitToggle);
-    
-    if (!unitToggle) {
-        console.error("Unit toggle element not found!");
-        return;
-    }
-    
-    // Load saved preference
-    const savedUnitPreference = localStorage.getItem('unitPreference');
-    console.log("Saved unit preference:", savedUnitPreference);
-    
-    if (savedUnitPreference) {
-        unitToggle.checked = savedUnitPreference === 'metric';
-        console.log("Setting initial toggle state:", unitToggle.checked);
-        updateDisplayedUnits(unitToggle.checked);
-    }
-    
-    // Add event listener for unit toggle
-    unitToggle.addEventListener('change', function(event) {
-        console.log("Unit toggle changed:", this.checked);
-        console.log("Event:", event);
-        updateDisplayedUnits(this.checked);
-        localStorage.setItem('unitPreference', this.checked ? 'metric' : 'imperial');
-    });
-    
-    // Add click event listener as a backup
-    unitToggle.addEventListener('click', function(event) {
-        console.log("Unit toggle clicked:", this.checked);
-        console.log("Click event:", event);
-    });
-
     // Menu functionality
     const menuButton = document.getElementById('menu-button');
     const menuPopup = document.getElementById('menu-popup');
@@ -1098,7 +1099,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Call updateMoonPhases when the DOM is loaded
     updateMoonPhases();
 
-    console.log(localStorage.getItem('dontShowMobileAlert'));
 
     checkDeviceWidth();
     document.getElementById('close-alert').addEventListener('click', function() {
@@ -1370,73 +1370,23 @@ function mmToInches(mm) {
     return mm / 25.4;
 }
 
-// Function to update all displayed values based on selected unit
+// Function to update displayed units based on the selected unit
 function updateDisplayedUnits(isMetric) {
-    console.log("Updating units to:", isMetric ? "metric" : "imperial");
+    const currentTempElement = document.getElementById('current-temp');
+    const highTempElement = document.getElementById('high-temp');
+    const lowTempElement = document.getElementById('low-temp');
     
-    try {
-        // Temperature
-        const currentTemp = document.getElementById('current-temp');
-        if (!currentTemp) {
-            console.error("Current temp element not found");
-            return;
-        }
-        
-        const tempValue = parseFloat(currentTemp.textContent.replace('°F', '').replace('°C', ''));
-        console.log("Current temperature:", tempValue);
-        
-        currentTemp.textContent = isMetric ? 
-            `${fahrenheitToCelsius(tempValue).toFixed(1)}°C` : 
-            `${tempValue.toFixed(1)}°F`;
-
-        // Feels like
-        const feelsLike = document.getElementById('feels-like');
-        const feelsLikeValue = parseFloat(feelsLike.textContent.replace('°F', '').replace('°C', ''));
-        feelsLike.textContent = isMetric ? 
-            `${fahrenheitToCelsius(feelsLikeValue).toFixed(1)}°C` : 
-            `${feelsLikeValue.toFixed(1)}°F`;
-
-        // Wind speed
-        const wind = document.getElementById('wind');
-        const windParts = wind.textContent.split(' ');
-        const windSpeed = parseFloat(windParts[1].replace('mph', '').replace('km/h', ''));
-        wind.textContent = isMetric ? 
-            `${windParts[0]} ${mphToKmh(windSpeed).toFixed(1)} km/h` : 
-            `${windParts[0]} ${windSpeed.toFixed(1)} mph`;
-
-        // Pressure
-        const pressure = document.getElementById('pressure');
-        const pressureValue = parseFloat(pressure.textContent.replace('inHg', '').replace('hPa', ''));
-        pressure.textContent = isMetric ? 
-            `${inHgToHpa(pressureValue).toFixed(1)} hPa` : 
-            `${pressureValue.toFixed(2)} inHg`;
-
-        // Dew point
-        const dewPoint = document.getElementById('dew-point');
-        const dewPointValue = parseFloat(dewPoint.textContent.replace('°F', '').replace('°C', ''));
-        dewPoint.textContent = isMetric ? 
-            `${fahrenheitToCelsius(dewPointValue).toFixed(1)}°C` : 
-            `${dewPointValue.toFixed(1)}°F`;
-
-        // Rain today
-        const rainToday = document.getElementById('rain-today');
-        const rainValue = parseFloat(rainToday.textContent.replace('"', '').replace('mm', ''));
-        rainToday.textContent = isMetric ? 
-            `${inchesToMm(rainValue).toFixed(1)} mm` : 
-            `${rainValue.toFixed(1)}"`;
-
-        // Update forecast temperatures
-        const forecastDays = document.querySelectorAll('.forecast-day p');
-        forecastDays.forEach(day => {
-            if (day.textContent.includes('°F') || day.textContent.includes('°C')) {
-                const temp = parseFloat(day.textContent.replace('°F', '').replace('°C', ''));
-                day.textContent = isMetric ? 
-                    `${fahrenheitToCelsius(temp).toFixed(1)}°C` : 
-                    `${temp.toFixed(1)}°F`;
-            }
-        });
-    } catch (error) {
-        console.error("Error updating displayed units:", error);
+    // Convert temperatures based on the selected unit
+    if (isMetric) {
+        // Convert to Celsius
+        currentTempElement.textContent = `${fahrenheitToCelsius(parseFloat(currentTempElement.textContent))}°C`;
+        highTempElement.textContent = `${fahrenheitToCelsius(parseFloat(highTempElement.textContent))}°C`;
+        lowTempElement.textContent = `${fahrenheitToCelsius(parseFloat(lowTempElement.textContent))}°C`;
+    } else {
+        // Convert to Fahrenheit
+        currentTempElement.textContent = `${celsiusToFahrenheit(parseFloat(currentTempElement.textContent))}°F`;
+        highTempElement.textContent = `${celsiusToFahrenheit(parseFloat(highTempElement.textContent))}°F`;
+        lowTempElement.textContent = `${celsiusToFahrenheit(parseFloat(lowTempElement.textContent))}°F`;
     }
 }
 
@@ -1499,7 +1449,7 @@ function createGraph(canvasId, data, label, color, unit) {
 
 // Function to format date in mm/dd/yyyy
 function formatDateToMMDDYYYY(date) {
-    const month = String(date.getMonth() - 2).padStart(0, '0'); // Months are zero-based
+    const month = String(date.getMonth() + 1).padStart(0, '0'); // Months are zero-based
     const day = String(date.getDate()).padStart(2, '0');
     const year = date.getFullYear();
     return `${month}/${day}/${year}`;
@@ -1515,16 +1465,16 @@ async function fetchMoonPhases() {
         const data = await response.json();
 
         const now = new Date();
-        const currentMonth = now.toLocaleString('default', { month: 'long' });
+        const currentMonthIndex = (now.getMonth() + 1).toString().padStart(2, '0'); // Get the current month as a two-digit string
         const currentYear = now.getFullYear();
         const moonPhases = [];
 
-        // Find the current month in the data
-        const monthIndex = data.findIndex(month => month === currentMonth);
-        if (monthIndex !== -1) {
-            const phases = data[monthIndex + 1]; // Get the phases object for the current month
+        // Get the phases for the current month
+        const phases = data[currentMonthIndex]; // Access phases using the month number
+
+        if (phases) {
             for (const [day, phase] of Object.entries(phases)) {
-                const phaseDate = new Date(currentYear, monthIndex, day);
+                const phaseDate = new Date(currentYear, parseInt(currentMonthIndex) - 1, day); // Ensure monthIndex is correct
                 if (phaseDate >= now) { // Only include future phases
                     moonPhases.push({ name: phase, date: formatDateToMMDDYYYY(phaseDate) });
                 }
@@ -1533,13 +1483,14 @@ async function fetchMoonPhases() {
 
         // Get the next three months' phases
         for (let i = 1; i <= 3; i++) {
-            const nextMonthIndex = (monthIndex + i) % 12;
-            const nextMonth = data[nextMonthIndex * 2]; // Get the month name
-            const nextPhases = data[nextMonthIndex * 2 + 1]; // Get the phases object
+            const nextMonthIndex = (parseInt(currentMonthIndex) + i).toString().padStart(2, '0');
+            const nextPhases = data[nextMonthIndex]; // Access phases using the month number
 
-            for (const [day, phase] of Object.entries(nextPhases)) {
-                const phaseDate = new Date(currentYear, nextMonthIndex, day);
-                moonPhases.push({ name: phase, date: formatDateToMMDDYYYY(phaseDate) });
+            if (nextPhases) {
+                for (const [day, phase] of Object.entries(nextPhases)) {
+                    const phaseDate = new Date(currentYear, parseInt(nextMonthIndex) - 1, day); // Ensure monthIndex is correct
+                    moonPhases.push({ name: phase, date: formatDateToMMDDYYYY(phaseDate) });
+                }
             }
         }
 
@@ -1585,8 +1536,6 @@ function getUVIndexLevel(uvIndex) {
 function checkDeviceWidth() {
     const mobileAlert = document.getElementById('mobile-alert');
     const dontShowAgain = localStorage.getItem('dontShowMobileAlert');
-    console.log('Current width:', window.innerWidth);
-    console.log('Dont show again:', dontShowAgain);
 
     if (window.innerWidth < 500 && !dontShowAgain) {
         mobileAlert.style.display = 'block';
@@ -1608,4 +1557,32 @@ document.getElementById('close-alert').addEventListener('click', function() {
 document.addEventListener('DOMContentLoaded', checkDeviceWidth);
 
 // Check device width on window resize
-window.addEventListener('resize', checkDeviceWidth); 
+window.addEventListener('resize', checkDeviceWidth);
+
+function updateNextUpdate() {
+    const nextUpdateTime = new Date(Date.now() + 10 * 60 * 1000); // Example: 10 minutes from now
+    const now = new Date();
+    const timeRemaining = nextUpdateTime - now;
+
+    if (timeRemaining > 0) {
+        const minutes = Math.floor((timeRemaining / 1000 / 60) % 60);
+        const seconds = Math.floor((timeRemaining / 1000) % 60);
+        document.getElementById('next-update').textContent = `Next update in: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    } else {
+        document.getElementById('next-update').textContent = 'Next update in: --:--';
+    }
+
+    console.log("Next update time:", nextUpdateTime);
+    console.log("Current time:", now);
+    console.log("Time remaining:", timeRemaining);
+}
+
+function showErrorAlert() {
+    const errorAlert = document.getElementById('error-alert');
+    if (errorAlert) {
+        errorAlert.style.display = 'block'; // Show the error alert
+        setTimeout(() => {
+            errorAlert.style.display = 'none'; // Hide after a delay
+        }, 5000); // Adjust the duration as needed
+    }
+} 

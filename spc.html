@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storm Prediction Center Convective Outlooks</title>
+    <style>
+        body {
+            font-family: Verdana, Geneva, Tahoma, sans-serif, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background: #007BFF;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+        main {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            font-weight: bold;
+        }
+        select {
+            margin: 10px 0;
+            padding: 5px;
+            font-size: 16px;
+        }
+        #outlook-display {
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #e9ecef;
+            height: fit-content;
+        }
+        .outlookImg {
+            width: 75%;
+            max-width: 100%;
+            margin-left: 12.5%;
+        }
+        .back-button {
+            position: fixed;
+            top: 35px;
+            left: 30px;
+            text-decoration: none;
+            color: #06314e;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(19, 71, 105, 0.373);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.626);
+            color: #06314e;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+    <header>
+        <h1>Storm Prediction Center Convective Outlooks</h1>
+    </header>
+    <main>
+        <label for="outlook-select">Select Outlook:</label>
+        <select id="outlook-select">
+            <option value="day1">Day 1 Outlook</option>
+            <option value="day2">Day 2 Outlook</option>
+            <option value="day3">Day 3 Outlook</option>
+            <option value="day4">Day 4 Outlook</option>
+            <option value="day5">Day 5 Outlook</option>
+            <option value="day6">Day 6 Outlook</option>
+            <option value="day7">Day 7 Outlook</option>
+            <option value="day8">Day 8 Outlook</option>
+            <option value="day1tornado">Day 1 Tornado</option>
+            <option value="day2tornado">Day 2 Tornado</option>
+            <option value="day1wind">Day 1 Wind</option>
+            <option value="day2wind">Day 2 Wind</option>
+            <option value="day1hail">Day 1 Hail</option>
+            <option value="day2hail">Day 2 Hail</option>
+            <option value="day3probalistic">Day 3 Probalistic Severe</option>
+
+        </select>
+        <div id="outlook-display">
+            <!-- Outlook information will be displayed here -->
+        </div>
+    </main>
+    <script src="spc.js"></script> <!-- Link to your JavaScript file -->
+</body>
+</html>
