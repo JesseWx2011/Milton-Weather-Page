@@ -4,7 +4,7 @@ const CAMERA_CONFIG = {
         {
             id: 'camera1',
             name: 'FL511 Traffic Cam 1',
-            url: 'https://173-d3.divas.cloud/CHAN-6584/CHAN-6584_1.stream/playlist.m3u8?vdswztokenhash=nWG4o8REN4OUKoC7MAPvGS-r9z2f8kthK1rHHhfCdgk=',
+            url: 'https://dim-se3.divas.cloud:8200/chan-6573/stream.m3u8?token=c43d835c02be0bdef9c9dbb41e9cb98a3b030cdbebcc6e283239da021915bf64',
             location: 'Florida Highway',
             type: 'application/x-mpegURL'
         },
