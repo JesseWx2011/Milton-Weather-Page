@@ -605,106 +605,117 @@
         }
 
         .unit-toggle {
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
-            font-weight: 800;
             position: absolute;
             top: 20px;
             right: 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            background: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 3000;
+            gap: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
         }
 
-        .unit-label-text {
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
-            font-weight: 800;
-            color: #666;
-            font-size: 14px;
+        .unit-label {
+            font-family: 'Verdana', sans-serif;
+            font-weight: bold;
+            color: #333;
+            font-size: 0.8rem;
         }
 
-        .toggle-container {
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
-            font-weight: 800;
-            position: relative;
-            width: 120px;
-            height: 30px;
+        .unit-btn {
+            padding: 0.25rem 0.75rem;
+            border: 1px solid #2196F3;
+            border-radius: 15px;
+            background: transparent;
+            color: #333;
+            font-family: 'Verdana', sans-serif;
+            font-weight: bold;
+            font-size: 0.8rem;
             cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .unit-checkbox {
-            position: absolute;
+        .unit-btn:hover {
+            background: rgba(33, 150, 243, 0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .unit-btn.active {
+            background: #2196F3;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+        }
+
+        .unit-btn:not(.active) {
+            opacity: 0.7;
+        }
+
+        .unit-btn:not(.active):hover {
+            opacity: 1;
+        }
+
+        .unit-text {
+            font-size: 14px;
+            color: #333;
+            min-width: 60px;
+        }
+
+        /* Toggle Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
 
-        .toggle-label {
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
-            font-weight: 800;
+        .slider {
             position: absolute;
+            cursor: pointer;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: #f0f0f0;
-            border-radius: 15px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            overflow: hidden;
+            background-color: #ccc;
+            transition: .4s;
         }
 
-        .unit-text {
-            font-family: Verdana, Geneva, Tahoma, sans-serif;
-            font-weight: 800;
+        .slider:before {
             position: absolute;
-            width: 50%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            transition: transform 0.3s, color 0.3s;
-            pointer-events: none;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
         }
 
-        .unit-text.imperial {
-            left: 0;
-            color: #4CAF50;
+        input:checked + .slider {
+            background-color: #2196F3;
         }
 
-        .unit-text.metric {
-            right: 0;
-            color: #666;
+        input:checked + .slider:before {
+            transform: translateX(26px);
         }
 
-        .unit-checkbox:checked + .toggle-label {
-            background: #4CAF50;
+        .slider.round {
+            border-radius: 24px;
         }
 
-        .unit-checkbox:checked + .toggle-label .unit-text.imperial {
-            transform: translateX(100%);
-            color: #666;
-        }
-
-        .unit-checkbox:checked + .toggle-label .unit-text.metric {
-            transform: translateX(-100%);
-            color: white;
-        }
-
-        .unit-checkbox:not(:checked) + .toggle-label .unit-text.imperial {
-            transform: translateX(0);
-            color: #4CAF50;
-        }
-
-        .unit-checkbox:not(:checked) + .toggle-label .unit-text.metric {
-            transform: translateX(0);
-            color: #666;
+        .slider.round:before {
+            border-radius: 50%;
         }
 
         .temp-change {
@@ -1171,6 +1182,11 @@
             <p id="last-update">Last updated: --:--:--</p>
             <p id="next-update">Next update in: --:--</p>
             <p id="temp-change" class="temp-change">Temperature change: --°F</p>
+            <div class="unit-toggle">
+                <span class="unit-label">Units:</span>
+                <button id="imperial-btn" class="unit-btn active">Imperial</button>
+                <button id="metric-btn" class="unit-btn">Metric</button>
+            </div>
             <button id="compare-stations" class="compare-button">Compare Nearby Stations</button>
             <p id="loading-message">Loading...</p>
         </div>
@@ -1192,7 +1208,7 @@
             <!-- Weather alerts will be displayed here -->
         </div>
 
-        <div class="weather-grid" style="grid-template-columns: repeat(3, 1fr)">
+        <div class="weather-grid" style="grid-template-columns: repeat(3, 1fr);">
             <div class="weather-card current-conditions">
                 <div class="main-temp">
                     <div class="weather-icon-container">
@@ -1257,8 +1273,8 @@
                         <span id="lightning-strikes">--</span>
                     </div>
                     <div class="detail-item"> 
-                        <span>Lightning Duration:</span>
-                        <span id="lightning-duration">--</span>
+                        <span>Last Lightning Strike:</span>
+                        <span id="last-lightning">--</span>
                     </div>
                 </div>
             </div>

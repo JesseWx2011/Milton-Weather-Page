@@ -22,6 +22,10 @@ let lastTemperature = null;
 let lastUpdateTime = null;
 const updateInterval = 90000; // 1 minute & 30 seconds in milliseconds
 
+// Add this at the top of the file with other constants
+const RATE_LIMIT_DELAY = 60000; // 60 seconds delay between requests
+let lastLightningUpdate = 0;
+
 // Function to convert degrees to compass direction
 function degreesToCompass(degrees) {
     const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
@@ -62,7 +66,7 @@ function getTempFeel(temp) {
     if (temp < 95) return "Hot";
     if (temp < 99) return "Very Hot";
     return "Extremely Hot";
-}
+}   
 
 // Function to determine text color based on temperature
 function getTempTextColor(temp) {
@@ -430,29 +434,102 @@ async function fetchAndCreateGraphs() {
     const apiUrl = 'https://api.weather.com/v2/pws/observations/all/1day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909';
     
     try {
+        // Destroy all existing charts first
+        Object.keys(charts).forEach(metric => {
+            if (charts[metric]) {
+                charts[metric].destroy();
+                charts[metric] = null;
+            }
+        });
+
         const response = await fetch(apiUrl);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const data = await response.json();
-        const observations = data.observations;
+        console.log('Weather.com API Response:', data); // Debug log
 
-        // Filter observations to get data at 30-minute intervals
-        const filteredObservations = observations.filter((obs, index) => {
-            return index % 2 === 0; // Assuming the data is in 15-minute intervals, take every second observation
-        });
+        if (!data.observations || !Array.isArray(data.observations)) {
+            throw new Error('Invalid data format from API');
+        }
+
+        const observations = data.observations;
+        // Log only the first observation to check structure
+        console.log('First observation structure:', observations[0]);
 
         // Extract relevant data for graphs
-        const temperatures = filteredObservations.map(obs => obs.imperial.tempAvg);
-        const humidity = filteredObservations.map(obs => obs.humidityAvg);
-        const windSpeeds = filteredObservations.map(obs => obs.imperial.windspeedAvg);
-        
-        // Create graphs
-        createGraph('tempChart', { labels: getLast12HoursLabels(), values: temperatures }, 'Temperature', 'rgb(255, 99, 132)', '°F');
-        createGraph('humidityChart', { labels: getLast12HoursLabels(), values: humidity }, 'Humidity', 'rgb(54, 162, 235)', '%');
-        createGraph('windChart', { labels: getLast12HoursLabels(), values: windSpeeds }, 'Wind Speed', 'rgb(75, 192, 192)', 'mph');
+        const graphData = {
+            temperatures: [],
+            humidity: [],
+            windSpeeds: [],
+            pressure: [],
+            dewPoints: [],
+            rain: [],
+            uvIndex: [],
+            solarRadiation: [],
+            timeLabels: []
+        };
+
+        // Process each observation
+        observations.forEach(obs => {
+            // Extract data with fallback values
+            graphData.temperatures.push(obs.tempf || obs.temp || null);
+            graphData.humidity.push(obs.humidity || null);
+            graphData.windSpeeds.push(obs.windspeedmph || obs.windSpeed || null);
+            graphData.pressure.push(obs.baromabsin || obs.pressure || null);
+            graphData.dewPoints.push(obs.dewPoint || obs.dewpt || null);
+            graphData.rain.push(obs.precipRate || obs.precip_rate || null);
+            graphData.uvIndex.push(obs.uv || obs.uvIndex || null);
+            graphData.solarRadiation.push(obs.solarRadiation || obs.solar_radiation || null);
+            
+            // Create time label
+            const date = new Date(obs.obsTimeUtc || obs.obs_time_utc);
+            graphData.timeLabels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        });
+
+        // Log the first few data points for verification
+        console.log('First few data points:', {
+            temperatures: graphData.temperatures.slice(0, 3),
+            humidity: graphData.humidity.slice(0, 3),
+            windSpeeds: graphData.windSpeeds.slice(0, 3),
+            pressure: graphData.pressure.slice(0, 3),
+            dewPoints: graphData.dewPoints.slice(0, 3),
+            rain: graphData.rain.slice(0, 3),
+            uvIndex: graphData.uvIndex.slice(0, 3),
+            solarRadiation: graphData.solarRadiation.slice(0, 3),
+            timeLabels: graphData.timeLabels.slice(0, 3)
+        });
+
+        // Create graphs with real data
+        createGraph('tempChart', { labels: graphData.timeLabels, values: graphData.temperatures }, 'Temperature', 'rgb(255, 99, 132)', '°F');
+        createGraph('humidityChart', { labels: graphData.timeLabels, values: graphData.humidity }, 'Humidity', 'rgb(54, 162, 235)', '%');
+        createGraph('windChart', { labels: graphData.timeLabels, values: graphData.windSpeeds }, 'Wind Speed', 'rgb(75, 192, 192)', 'mph');
+        createGraph('pressureChart', { labels: graphData.timeLabels, values: graphData.pressure }, 'Pressure', 'rgb(153, 102, 255)', 'inHg');
+        createGraph('dewPointChart', { labels: graphData.timeLabels, values: graphData.dewPoints }, 'Dew Point', 'rgb(75, 192, 192)', '°F');
+        createGraph('rainChart', { labels: graphData.timeLabels, values: graphData.rain }, 'Rain Rate', 'rgb(54, 162, 235)', 'in/hr');
+        createGraph('uvChart', { labels: graphData.timeLabels, values: graphData.uvIndex }, 'UV Index', 'rgb(255, 215, 0)', '');
+        createGraph('solarChart', { labels: graphData.timeLabels, values: graphData.solarRadiation }, 'Solar Radiation', 'rgb(255, 165, 0)', 'W/m²');
         
     } catch (error) {
         console.error('Error fetching graph data:', error);
+        // Fallback to using current values if API fails
+        const currentTemp = parseFloat(document.getElementById('current-temp').textContent);
+        const currentHumidity = parseFloat(document.getElementById('humidity').textContent);
+        const currentWind = parseFloat(document.getElementById('wind').textContent.split(' ')[1]);
+        const currentPressure = parseFloat(document.getElementById('pressure').textContent);
+        const currentDewPoint = parseFloat(document.getElementById('dew-point').textContent);
+        const currentRain = parseFloat(document.getElementById('rain-today').textContent);
+        const currentUV = parseFloat(document.getElementById('uv-index').textContent);
+        const currentSolar = parseFloat(document.getElementById('solar-radiation').textContent);
+
+        // Create graphs with current values as fallback
+        createGraph('tempChart', { labels: getLast12HoursLabels(), values: getHistoricalData('temp', currentTemp) }, 'Temperature', 'rgb(255, 99, 132)', '°F');
+        createGraph('humidityChart', { labels: getLast12HoursLabels(), values: getHistoricalData('humidity', currentHumidity) }, 'Humidity', 'rgb(54, 162, 235)', '%');
+        createGraph('windChart', { labels: getLast12HoursLabels(), values: getHistoricalData('wind', currentWind) }, 'Wind Speed', 'rgb(75, 192, 192)', 'mph');
+        createGraph('pressureChart', { labels: getLast12HoursLabels(), values: getHistoricalData('pressure', currentPressure) }, 'Pressure', 'rgb(153, 102, 255)', 'inHg');
+        createGraph('dewPointChart', { labels: getLast12HoursLabels(), values: getHistoricalData('dew-point', currentDewPoint) }, 'Dew Point', 'rgb(75, 192, 192)', '°F');
+        createGraph('rainChart', { labels: getLast12HoursLabels(), values: getHistoricalData('rain', currentRain) }, 'Rain Rate', 'rgb(54, 162, 235)', 'in/hr');
+        createGraph('uvChart', { labels: getLast12HoursLabels(), values: getHistoricalData('uv', currentUV) }, 'UV Index', 'rgb(255, 215, 0)', '');
+        createGraph('solarChart', { labels: getLast12HoursLabels(), values: getHistoricalData('solar', currentSolar) }, 'Solar Radiation', 'rgb(255, 165, 0)', 'W/m²');
     }
 }
 
@@ -475,6 +552,104 @@ function showLoadingMessages() {
     setTimeout(() => {
         loadingMessageElement.textContent = "Something may have gone wrong, try reloading this page.";
     }, 15000); // After 15 seconds
+}
+
+// Function to format time difference
+function formatTimeDifference(timestamp) {
+    const now = new Date();
+    const strikeTime = new Date(timestamp);
+    const diffInMinutes = Math.floor((now - strikeTime) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+    if (diffInMinutes < 120) return '1 hour ago';
+    return `${Math.floor(diffInMinutes / 60)} hours ago`;
+}
+
+// Function to update lightning data
+async function updateLightningData() {
+    const now = Date.now();
+    
+    // Check if enough time has passed since the last request
+    if (now - lastLightningUpdate < RATE_LIMIT_DELAY) {
+        console.log('Skipping lightning update due to rate limiting');
+        return;
+    }
+
+    try {
+        const response = await fetch(`${AMBIENT_WEATHER_BASE_URL}/devices?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
+        
+        if (response.status === 429) {
+            console.log('Rate limit reached, will retry later');
+            // Update UI to show rate limit message
+            const lastStrikeElement = document.getElementById('last-lightning');
+            if (lastStrikeElement) {
+                lastStrikeElement.textContent = 'Rate limit reached, updating soon...';
+            }
+            return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log('Full API Response:', data);
+        
+        if (!data || !Array.isArray(data) || data.length === 0) {
+            console.error('No device data in response');
+            throw new Error('No device data available');
+        }
+        
+        const deviceData = data[0];
+        console.log('Device Data:', deviceData);
+        
+        if (!deviceData || !deviceData.lastData) {
+            console.error('No lastData in device data');
+            throw new Error('No weather data available');
+        }
+        
+        const currentData = deviceData.lastData;
+        console.log('Current Data:', currentData);
+        
+        // Update lightning strikes count
+        const strikesElement = document.getElementById('lightning-strikes');
+        if (strikesElement) {
+            const strikesToday = currentData.lightning_day;
+            console.log('Lightning Day Count:', strikesToday);
+            strikesElement.textContent = strikesToday !== undefined ? strikesToday : '0';
+        }
+        
+        // Update last lightning strike time
+        const lastStrikeElement = document.getElementById('last-lightning');
+        if (lastStrikeElement) {
+            const lastStrike = currentData.lightning_time;
+            console.log('Last Lightning Time:', lastStrike);
+            if (lastStrike) {
+                const strikeDate = new Date(lastStrike * 1000);
+                console.log('Converted Strike Date:', strikeDate);
+                lastStrikeElement.textContent = formatTimeDifference(strikeDate);
+            } else {
+                lastStrikeElement.textContent = 'No recent strikes';
+            }
+        }
+
+        // Update the last request timestamp
+        lastLightningUpdate = now;
+        
+    } catch (error) {
+        console.error('Error updating lightning data:', error);
+        // Update UI to show error state
+        const strikesElement = document.getElementById('lightning-strikes');
+        const lastStrikeElement = document.getElementById('last-lightning');
+        
+        if (strikesElement) {
+            strikesElement.textContent = '--';
+        }
+        if (lastStrikeElement) {
+            lastStrikeElement.textContent = 'Error updating data';
+        }
+    }
 }
 
 // Function to update the weather data
@@ -713,6 +888,9 @@ async function updateWeather() {
             lowTempElement.textContent = `↓ ${lowTemp}°F`;
         }
 
+        // Update lightning data
+        await updateLightningData();
+
     } catch (error) {
         console.error('Error updating weather:', error);
         // ... error handling remains unchanged ...
@@ -925,6 +1103,59 @@ function showWeatherGraph(event) {
     }
 }
 
+// Function to create weather graph
+function createWeatherGraph(metric) {
+    // Map metric names to chart IDs
+    const chartIdMap = {
+        'temp': 'tempChart',
+        'humidity': 'humidityChart',
+        'wind': 'windChart',
+        'pressure': 'pressureChart',
+        'dew-point': 'dewPointChart',
+        'rain': 'rainChart',
+        'uv': 'uvChart',
+        'solar': 'solarChart'
+    };
+
+    const canvasId = chartIdMap[metric];
+    if (!canvasId) {
+        console.error(`No chart ID mapping found for metric: ${metric}`);
+        return;
+    }
+
+    const ctx = document.getElementById(canvasId).getContext('2d');
+    
+    // Destroy existing chart if it exists
+    if (charts[metric]) {
+        charts[metric].destroy();
+        charts[metric] = null;
+    }
+    
+    // Get current value from the DOM
+    let currentValue;
+    if (metric === 'uv') {
+        currentValue = document.getElementById('uv-index').textContent;
+    } else if (metric === 'solar') {
+        currentValue = document.getElementById('solar-radiation').textContent;
+    } else {
+        currentValue = document.getElementById(metric === 'temp' ? 'feels-like' : 
+                                             metric === 'dew-point' ? 'dew-point' : 
+                                             metric === 'rain' ? 'rain-today' : metric).textContent;
+    }
+    
+    // Extract numeric value
+    const numericValue = parseFloat(currentValue);
+    
+    // Get historical data
+    const data = getHistoricalData(metric, numericValue);
+    
+    // Create new chart
+    const config = getChartConfig(metric, data);
+    if (config) {
+        charts[metric] = new Chart(ctx, config);
+    }
+}
+
 // Function to close weather graph
 function closeGraph(metric) {
     const graphDiv = document.getElementById(`${metric}Graph`);
@@ -933,6 +1164,12 @@ function closeGraph(metric) {
     if (!graphDiv) {
         console.error(`Graph element for metric ${metric} not found`);
         return;
+    }
+    
+    // Destroy the chart before closing
+    if (charts[metric]) {
+        charts[metric].destroy();
+        charts[metric] = null;
     }
     
     graphDiv.classList.remove('visible');
@@ -945,37 +1182,6 @@ function closeGraph(metric) {
         graphDiv.style.display = 'none';
         positionGraphs();
     }, 300);
-}
-
-// Function to create weather graph
-function createWeatherGraph(metric) {
-    const ctx = document.getElementById(`${metric}Chart`).getContext('2d');
-    
-    // Destroy existing chart if it exists
-    if (charts[metric]) {
-        charts[metric].destroy();
-    }
-    
-    // Get current value from the DOM
-    let currentValue;
-    if (metric === 'uv') {
-        currentValue = document.getElementById('uv-index').textContent;
-    } else if (metric === 'solar') {
-        currentValue = document.getElementById('solar-radiation').textContent;
-    } else {
-        currentValue = document.getElementById(metric === 'temp' ? 'feels-like' : 
-                                                 metric === 'dew-point' ? 'dew-point' : 
-                                                 metric === 'rain' ? 'rain-today' : metric).textContent;
-    }
-    
-    // Extract numeric value
-    const numericValue = parseFloat(currentValue);
-    
-    // Get historical data
-    const data = getHistoricalData(metric, numericValue);
-    
-    // Create new chart
-    charts[metric] = new Chart(ctx, getChartConfig(metric, data));
 }
 
 // Add event listeners for all weather metrics
@@ -1214,112 +1420,34 @@ function closeCompareModal() {
 // Function to load and display nearby stations
 async function loadNearbyStations() {
     const stationsList = document.getElementById('stations-list');
-    stationsList.innerHTML = '<p>Loading nearby stations...</p>';
+    if (!stationsList) return;
 
-    const latitude = 30.6319;
-    const longitude = -87.0372199;
-                // Get nearby stations
-        const stations = await getNearbyStations(latitude, longitude);
+    try {
+        // Get current location
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+
+        // Get nearby stations
+        const stations = await getNearbyStations(position.coords.latitude, position.coords.longitude);
         
-        if (!stations || stations.length === 0) {
-            stationsList.innerHTML = '<p>No nearby stations found.</p>';
-            return;
-        }
-
-        // Get current station data
-        const currentTemp = parseFloat(document.getElementById('current-temp').textContent);
-        const currentHumidity = parseFloat(document.getElementById('humidity').textContent);
-        const currentWind = parseFloat(document.getElementById('wind').textContent.split(' ')[1]);
-        const currentPressure = parseFloat(document.getElementById('pressure').textContent);
-        const currentDewPoint = parseFloat(document.getElementById('dew-point').textContent);
-
-        // Create station cards
-        const stationsHTML = await Promise.all(stations.map(async (station) => {
+        // Create HTML for each station
+        const stationsHTML = await Promise.all(stations.map(async station => {
             try {
-                const stationId = station.properties.stationIdentifier;
-                const stationName = station.properties.name;
-                const stationLat = station.geometry.coordinates[1];
-                const stationLon = station.geometry.coordinates[0];
-                const distance = calculateDistance(latitude, longitude, stationLat, stationLon);
-                
-                const metarData = await getMetarData(stationId);
-                
-                if (!metarData || !metarData.properties) {
-                    return null;
-                }
-
-                // Check if all required properties exist
-                if (!metarData.properties.temperature?.value ||
-                    !metarData.properties.relativeHumidity?.value ||
-                    !metarData.properties.windSpeed?.value ||
-                    !metarData.properties.barometricPressure?.value ||
-                    !metarData.properties.dewpoint?.value) {
-                    return null;
-                }
-
-                const temp = metarData.properties.temperature.value * 9/5 + 32; // Convert to Fahrenheit
-                const humidity = metarData.properties.relativeHumidity.value;
-                const windSpeed = metarData.properties.windSpeed.value * 2.23694; // Convert to mph
-                const pressure = metarData.properties.barometricPressure.value * 0.0002953; // Convert to inHg
-                const dewPoint = metarData.properties.dewpoint.value * 9/5 + 32; // Convert to Fahrenheit
+                const metarData = await getMetarData(station.properties.stationIdentifier);
+                if (!metarData) return null;
 
                 return `
                     <div class="station-card">
-                        <div class="station-header">
-                            <span class="station-name">${stationName} (${stationId})</span>
-                            <span class="station-distance">${distance.toFixed(1)} miles away</span>
-                        </div>
-                        <div class="station-comparison">
-                            <div class="comparison-item">
-                                <span class="comparison-label">Temperature</span>
-                                <span class="comparison-value">
-                                    ${temp.toFixed(1)}°F
-                                    <span class="difference ${temp > currentTemp ? 'positive' : 'negative'}">
-                                        ${formatDifference(temp, currentTemp, '°F')}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="comparison-item">
-                                <span class="comparison-label">Humidity</span>
-                                <span class="comparison-value">
-                                    ${humidity.toFixed(1)}%
-                                    <span class="difference ${humidity > currentHumidity ? 'positive' : 'negative'}">
-                                        ${formatDifference(humidity, currentHumidity, '%')}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="comparison-item">
-                                <span class="comparison-label">Wind Speed</span>
-                                <span class="comparison-value">
-                                    ${windSpeed.toFixed(1)} mph
-                                    <span class="difference ${windSpeed > currentWind ? 'positive' : 'negative'}">
-                                        ${formatDifference(windSpeed, currentWind, ' mph')}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="comparison-item">
-                                <span class="comparison-label">Pressure</span>
-                                <span class="comparison-value">
-                                    ${pressure.toFixed(2)} inHg
-                                    <span class="difference ${pressure > currentPressure ? 'positive' : 'negative'}">
-                                        ${formatDifference(pressure, currentPressure, ' inHg')}
-                                    </span>
-                                </span>
-                            </div>
-                            <div class="comparison-item">
-                                <span class="comparison-label">Dew Point</span>
-                                <span class="comparison-value">
-                                    ${dewPoint.toFixed(1)}°F
-                                    <span class="difference ${dewPoint > currentDewPoint ? 'positive' : 'negative'}">
-                                        ${formatDifference(dewPoint, currentDewPoint, '°F')}
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
+                        <h3>${station.properties.name}</h3>
+                        <p>Distance: ${station.distance.toFixed(1)} miles</p>
+                        <p>Temperature: ${metarData.temperature}°F</p>
+                        <p>Wind: ${metarData.windSpeed} mph from ${metarData.windDirection}</p>
+                        <p>Visibility: ${metarData.visibility} miles</p>
                     </div>
                 `;
             } catch (error) {
-                console.error(`Error processing station ${station.properties.stationIdentifier}:`, error);
+                console.error(`Error fetching data for station ${station.properties.stationIdentifier}:`, error);
                 return null;
             }
         }));
@@ -1330,20 +1458,19 @@ async function loadNearbyStations() {
             ? validStations.join('')
             : '<p>No active weather stations found nearby.</p>';
 
-    } try { // Idk what to do with this
-
     } catch (error) {
         console.error('Error loading nearby stations:', error);
         stationsList.innerHTML = '<p>Error loading nearby stations. Please try again later.</p>';
     }
-
-// Unit conversion functions
-function celsiusToFahrenheit(celsius) {
-    return (celsius * 9/5) + 32;
 }
 
-function fahrenheitToCelsius(fahrenheit) {
-    return (fahrenheit - 32) * 5/9;
+// Unit conversion functions
+function fahrenheitToCelsius(f) {
+    return (f - 32) * 5/9;
+}
+
+function celsiusToFahrenheit(c) {
+    return (c * 9/5) + 32;
 }
 
 function mphToKmh(mph) {
@@ -1362,90 +1489,213 @@ function hpaToInHg(hpa) {
     return hpa / 33.8639;
 }
 
-function inchesToMm(inches) {
-    return inches * 25.4;
-}
-
 function mmToInches(mm) {
     return mm / 25.4;
 }
 
-// Function to update displayed units based on the selected unit
-function updateDisplayedUnits(isMetric) {
-    const currentTempElement = document.getElementById('current-temp');
-    const highTempElement = document.getElementById('high-temp');
-    const lowTempElement = document.getElementById('low-temp');
-    
-    // Convert temperatures based on the selected unit
-    if (isMetric) {
-        // Convert to Celsius
-        currentTempElement.textContent = `${fahrenheitToCelsius(parseFloat(currentTempElement.textContent))}°C`;
-        highTempElement.textContent = `${fahrenheitToCelsius(parseFloat(highTempElement.textContent))}°C`;
-        lowTempElement.textContent = `${fahrenheitToCelsius(parseFloat(lowTempElement.textContent))}°C`;
-    } else {
-        // Convert to Fahrenheit
-        currentTempElement.textContent = `${celsiusToFahrenheit(parseFloat(currentTempElement.textContent))}°F`;
-        highTempElement.textContent = `${celsiusToFahrenheit(parseFloat(highTempElement.textContent))}°F`;
-        lowTempElement.textContent = `${celsiusToFahrenheit(parseFloat(lowTempElement.textContent))}°F`;
-    }
+function inchesToMm(inches) {
+    return inches * 25.4;
 }
 
-function createGraph(canvasId, data, label, color, unit) {
-    const ctx = document.getElementById(canvasId).getContext('2d');
-    return new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: data.labels,
-            datasets: [{
-                label: label,
-                data: data.values,
-                borderColor: color,
-                backgroundColor: color + '20',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4, // Add curve to the lines
-                pointRadius: 0, // Hide points for smoother appearance
-                pointHoverRadius: 5 // Show points on hover
-            }]
+// Unit state management
+let useMetric = false;
+
+// Update all displayed values based on current unit setting
+function updateDisplayedUnits() {
+    // Update button states
+    document.getElementById('imperial-btn').classList.toggle('active', !useMetric);
+    document.getElementById('metric-btn').classList.toggle('active', useMetric);
+
+    // Update current values
+    const tempElement = document.getElementById('current-temp');
+    const feelsLikeElement = document.getElementById('feels-like');
+    const highTempElement = document.getElementById('high-temp');
+    const lowTempElement = document.getElementById('low-temp');
+    const windElement = document.getElementById('wind');
+    const pressureElement = document.getElementById('pressure');
+    const dewPointElement = document.getElementById('dew-point');
+    const rainElement = document.getElementById('rain-today');
+    const tempChangeElement = document.getElementById('temp-change');
+
+    // Temperature conversions
+    if (tempElement) {
+        const temp = parseFloat(tempElement.textContent);
+        tempElement.textContent = useMetric ? 
+            `${fahrenheitToCelsius(temp).toFixed(1)}°C` : 
+            `${celsiusToFahrenheit(temp).toFixed(1)}°F`;
+    }
+
+    if (feelsLikeElement) {
+        const feelsLike = parseFloat(feelsLikeElement.textContent);
+        feelsLikeElement.textContent = useMetric ? 
+            `${fahrenheitToCelsius(feelsLike).toFixed(1)}°C` : 
+            `${celsiusToFahrenheit(feelsLike).toFixed(1)}°F`;
+    }
+
+    if (highTempElement) {
+        const highTempText = highTempElement.textContent;
+        // Extract numeric value from text (handles cases with arrows or other characters)
+        const highTempMatch = highTempText.match(/(\d+(?:\.\d+)?)/);
+        if (highTempMatch) {
+            const highTemp = parseFloat(highTempMatch[1]);
+            const convertedHighTemp = useMetric ? 
+                fahrenheitToCelsius(highTemp) : 
+                celsiusToFahrenheit(highTemp);
+            highTempElement.textContent = useMetric ? 
+                `↑ ${convertedHighTemp.toFixed(1)}°C` : 
+                `↑ ${convertedHighTemp.toFixed(1)}°F`;
+        }
+    }
+
+    if (lowTempElement) {
+        const lowTempText = lowTempElement.textContent;
+        // Extract numeric value from text (handles cases with arrows or other characters)
+        const lowTempMatch = lowTempText.match(/(\d+(?:\.\d+)?)/);
+        if (lowTempMatch) {
+            const lowTemp = parseFloat(lowTempMatch[1]);
+            const convertedLowTemp = useMetric ? 
+                fahrenheitToCelsius(lowTemp) : 
+                celsiusToFahrenheit(lowTemp);
+            lowTempElement.textContent = useMetric ? 
+                `↓ ${convertedLowTemp.toFixed(1)}°C` : 
+                `↓ ${convertedLowTemp.toFixed(1)}°F`;
+        }
+    }
+
+    // Wind speed conversion
+    if (windElement) {
+        const windText = windElement.textContent;
+        const windMatch = windText.match(/(\d+(?:\.\d+)?)\s*(mph|km\/h)/i);
+        if (windMatch) {
+            const windSpeed = parseFloat(windMatch[1]);
+            const currentUnit = windMatch[2].toLowerCase();
+            const convertedSpeed = currentUnit === 'mph' ? 
+                mphToKmh(windSpeed) : 
+                kmhToMph(windSpeed);
+            windElement.textContent = useMetric ? 
+                `${convertedSpeed.toFixed(1)} km/h` : 
+                `${convertedSpeed.toFixed(1)} mph`;
+        }
+    }
+
+    // Pressure conversion
+    if (pressureElement) {
+        const pressureText = pressureElement.textContent;
+        const pressureMatch = pressureText.match(/(\d+(?:\.\d+)?)\s*(inHg|hPa)/i);
+        if (pressureMatch) {
+            const pressure = parseFloat(pressureMatch[1]);
+            const currentUnit = pressureMatch[2].toLowerCase();
+            const convertedPressure = currentUnit === 'inhg' ? 
+                inHgToHpa(pressure) : 
+                hpaToInHg(pressure);
+            pressureElement.textContent = useMetric ? 
+                `${convertedPressure.toFixed(1)} hPa` : 
+                `${convertedPressure.toFixed(1)} inHg`;
+        }
+    }
+
+    // Dew point conversion
+    if (dewPointElement) {
+        const dewPoint = parseFloat(dewPointElement.textContent);
+        dewPointElement.textContent = useMetric ? 
+            `${fahrenheitToCelsius(dewPoint).toFixed(1)}°C` : 
+            `${celsiusToFahrenheit(dewPoint).toFixed(1)}°F`;
+    }
+
+    // Rain conversion
+    if (rainElement) {
+        const rainText = rainElement.textContent;
+        const rainMatch = rainText.match(/(\d+(?:\.\d+)?)\s*(in|mm)/i);
+        if (rainMatch) {
+            const rain = parseFloat(rainMatch[1]);
+            const currentUnit = rainMatch[2].toLowerCase();
+            const convertedRain = currentUnit === 'in' ? 
+                inchesToMm(rain) : 
+                mmToInches(rain);
+            rainElement.textContent = useMetric ? 
+                `${convertedRain.toFixed(1)} mm` : 
+                `${convertedRain.toFixed(1)} in`;
+        }
+    }
+
+    // Temperature change conversion
+    if (tempChangeElement) {
+        const match = tempChangeElement.textContent.match(/Temperature change: ([\d.-]+)°([CF])/);
+        if (match) {
+            const tempChange = parseFloat(match[1]);
+            const currentUnit = match[2];
+            const convertedTemp = currentUnit === 'F' ? 
+                fahrenheitToCelsius(tempChange) : 
+                celsiusToFahrenheit(tempChange);
+            tempChangeElement.textContent = useMetric ? 
+                `Temperature change: ${convertedTemp.toFixed(1)}°C` : 
+                `Temperature change: ${convertedTemp.toFixed(1)}°F`;
+        }
+    }
+
+    // Update graphs
+    updateGraphUnits();
+}
+
+// Update graph units and data
+function updateGraphUnits() {
+    const graphConfigs = {
+        temperature: {
+            unit: useMetric ? '°C' : '°F',
+            convert: useMetric ? fahrenheitToCelsius : celsiusToFahrenheit
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.dataset.label}: ${context.parsed.y}${unit}`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    grid: {
-                        display: false
-                    }
-                },
-                y: {
-                    beginAtZero: false,
-                    grid: {
-                        color: '#f0f0f0'
-                    }
-                }
-            },
-            interaction: {
-                mode: 'nearest',
-                axis: 'x',
-                intersect: false
-            }
+        wind: {
+            unit: useMetric ? 'km/h' : 'mph',
+            convert: useMetric ? mphToKmh : kmhToMph
+        },
+        pressure: {
+            unit: useMetric ? 'hPa' : 'inHg',
+            convert: useMetric ? inHgToHpa : hpaToInHg
+        },
+        rain: {
+            unit: useMetric ? 'mm/hr' : 'in/hr',
+            convert: useMetric ? inchesToMm : mmToInches
+        }
+    };
+
+    // Update each graph's data and units
+    Object.entries(charts).forEach(([metric, chart]) => {
+        if (chart && graphConfigs[metric]) {
+            const config = graphConfigs[metric];
+            const data = chart.data.datasets[0].data;
+            
+            // Convert data points
+            chart.data.datasets[0].data = data.map(config.convert);
+            
+            // Update y-axis label
+            chart.options.scales.y.title.text = config.unit;
+            
+            chart.update();
         }
     });
 }
+
+// Initialize unit buttons
+document.addEventListener('DOMContentLoaded', () => {
+    const imperialBtn = document.getElementById('imperial-btn');
+    const metricBtn = document.getElementById('metric-btn');
+
+    if (imperialBtn && metricBtn) {
+        imperialBtn.addEventListener('click', () => {
+            if (useMetric) {
+                useMetric = false;
+                updateDisplayedUnits();
+            }
+        });
+
+        metricBtn.addEventListener('click', () => {
+            if (!useMetric) {
+                useMetric = true;
+                updateDisplayedUnits();
+            }
+        });
+    }
+});
 
 // Function to format date in mm/dd/yyyy
 function formatDateToMMDDYYYY(date) {
