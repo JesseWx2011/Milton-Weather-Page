@@ -4,13 +4,13 @@ const CAMERA_CONFIG = {
         {
             id: 'camera1',
             name: 'FL511 Traffic Cam 1',
-            url: 'https://dim-se3.divas.cloud:8200/chan-6573/stream.m3u8?token=c43d835c02be0bdef9c9dbb41e9cb98a3b030cdbebcc6e283239da021915bf64',
-            location: 'Florida Highway',
+            url: 'https://dim-se3.divas.cloud:8200/chan-6573/stream.m3u8?token=2005267113feff8f4fced6c147c9a5020ca4ee57b6d91d88334b3326908b15bd',
+            location: 'FL511 Traffic Camera',
             type: 'application/x-mpegURL'
         },
         {
             id: 'camera2',
-            name: 'Navarre Beach Cam',
+            name: 'Navarre Beach Cam (Delayed Video Feed)',
             url: 'https://1-or.vdn.terrafox.net/NBL/nbl-1.stream/chunks_dvr.m3u8',
             location: 'Navarre Cam',
             type: 'application/x-mpegURL'
