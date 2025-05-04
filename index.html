@@ -941,14 +941,45 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            max-width: 90%;
-            max-height: 90vh;
+            width: 75vw;
+            height: 75vh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .camera-modal .video-js {
+            width: 100%;
+            height: calc(100% - 60px); /* Reserve space for info text */
+            flex-grow: 1;
             position: relative;
         }
 
-        .camera-modal img {
-            max-width: 100%;
-            max-height: 70vh;
+        .camera-modal .vjs-tech {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .camera-modal .camera-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            z-index: 2;
+            max-height: 50px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 14px;
         }
 
         .camera-modal-close {
@@ -960,6 +991,28 @@
             font-size: 24px;
             cursor: pointer;
             color: #333;
+            z-index: 2;
+            background: rgba(255, 255, 255, 0.8);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Mobile styles for camera modal */
+        @media screen and (max-width: 768px) {
+            .camera-modal-content {
+                width: 90vw;
+                height: 60vh;
+            }
+
+            .camera-modal .camera-info {
+                font-size: 12px;
+                padding: 8px;
+                max-height: 40px;
+            }
         }
 
         /* Video.js Custom Styles */
@@ -971,11 +1024,6 @@
 
         .vjs-poster {
             border-radius: 8px;
-        }
-
-        .camera-modal .video-js {
-            height: 70vh;
-            width: 100%;
         }
 
         .location-container {
@@ -1120,36 +1168,329 @@
             font-size: 0.5em;
         }
 
-        .mobile-alert {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: #ffcc00;
-            color: #333;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            width: 90%;
-            max-width: 400px;
+        .padding-div {
+            margin-top: 20px;
+        }
+
+        /* Seasonal Countdown Styles */
+        .seasonal-countdown {
             text-align: center;
+            margin: 30px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .mobile-alert button {
+
+        .seasonal-countdown h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .countdown-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .countdown-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+
+        .countdown-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2196F3;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .countdown-label {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .next-season-text {
+            font-size: 1.1em;
+            color: #444;
             margin-top: 10px;
-            background-color: #333;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 5px;
-            cursor: pointer;
         }
-        .mobile-alert button:hover {
-            background-color: #555;
+
+        /* Mobile styles for countdown */
+        @media screen and (max-width: 768px) {
+            .countdown-container {
+                gap: 10px;
+            }
+
+            .countdown-item {
+                min-width: 60px;
+            }
+
+            .countdown-value {
+                font-size: 1.5em;
+            }
+
+            .countdown-label {
+                font-size: 0.8em;
+            }
+
+            .next-season-text {
+                font-size: 1em;
+            }
         }
-      .padding-div {
-        margin-top: 20px;
-      }
+
+        /* Mobile Responsive Styles */
+        @media screen and (max-width: 768px) {
+            .container {
+                padding: 10px;
+                width: 100%;
+            }
+
+            .weather-grid {
+                width: 100%;
+                grid-template-columns: 1fr;
+                gap: 15px;
+                margin: 0;
+                left: 0;
+                transform: none;
+            }
+
+            .weather-card {
+                width: 100%;
+                margin-bottom: 15px;
+            }
+
+            .current-conditions {
+                grid-template-columns: 1fr;
+            }
+
+            .main-temp {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .weather-icon-container {
+                align-items: center;
+                width: 100%;
+            }
+
+            .weather-icon-container img {
+                width: 60px;
+                height: 60px;
+            }
+
+            .temp-container {
+                text-align: center;
+            }
+
+            .weather-details {
+                grid-template-columns: 1fr;
+                gap: 5px;
+            }
+
+            .detail-item {
+                padding: 8px;
+            }
+
+            .forecast {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .forecast-day {
+                padding: 10px;
+            }
+
+            .cameras-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .camera-feed {
+                height: 200px;
+            }
+
+            .unit-toggle {
+                top: 10px;
+                right: 10px;
+                padding: 0.2rem 0.4rem;
+            }
+
+            .unit-btn {
+                padding: 0.2rem 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .unit-label {
+                font-size: 0.7rem;
+            }
+
+            .header {
+                margin-bottom: 20px;
+                padding-top: 40px; /* Add space for the unit toggle */
+            }
+
+            .location-container {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .reload-button {
+                margin-top: 10px;
+            }
+
+            .weather-card.moon-phases,
+            .weather-card.radar-card {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 15px;
+            }
+
+            .temp-value {
+                font-size: 48px;
+            }
+
+            .temp-feel {
+                font-size: 0.8em;
+            }
+
+            .title-temp {
+                font-size: 0.8em;
+            }
+
+            .weather-graph {
+                width: 100%;
+                height: 250px;
+            }
+
+            .graph-container {
+                height: calc(100% - 40px);
+            }
+
+            .menu-button {
+                top: 10px;
+                left: 10px;
+            }
+
+            .menu-popup {
+                top: 60px;
+                left: 10px;
+                min-width: 120px;
+            }
+
+            .menu-item {
+                padding: 8px 15px;
+                font-size: 0.9em;
+            }
+
+            .notification {
+                top: 100px;
+                right: 10px;
+                max-width: 90%;
+            }
+
+            .error-alert {
+                top: 80px;
+                right: 10px;
+                max-width: 90%;
+            }
+
+            .mobile-alert {
+                display: none; /* Hide the mobile alert since we're now mobile-friendly */
+            }
+
+            /* Compact current conditions for mobile */
+            .current-conditions .weather-details {
+                display: none; /* Hide all weather details initially */
+            }
+
+            .current-conditions .weather-details .detail-item[data-metric="wind"] {
+                display: flex; /* Show only the wind detail */
+                margin-top: 10px;
+                justify-content: center;
+                border-top: 1px solid #eee;
+                padding-top: 10px;
+            }
+
+            .current-conditions .main-temp {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 15px;
+            }
+
+            .current-conditions .weather-icon-container {
+                width: auto;
+                margin-right: 15px;
+            }
+
+            .current-conditions .temp-container {
+                flex-grow: 1;
+                text-align: left;
+            }
+
+            .current-conditions .temp-value {
+                font-size: 42px;
+                margin-bottom: 5px;
+            }
+
+            .current-conditions .temp-feel,
+            .current-conditions .title-temp,
+            .current-conditions #high-temp,
+            .current-conditions #low-temp {
+                display: none; /* Hide additional temperature information */
+            }
+
+            /* Add a tap indicator for the current conditions card */
+            .current-conditions {
+                position: relative;
+                cursor: pointer;
+            }
+
+            .current-conditions::after {
+                content: 'Tap for more details';
+                position: absolute;
+                bottom: 10px;
+                right: 15px;
+                font-size: 0.7em;
+                color: #666;
+            }
+
+            /* Show all details when card is expanded */
+            .current-conditions.expanded .weather-details {
+                display: grid;
+                margin-top: 15px;
+                padding-top: 15px;
+                border-top: 1px solid #eee;
+            }
+
+            .current-conditions.expanded::after {
+                content: 'Tap to collapse';
+            }
+        }
+
+        /* Additional mobile-specific styles for better touch interaction */
+        @media (hover: none) {
+            .detail-item:hover {
+                background-color: transparent;
+            }
+
+            .weather-card:hover {
+                transform: none;
+            }
+
+            .forecast-day:hover {
+                transform: none;
+            }
+
+            .camera-feed:hover {
+                transform: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1178,6 +1519,7 @@
                 <a href="noaawxradio.html" class="menu-item">NOAA Weather Radio</a>
                 <a href="./weather-event-log/weather-event-log.html" class="menu-item">Weather Events Log</a>
                 <a href="satellite.html" class="menu-item">Satellite Imagery</a>
+                <a href="metar.html" class="menu-item">METAR Weather Data</a>
             </div>
             <p id="last-update">Last updated: --:--:--</p>
             <p id="next-update">Next update in: --:--</p>
@@ -1390,6 +1732,30 @@
         <p class="verse-reference">- Proverbs 3:5-6 (NKJV)</p>
     </div>
 
+    <!-- Seasonal Countdown -->
+    <div class="seasonal-countdown">
+        <h3>Time Until Next Season</h3>
+        <div class="countdown-container">
+            <div class="countdown-item">
+                <span id="season-days" class="countdown-value">--</span>
+                <span class="countdown-label">Days</span>
+            </div>
+            <div class="countdown-item">
+                <span id="season-hours" class="countdown-value">--</span>
+                <span class="countdown-label">Hours</span>
+            </div>
+            <div class="countdown-item">
+                <span id="season-minutes" class="countdown-value">--</span>
+                <span class="countdown-label">Minutes</span>
+            </div>
+            <div class="countdown-item">
+                <span id="season-seconds" class="countdown-value">--</span>
+                <span class="countdown-label">Seconds</span>
+            </div>
+        </div>
+        <p id="next-season-text" class="next-season-text">Loading...</p>
+    </div>
+
     <!-- USA Weather Finder Link -->
     <div class="weather-finder-link">
         <a href="https://usaweatherfinder.com/">
@@ -1401,13 +1767,6 @@
         <div>Visitors since April 10th 2025</div>
     </div>
 
-    <div id="mobile-alert" class="mobile-alert" style="display: none;">
-        <p>Our Website isn't mobile friendly yet, do be advised that some parts of the website will function strangely. We recommend moving to a larger device for the best experience.</p>
-        <label>
-            <input type="checkbox" id="dont-show-again"> Don't show me this again
-        </label>
-        <button id="close-alert">Close</button>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
@@ -1487,6 +1846,16 @@
         <div class="graph-container">
             <canvas id="solarChart"></canvas>
         </div>
+    </div>
+
+    <!-- Mobile Alert -->
+    <div id="mobile-alert" class="mobile-alert" style="display: none;">
+        <p>This website is best viewed on a desktop or tablet device.</p>
+        <div>
+            <input type="checkbox" id="dont-show-again">
+            <label for="dont-show-again">Don't show this message again</label>
+        </div>
+        <button id="close-alert">Close</button>
     </div>
 </body>
 </html> 

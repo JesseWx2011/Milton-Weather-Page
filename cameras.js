@@ -3,17 +3,15 @@ const CAMERA_CONFIG = {
     sources: [
         {
             id: 'camera1',
-            name: 'FL511 Traffic Cam 1',
-            url: 'https://dim-se3.divas.cloud:8200/chan-6573/stream.m3u8?token=2005267113feff8f4fced6c147c9a5020ca4ee57b6d91d88334b3326908b15bd',
-            location: 'FL511 Traffic Camera',
-            type: 'application/x-mpegURL'
+            name: 'Gulf Breeze Pier Cam',
+            url: 'https://5ed7b8fd7bf40.streamlock.net:444/gulfbreezerecovery/gulfbreezerecoverybeachcam/playlist.m3u8',
+            type: 'video'
         },
         {
             id: 'camera2',
-            name: 'Navarre Beach Cam (Delayed Video Feed)',
+            name: 'Navarre Beach Cam',
             url: 'https://1-or.vdn.terrafox.net/NBL/nbl-1.stream/chunks_dvr.m3u8',
-            location: 'Navarre Cam',
-            type: 'application/x-mpegURL'
+            type: 'video'
         }
     ]
 };
@@ -64,76 +62,63 @@ class CameraManager {
     async addCamera(source) {
         const cameraElement = document.createElement('div');
         cameraElement.className = 'camera-feed';
-        cameraElement.innerHTML = `
-            <video id="camera-${source.id}" class="video-js" autoplay muted playsinline>
-                <source src="${source.url}" type="application/x-mpegURL">
-            </video>
-            <div class="camera-info">${source.name}</div>
-        `;
-        this.grid.appendChild(cameraElement);
+        
+        if (source.type === 'video') {
+            const video = document.createElement('video-js');
+            video.className = 'video-js vjs-default-skin';
+            video.setAttribute('controls', '');
+            video.setAttribute('preload', 'auto');
+            video.setAttribute('width', '100%');
+            video.setAttribute('height', '100%');
+            video.setAttribute('data-setup', '{}');
 
-        // Initialize video player with HLS.js
-        const video = cameraElement.querySelector('video');
-        if (Hls.isSupported()) {
-            const hls = new Hls({
-                debug: false,
-                enableWorker: true,
-                lowLatencyMode: true
-            });
-            hls.loadSource(source.url);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                video.play().catch(e => console.log('Auto-play prevented:', e));
-            });
+            const sourceElement = document.createElement('source');
+            sourceElement.setAttribute('src', source.url);
+            sourceElement.setAttribute('type', 'application/x-mpegURL');
+            video.appendChild(sourceElement);
+            cameraElement.appendChild(video);
 
-            // Store HLS instance for cleanup
-            this.cameras.set(source.id, {
-                element: cameraElement,
-                source: source,
-                player: video,
-                hls: hls
-            });
-
-            // Error handling
-            hls.on(Hls.Events.ERROR, (event, data) => {
-                if (data.fatal) {
-                    switch (data.type) {
-                        case Hls.ErrorTypes.NETWORK_ERROR:
-                            console.log('Fatal network error encountered, trying to recover...');
-                            hls.startLoad();
-                            break;
-                        case Hls.ErrorTypes.MEDIA_ERROR:
-                            console.log('Fatal media error encountered, trying to recover...');
-                            hls.recoverMediaError();
-                            break;
-                        default:
-                            console.log('Fatal error, cannot recover');
-                            hls.destroy();
-                            break;
+            // Initialize video.js player
+            const player = videojs(video, {
+                fluid: true,
+                aspectRatio: '16:9',
+                playbackRates: [0.5, 1, 1.5, 2],
+                html5: {
+                    hls: {
+                        overrideNative: true
                     }
                 }
             });
-        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // For Safari, which has native HLS support
-            video.src = source.url;
-            video.addEventListener('loadedmetadata', () => {
-                video.play().catch(e => console.log('Auto-play prevented:', e));
+
+            // Handle errors
+            player.on('error', function() {
+                console.error('Error loading video stream:', source.name);
+                cameraElement.innerHTML = `
+                    <div class="camera-placeholder">
+                        <p>Unable to load camera feed</p>
+                    </div>
+                `;
             });
 
+            // Store player instance for cleanup
             this.cameras.set(source.id, {
                 element: cameraElement,
                 source: source,
-                player: video
+                player: player
             });
         } else {
-            console.log('HLS is not supported in this browser');
-            cameraElement.innerHTML = `
-                <div class="camera-placeholder">
-                    <p>Video playback not supported in this browser</p>
-                </div>
-                <div class="camera-info">${source.name}</div>
-            `;
+            const img = document.createElement('img');
+            img.src = source.url;
+            img.alt = source.name;
+            cameraElement.appendChild(img);
         }
+
+        const cameraInfo = document.createElement('div');
+        cameraInfo.className = 'camera-info';
+        cameraInfo.textContent = source.name;
+        cameraElement.appendChild(cameraInfo);
+
+        this.grid.appendChild(cameraElement);
 
         // Add click handler for fullscreen
         cameraElement.addEventListener('click', () => this.showModal(source));
@@ -144,40 +129,35 @@ class CameraManager {
         if (!camera) return;
         
         const info = this.modal.querySelector('.camera-info');
-        info.textContent = `${source.name} - ${source.location}`;
+        info.textContent = source.name;
         
-        // Create a new HLS instance for the modal
-        if (Hls.isSupported()) {
-            const hls = new Hls({
-                debug: false,
-                enableWorker: true,
-                lowLatencyMode: true
-            });
-            
-            hls.loadSource(source.url);
-            hls.attachMedia(this.modalVideo);
-            
-            hls.on(Hls.Events.MANIFEST_PARSED, () => {
-                console.log(`HLS manifest parsed for modal ${source.name}`);
-                this.modalVideo.play();
-            });
-            
-            this.modal.classList.add('visible');
-            this.modalHls = hls;
-        } else if (this.modalVideo.canPlayType('application/vnd.apple.mpegurl')) {
-            // For Safari
-            this.modalVideo.src = source.url;
-            this.modalVideo.play();
-            this.modal.classList.add('visible');
-        }
+        // Create a new video.js instance for the modal
+        const modalPlayer = videojs(this.modalVideo, {
+            fluid: true,
+            aspectRatio: '16:9',
+            playbackRates: [0.5, 1, 1.5, 2],
+            html5: {
+                hls: {
+                    overrideNative: true
+                }
+            }
+        });
+
+        // Set the source
+        modalPlayer.src({
+            src: source.url,
+            type: 'application/x-mpegURL'
+        });
+
+        this.modal.classList.add('visible');
+        this.modalPlayer = modalPlayer;
     }
 
     hideModal() {
-        if (this.modalHls) {
-            this.modalHls.destroy();
-            this.modalHls = null;
+        if (this.modalPlayer) {
+            this.modalPlayer.dispose();
+            this.modalPlayer = null;
         }
-        this.modalVideo.pause();
         this.modal.classList.remove('visible');
     }
 }

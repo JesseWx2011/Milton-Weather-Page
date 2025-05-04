@@ -26,6 +26,14 @@ const updateInterval = 90000; // 1 minute & 30 seconds in milliseconds
 const RATE_LIMIT_DELAY = 60000; // 60 seconds delay between requests
 let lastLightningUpdate = 0;
 
+// Add these constants at the top of the file
+const SEASON_DATES = {
+    spring: { month: 2, day: 20 },  // March 20
+    summer: { month: 5, day: 20 },  // June 20
+    fall: { month: 8, day: 22 },    // September 22
+    winter: { month: 11, day: 21 }  // December 21
+};
+
 // Function to convert degrees to compass direction
 function degreesToCompass(degrees) {
     const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
@@ -238,36 +246,49 @@ function formatTimeRemaining(milliseconds) {
 
 // Function to update countdown timer
 function updateCountdown() {
-    if (!lastUpdateTime || !(lastUpdateTime instanceof Date)) {
-        console.error("lastUpdateTime is not a valid Date object:", lastUpdateTime);
-        return;
+    const nextSeason = getNextSeason();
+    const now = new Date();
+    const timeRemaining = nextSeason.date.getTime() - now.getTime();
+
+    // Calculate time components
+    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+    // Update seasonal countdown elements
+    document.getElementById('season-days').textContent = days;
+    document.getElementById('season-hours').textContent = hours;
+    document.getElementById('season-minutes').textContent = minutes;
+    document.getElementById('season-seconds').textContent = seconds;
+
+    // Update next season text
+    const nextSeasonText = document.getElementById('next-season-text');
+    if (nextSeasonText) {
+        nextSeasonText.textContent = `Next season: ${nextSeason.season.charAt(0).toUpperCase() + nextSeason.season.slice(1)}`;
     }
 
-    // Convert lastUpdateTime to UTC for comparison
-    const lastUpdateTimeUTC = new Date(lastUpdateTime.getTime() + lastUpdateTime.getTimezoneOffset() * 60000);
-    const nowUTC = new Date(); // Current time in UTC
-    const nextUpdate = new Date(lastUpdateTimeUTC.getTime() + updateInterval);
-    const timeRemaining = nextUpdate.getTime() - nowUTC.getTime();
+    // Update weather update countdown
+    if (!lastUpdateTime) {
+        lastUpdateTime = new Date();
+    }
+
+    const nextUpdate = new Date(lastUpdateTime.getTime() + updateInterval);
+    const updateTimeRemaining = nextUpdate.getTime() - now.getTime();
 
     const nextUpdateElement = document.getElementById('next-update');
     if (nextUpdateElement) {
-        if (timeRemaining <= 0) {
+        if (updateTimeRemaining <= 0) {
             nextUpdateElement.textContent = 'Updating...';
             return;
         }
 
-        // Calculate minutes and seconds
-        const minutes = Math.floor((timeRemaining / 1000 / 60) % 60);
-        const seconds = Math.floor((timeRemaining / 1000) % 60);
+        const updateMinutes = Math.floor((updateTimeRemaining / 1000 / 60) % 60);
+        const updateSeconds = Math.floor((updateTimeRemaining / 1000) % 60);
+        nextUpdateElement.textContent = `Next update in: ${updateMinutes}m ${updateSeconds < 10 ? '0' : ''}${updateSeconds}s`;
 
-        // Format the countdown message
-        const countdownMessage = `Next update in: ${minutes}m ${seconds < 10 ? '0' : ''}${seconds}s`;
-
-        nextUpdateElement.textContent = countdownMessage;
-
-        // Format last update time for display in America/Chicago timezone
+        // Format last update time for display
         const formattedLastUpdateTime = lastUpdateTime.toLocaleString("en-US", {
-            timeZone: 'America/Chicago',
             month: 'short',
             day: '2-digit',
             year: 'numeric',
@@ -276,13 +297,12 @@ function updateCountdown() {
             hour12: true
         });
 
-        // Optionally display last update time somewhere
+        // Update last update time display
         const lastUpdateElement = document.getElementById('last-update');
         if (lastUpdateElement) {
             lastUpdateElement.textContent = `Last updated: ${formattedLastUpdateTime}`;
         }
     }
-
 }
 
 // Function to update temperature difference
@@ -431,105 +451,14 @@ function updateWindDisplay(currentData) {
 
 // Function to fetch graph data and create graphs
 async function fetchAndCreateGraphs() {
-    const apiUrl = 'https://api.weather.com/v2/pws/observations/all/1day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909';
-    
     try {
-        // Destroy all existing charts first
-        Object.keys(charts).forEach(metric => {
-            if (charts[metric]) {
-                charts[metric].destroy();
-                charts[metric] = null;
-            }
-        });
-
-        const response = await fetch(apiUrl);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        
-        const data = await response.json();
-        console.log('Weather.com API Response:', data); // Debug log
-
-        if (!data.observations || !Array.isArray(data.observations)) {
-            throw new Error('Invalid data format from API');
+        const metrics = ['temp', 'humidity', 'wind', 'pressure', 'dew-point', 'rain', 'uv', 'solar'];
+        for (const metric of metrics) {
+            const data = await getHistoricalData(metric);
+            createWeatherGraph(metric, data);
         }
-
-        const observations = data.observations;
-        // Log only the first observation to check structure
-        console.log('First observation structure:', observations[0]);
-
-        // Extract relevant data for graphs
-        const graphData = {
-            temperatures: [],
-            humidity: [],
-            windSpeeds: [],
-            pressure: [],
-            dewPoints: [],
-            rain: [],
-            uvIndex: [],
-            solarRadiation: [],
-            timeLabels: []
-        };
-
-        // Process each observation
-        observations.forEach(obs => {
-            // Extract data with fallback values
-            graphData.temperatures.push(obs.tempf || obs.temp || null);
-            graphData.humidity.push(obs.humidity || null);
-            graphData.windSpeeds.push(obs.windspeedmph || obs.windSpeed || null);
-            graphData.pressure.push(obs.baromabsin || obs.pressure || null);
-            graphData.dewPoints.push(obs.dewPoint || obs.dewpt || null);
-            graphData.rain.push(obs.precipRate || obs.precip_rate || null);
-            graphData.uvIndex.push(obs.uv || obs.uvIndex || null);
-            graphData.solarRadiation.push(obs.solarRadiation || obs.solar_radiation || null);
-            
-            // Create time label
-            const date = new Date(obs.obsTimeUtc || obs.obs_time_utc);
-            graphData.timeLabels.push(date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        });
-
-        // Log the first few data points for verification
-        console.log('First few data points:', {
-            temperatures: graphData.temperatures.slice(0, 3),
-            humidity: graphData.humidity.slice(0, 3),
-            windSpeeds: graphData.windSpeeds.slice(0, 3),
-            pressure: graphData.pressure.slice(0, 3),
-            dewPoints: graphData.dewPoints.slice(0, 3),
-            rain: graphData.rain.slice(0, 3),
-            uvIndex: graphData.uvIndex.slice(0, 3),
-            solarRadiation: graphData.solarRadiation.slice(0, 3),
-            timeLabels: graphData.timeLabels.slice(0, 3)
-        });
-
-        // Create graphs with real data
-        createGraph('tempChart', { labels: graphData.timeLabels, values: graphData.temperatures }, 'Temperature', 'rgb(255, 99, 132)', '°F');
-        createGraph('humidityChart', { labels: graphData.timeLabels, values: graphData.humidity }, 'Humidity', 'rgb(54, 162, 235)', '%');
-        createGraph('windChart', { labels: graphData.timeLabels, values: graphData.windSpeeds }, 'Wind Speed', 'rgb(75, 192, 192)', 'mph');
-        createGraph('pressureChart', { labels: graphData.timeLabels, values: graphData.pressure }, 'Pressure', 'rgb(153, 102, 255)', 'inHg');
-        createGraph('dewPointChart', { labels: graphData.timeLabels, values: graphData.dewPoints }, 'Dew Point', 'rgb(75, 192, 192)', '°F');
-        createGraph('rainChart', { labels: graphData.timeLabels, values: graphData.rain }, 'Rain Rate', 'rgb(54, 162, 235)', 'in/hr');
-        createGraph('uvChart', { labels: graphData.timeLabels, values: graphData.uvIndex }, 'UV Index', 'rgb(255, 215, 0)', '');
-        createGraph('solarChart', { labels: graphData.timeLabels, values: graphData.solarRadiation }, 'Solar Radiation', 'rgb(255, 165, 0)', 'W/m²');
-        
     } catch (error) {
         console.error('Error fetching graph data:', error);
-        // Fallback to using current values if API fails
-        const currentTemp = parseFloat(document.getElementById('current-temp').textContent);
-        const currentHumidity = parseFloat(document.getElementById('humidity').textContent);
-        const currentWind = parseFloat(document.getElementById('wind').textContent.split(' ')[1]);
-        const currentPressure = parseFloat(document.getElementById('pressure').textContent);
-        const currentDewPoint = parseFloat(document.getElementById('dew-point').textContent);
-        const currentRain = parseFloat(document.getElementById('rain-today').textContent);
-        const currentUV = parseFloat(document.getElementById('uv-index').textContent);
-        const currentSolar = parseFloat(document.getElementById('solar-radiation').textContent);
-
-        // Create graphs with current values as fallback
-        createGraph('tempChart', { labels: getLast12HoursLabels(), values: getHistoricalData('temp', currentTemp) }, 'Temperature', 'rgb(255, 99, 132)', '°F');
-        createGraph('humidityChart', { labels: getLast12HoursLabels(), values: getHistoricalData('humidity', currentHumidity) }, 'Humidity', 'rgb(54, 162, 235)', '%');
-        createGraph('windChart', { labels: getLast12HoursLabels(), values: getHistoricalData('wind', currentWind) }, 'Wind Speed', 'rgb(75, 192, 192)', 'mph');
-        createGraph('pressureChart', { labels: getLast12HoursLabels(), values: getHistoricalData('pressure', currentPressure) }, 'Pressure', 'rgb(153, 102, 255)', 'inHg');
-        createGraph('dewPointChart', { labels: getLast12HoursLabels(), values: getHistoricalData('dew-point', currentDewPoint) }, 'Dew Point', 'rgb(75, 192, 192)', '°F');
-        createGraph('rainChart', { labels: getLast12HoursLabels(), values: getHistoricalData('rain', currentRain) }, 'Rain Rate', 'rgb(54, 162, 235)', 'in/hr');
-        createGraph('uvChart', { labels: getLast12HoursLabels(), values: getHistoricalData('uv', currentUV) }, 'UV Index', 'rgb(255, 215, 0)', '');
-        createGraph('solarChart', { labels: getLast12HoursLabels(), values: getHistoricalData('solar', currentSolar) }, 'Solar Radiation', 'rgb(255, 165, 0)', 'W/m²');
     }
 }
 
@@ -556,99 +485,29 @@ function showLoadingMessages() {
 
 // Function to format time difference
 function formatTimeDifference(timestamp) {
-    const now = new Date();
-    const strikeTime = new Date(timestamp);
-    const diffInMinutes = Math.floor((now - strikeTime) / (1000 * 60));
+    if (!timestamp) return 'No recent strikes';
     
-    if (diffInMinutes < 1) return 'Just now';
-    if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
-    if (diffInMinutes < 120) return '1 hour ago';
-    return `${Math.floor(diffInMinutes / 60)} hours ago`;
-}
-
-// Function to update lightning data
-async function updateLightningData() {
-    const now = Date.now();
-    
-    // Check if enough time has passed since the last request
-    if (now - lastLightningUpdate < RATE_LIMIT_DELAY) {
-        console.log('Skipping lightning update due to rate limiting');
-        return;
-    }
-
     try {
-        const response = await fetch(`${AMBIENT_WEATHER_BASE_URL}/devices?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
-        
-        if (response.status === 429) {
-            console.log('Rate limit reached, will retry later');
-            // Update UI to show rate limit message
-            const lastStrikeElement = document.getElementById('last-lightning');
-            if (lastStrikeElement) {
-                lastStrikeElement.textContent = 'Rate limit reached, updating soon...';
-            }
-            return;
-        }
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('Full API Response:', data);
-        
-        if (!data || !Array.isArray(data) || data.length === 0) {
-            console.error('No device data in response');
-            throw new Error('No device data available');
-        }
-        
-        const deviceData = data[0];
-        console.log('Device Data:', deviceData);
-        
-        if (!deviceData || !deviceData.lastData) {
-            console.error('No lastData in device data');
-            throw new Error('No weather data available');
-        }
-        
-        const currentData = deviceData.lastData;
-        console.log('Current Data:', currentData);
-        
-        // Update lightning strikes count
-        const strikesElement = document.getElementById('lightning-strikes');
-        if (strikesElement) {
-            const strikesToday = currentData.lightning_day;
-            console.log('Lightning Day Count:', strikesToday);
-            strikesElement.textContent = strikesToday !== undefined ? strikesToday : '0';
-        }
-        
-        // Update last lightning strike time
-        const lastStrikeElement = document.getElementById('last-lightning');
-        if (lastStrikeElement) {
-            const lastStrike = currentData.lightning_time;
-            console.log('Last Lightning Time:', lastStrike);
-            if (lastStrike) {
-                const strikeDate = new Date(lastStrike * 1000);
-                console.log('Converted Strike Date:', strikeDate);
-                lastStrikeElement.textContent = formatTimeDifference(strikeDate);
-            } else {
-                lastStrikeElement.textContent = 'No recent strikes';
-            }
-        }
+        const now = new Date();
+        const strikeTime = new Date(timestamp);
 
-        // Update the last request timestamp
-        lastLightningUpdate = now;
+        console.log(strikeTime)
         
+        // Check if the date is valid
+        if (isNaN(strikeTime.getTime())) {
+            console.error('Invalid timestamp:', timestamp);
+            return 'Invalid timestamp';
+        }
+        
+        const diffInMinutes = Math.floor((now - strikeTime) / (1000 * 60));
+        
+        if (diffInMinutes < 1) return 'Just now';
+        if (diffInMinutes < 60) return `${diffInMinutes} minutes ago`;
+        if (diffInMinutes < 120) return '1 hour ago';
+        return `${Math.floor(diffInMinutes / 60)} hours ago`;
     } catch (error) {
-        console.error('Error updating lightning data:', error);
-        // Update UI to show error state
-        const strikesElement = document.getElementById('lightning-strikes');
-        const lastStrikeElement = document.getElementById('last-lightning');
-        
-        if (strikesElement) {
-            strikesElement.textContent = '--';
-        }
-        if (lastStrikeElement) {
-            lastStrikeElement.textContent = 'Error updating data';
-        }
+        console.error('Error formatting time difference:', error);
+        return 'Invalid timestamp';
     }
 }
 
@@ -665,10 +524,10 @@ async function updateWeather() {
         console.log('NWS Forecast API Response:', forecastData);
 
         // Get current conditions from NWS
-        const currentConditions = await fetchWithRetry(`${NWS_API_BASE_URL}/stations/kNDZ/observations/latest`);
+        const currentConditions = await fetchWithRetry(`${NWS_API_BASE_URL}/stations/KPNS/observations/latest`);
         console.log('NWS Current Conditions API Response:', currentConditions);
 
-        // Get Ambient Weather data
+        // Get Ambient Weather data (including lightning data)
         const ambientData = await fetchWithRetry(`${AMBIENT_WEATHER_BASE_URL}/devices?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
         console.log('Ambient Weather API Response:', ambientData);
 
@@ -687,10 +546,10 @@ async function updateWeather() {
             loadingMessage.remove();
         }
 
-        // Update current conditions
+        // Update current conditions and lightning data
         if (ambientData && ambientData.length > 0) {
             const currentData = ambientData[0].lastData;
-            console.log('Current Data:', currentData); // Log the current data to check available properties
+            console.log('Current Data:', currentData);
 
             const currentTemp = currentData.tempf;
             
@@ -738,9 +597,7 @@ async function updateWeather() {
             const highTempElement = document.getElementById('high-temp');
             const lowTempElement = document.getElementById('low-temp');
 
-            // Check if the API provides high and low temperatures
             if (highTempElement && lowTempElement) {
-                // Assuming the API provides these values
                 highTempElement.textContent = `↑ ${currentData.maxTemp ? currentData.maxTemp.toFixed(1) : '--'}°F`;
                 lowTempElement.textContent = `↓ ${currentData.minTemp ? currentData.minTemp.toFixed(1) : '--'}°F`;
             }
@@ -754,12 +611,10 @@ async function updateWeather() {
                 const uvIndex = currentData.uv || '--';
                 const uvLevel = getUVIndexLevel(uvIndex);
                 
-                // Create a span for the UV level
                 const uvLevelElement = document.createElement('span');
                 uvLevelElement.textContent = uvLevel;
-                uvLevelElement.className = `uv-level ${uvLevel.toLowerCase()}`; // Add class for styling
+                uvLevelElement.className = `uv-level ${uvLevel.toLowerCase()}`;
 
-                // Clear previous content and append new elements
                 uvIndexElement.innerHTML = `${uvIndex} `;
                 uvIndexElement.appendChild(uvLevelElement);
             }
@@ -768,6 +623,26 @@ async function updateWeather() {
             const solarRadiationElement = document.getElementById('solar-radiation');
             if (solarRadiationElement) {
                 solarRadiationElement.textContent = `${currentData.solarradiation.toFixed(2)} W/m²`;
+            }
+
+            // Update lightning data
+            const strikesElement = document.getElementById('lightning-strikes');
+            const lastStrikeElement = document.getElementById('last-lightning');
+            
+            if (strikesElement) {
+                const strikesToday = currentData.lightning_day;
+                strikesElement.textContent = strikesToday !== undefined ? strikesToday : '0';
+            }
+            
+            if (lastStrikeElement) {
+                const lastStrike = currentData.lightning_time;
+                if (lastStrike) {
+                    // The timestamp is already in milliseconds, no need to multiply by 1000
+                    const timestamp = typeof lastStrike === 'number' ? lastStrike : new Date(lastStrike).getTime();
+                    lastStrikeElement.textContent = formatTimeDifference(timestamp);
+                } else {
+                    lastStrikeElement.textContent = 'No recent strikes';
+                }
             }
 
             // Add current weather condition from NWS
@@ -888,12 +763,9 @@ async function updateWeather() {
             lowTempElement.textContent = `↓ ${lowTemp}°F`;
         }
 
-        // Update lightning data
-        await updateLightningData();
-
     } catch (error) {
         console.error('Error updating weather:', error);
-        // ... error handling remains unchanged ...
+        showErrorAlert();
     }
 }
 
@@ -1197,11 +1069,17 @@ window.addEventListener('resize', positionGraphs);
 document.addEventListener('DOMContentLoaded', function() {
     console.log("DOM Content Loaded");
     
-    // Update weather every 5 minutes
+    // Initialize lastUpdateTime
+    lastUpdateTime = new Date();
+    
+    // Update weather every 1.5 minutes
     setInterval(updateWeather, updateInterval);
     
     // Update countdown every second
     setInterval(updateCountdown, 1000);
+    
+    // Initial update
+    updateCountdown();
     
     // Check for outdated data every minute
     setInterval(() => {
@@ -1304,18 +1182,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Call updateMoonPhases when the DOM is loaded
     updateMoonPhases();
-
-
     checkDeviceWidth();
-    document.getElementById('close-alert').addEventListener('click', function() {
-        const mobileAlert = document.getElementById('mobile-alert');
-        const checkbox = document.getElementById('dont-show-again');
 
-        if (checkbox.checked) {
-            localStorage.setItem('dontShowMobileAlert', 'true');
-        }
-        mobileAlert.style.display = 'none';
-    });
+    // Event listener for the close button
+    const closeAlert = document.getElementById('close-alert');
+    if (closeAlert) {
+        closeAlert.addEventListener('click', function() {
+            const mobileAlert = document.getElementById('mobile-alert');
+            const checkbox = document.getElementById('dont-show-again');
+
+            if (checkbox && checkbox.checked) {
+                localStorage.setItem('dontShowMobileAlert', 'true');
+            }
+            if (mobileAlert) {
+                mobileAlert.style.display = 'none';
+            }
+        });
+    }
 });
 
 // Make closeGraph function globally available
@@ -1498,13 +1381,18 @@ function inchesToMm(inches) {
 }
 
 // Unit state management
-let useMetric = false;
+let useMetric = localStorage.getItem('useMetric') === 'true';
 
 // Update all displayed values based on current unit setting
 function updateDisplayedUnits() {
     // Update button states
-    document.getElementById('imperial-btn').classList.toggle('active', !useMetric);
-    document.getElementById('metric-btn').classList.toggle('active', useMetric);
+    const imperialBtn = document.getElementById('imperial-btn');
+    const metricBtn = document.getElementById('metric-btn');
+    
+    if (imperialBtn && metricBtn) {
+        imperialBtn.classList.toggle('active', !useMetric);
+        metricBtn.classList.toggle('active', useMetric);
+    }
 
     // Update current values
     const tempElement = document.getElementById('current-temp');
@@ -1517,119 +1405,102 @@ function updateDisplayedUnits() {
     const rainElement = document.getElementById('rain-today');
     const tempChangeElement = document.getElementById('temp-change');
 
+    // Helper function to convert temperature
+    const convertTemp = (tempStr, isCurrentlyFahrenheit) => {
+        const tempMatch = tempStr.match(/(\d+(?:\.\d+)?)/);
+        if (!tempMatch) return tempStr;
+        
+        const temp = parseFloat(tempMatch[1]);
+        if (useMetric && isCurrentlyFahrenheit) {
+            return `${fahrenheitToCelsius(temp).toFixed(1)}°C`;
+        } else if (!useMetric && !isCurrentlyFahrenheit) {
+            return `${celsiusToFahrenheit(temp).toFixed(1)}°F`;
+        }
+        return tempStr;
+    };
+
     // Temperature conversions
     if (tempElement) {
-        const temp = parseFloat(tempElement.textContent);
-        tempElement.textContent = useMetric ? 
-            `${fahrenheitToCelsius(temp).toFixed(1)}°C` : 
-            `${celsiusToFahrenheit(temp).toFixed(1)}°F`;
+        const isCurrentlyFahrenheit = tempElement.textContent.includes('°F');
+        tempElement.textContent = convertTemp(tempElement.textContent, isCurrentlyFahrenheit);
     }
 
     if (feelsLikeElement) {
-        const feelsLike = parseFloat(feelsLikeElement.textContent);
-        feelsLikeElement.textContent = useMetric ? 
-            `${fahrenheitToCelsius(feelsLike).toFixed(1)}°C` : 
-            `${celsiusToFahrenheit(feelsLike).toFixed(1)}°F`;
+        const isCurrentlyFahrenheit = feelsLikeElement.textContent.includes('°F');
+        feelsLikeElement.textContent = convertTemp(feelsLikeElement.textContent, isCurrentlyFahrenheit);
     }
 
     if (highTempElement) {
-        const highTempText = highTempElement.textContent;
-        // Extract numeric value from text (handles cases with arrows or other characters)
-        const highTempMatch = highTempText.match(/(\d+(?:\.\d+)?)/);
-        if (highTempMatch) {
-            const highTemp = parseFloat(highTempMatch[1]);
-            const convertedHighTemp = useMetric ? 
-                fahrenheitToCelsius(highTemp) : 
-                celsiusToFahrenheit(highTemp);
-            highTempElement.textContent = useMetric ? 
-                `↑ ${convertedHighTemp.toFixed(1)}°C` : 
-                `↑ ${convertedHighTemp.toFixed(1)}°F`;
-        }
+        const isCurrentlyFahrenheit = highTempElement.textContent.includes('°F');
+        const convertedText = convertTemp(highTempElement.textContent, isCurrentlyFahrenheit);
+        highTempElement.textContent = convertedText.replace(/(\d+(?:\.\d+)?)/, `↑ $1`);
     }
 
     if (lowTempElement) {
-        const lowTempText = lowTempElement.textContent;
-        // Extract numeric value from text (handles cases with arrows or other characters)
-        const lowTempMatch = lowTempText.match(/(\d+(?:\.\d+)?)/);
-        if (lowTempMatch) {
-            const lowTemp = parseFloat(lowTempMatch[1]);
-            const convertedLowTemp = useMetric ? 
-                fahrenheitToCelsius(lowTemp) : 
-                celsiusToFahrenheit(lowTemp);
-            lowTempElement.textContent = useMetric ? 
-                `↓ ${convertedLowTemp.toFixed(1)}°C` : 
-                `↓ ${convertedLowTemp.toFixed(1)}°F`;
-        }
+        const isCurrentlyFahrenheit = lowTempElement.textContent.includes('°F');
+        const convertedText = convertTemp(lowTempElement.textContent, isCurrentlyFahrenheit);
+        lowTempElement.textContent = convertedText.replace(/(\d+(?:\.\d+)?)/, `↓ $1`);
     }
 
     // Wind speed conversion
     if (windElement) {
-        const windText = windElement.textContent;
-        const windMatch = windText.match(/(\d+(?:\.\d+)?)\s*(mph|km\/h)/i);
+        const windMatch = windElement.textContent.match(/(\d+(?:\.\d+)?)/);
         if (windMatch) {
             const windSpeed = parseFloat(windMatch[1]);
-            const currentUnit = windMatch[2].toLowerCase();
-            const convertedSpeed = currentUnit === 'mph' ? 
-                mphToKmh(windSpeed) : 
-                kmhToMph(windSpeed);
-            windElement.textContent = useMetric ? 
-                `${convertedSpeed.toFixed(1)} km/h` : 
-                `${convertedSpeed.toFixed(1)} mph`;
+            const isCurrentlyMph = windElement.textContent.includes('mph');
+            if (useMetric && isCurrentlyMph) {
+                windElement.textContent = `${mphToKmh(windSpeed).toFixed(1)} km/h`;
+            } else if (!useMetric && !isCurrentlyMph) {
+                windElement.textContent = `${kmhToMph(windSpeed).toFixed(1)} mph`;
+            }
         }
     }
 
     // Pressure conversion
     if (pressureElement) {
-        const pressureText = pressureElement.textContent;
-        const pressureMatch = pressureText.match(/(\d+(?:\.\d+)?)\s*(inHg|hPa)/i);
+        const pressureMatch = pressureElement.textContent.match(/(\d+(?:\.\d+)?)/);
         if (pressureMatch) {
             const pressure = parseFloat(pressureMatch[1]);
-            const currentUnit = pressureMatch[2].toLowerCase();
-            const convertedPressure = currentUnit === 'inhg' ? 
-                inHgToHpa(pressure) : 
-                hpaToInHg(pressure);
-            pressureElement.textContent = useMetric ? 
-                `${convertedPressure.toFixed(1)} hPa` : 
-                `${convertedPressure.toFixed(1)} inHg`;
+            const isCurrentlyInHg = pressureElement.textContent.includes('inHg');
+            if (useMetric && isCurrentlyInHg) {
+                pressureElement.textContent = `${inHgToHpa(pressure).toFixed(1)} hPa`;
+            } else if (!useMetric && !isCurrentlyInHg) {
+                pressureElement.textContent = `${hpaToInHg(pressure).toFixed(1)} inHg`;
+            }
         }
     }
 
     // Dew point conversion
     if (dewPointElement) {
-        const dewPoint = parseFloat(dewPointElement.textContent);
-        dewPointElement.textContent = useMetric ? 
-            `${fahrenheitToCelsius(dewPoint).toFixed(1)}°C` : 
-            `${celsiusToFahrenheit(dewPoint).toFixed(1)}°F`;
+        const isCurrentlyFahrenheit = dewPointElement.textContent.includes('°F');
+        dewPointElement.textContent = convertTemp(dewPointElement.textContent, isCurrentlyFahrenheit);
     }
 
     // Rain conversion
     if (rainElement) {
-        const rainText = rainElement.textContent;
-        const rainMatch = rainText.match(/(\d+(?:\.\d+)?)\s*(in|mm)/i);
+        const rainMatch = rainElement.textContent.match(/(\d+(?:\.\d+)?)/);
         if (rainMatch) {
             const rain = parseFloat(rainMatch[1]);
-            const currentUnit = rainMatch[2].toLowerCase();
-            const convertedRain = currentUnit === 'in' ? 
-                inchesToMm(rain) : 
-                mmToInches(rain);
-            rainElement.textContent = useMetric ? 
-                `${convertedRain.toFixed(1)} mm` : 
-                `${convertedRain.toFixed(1)} in`;
+            const isCurrentlyInches = rainElement.textContent.includes('in');
+            if (useMetric && isCurrentlyInches) {
+                rainElement.textContent = `${inchesToMm(rain).toFixed(1)} mm`;
+            } else if (!useMetric && !isCurrentlyInches) {
+                rainElement.textContent = `${mmToInches(rain).toFixed(1)} in`;
+            }
         }
     }
 
     // Temperature change conversion
     if (tempChangeElement) {
-        const match = tempChangeElement.textContent.match(/Temperature change: ([\d.-]+)°([CF])/);
-        if (match) {
-            const tempChange = parseFloat(match[1]);
-            const currentUnit = match[2];
-            const convertedTemp = currentUnit === 'F' ? 
-                fahrenheitToCelsius(tempChange) : 
-                celsiusToFahrenheit(tempChange);
-            tempChangeElement.textContent = useMetric ? 
-                `Temperature change: ${convertedTemp.toFixed(1)}°C` : 
-                `Temperature change: ${convertedTemp.toFixed(1)}°F`;
+        const changeMatch = tempChangeElement.textContent.match(/(\d+(?:\.\d+)?)/);
+        if (changeMatch) {
+            const change = parseFloat(changeMatch[1]);
+            const isCurrentlyFahrenheit = tempChangeElement.textContent.includes('°F');
+            if (useMetric && isCurrentlyFahrenheit) {
+                tempChangeElement.textContent = `Temperature change: ${fahrenheitToCelsius(change).toFixed(1)}°C`;
+            } else if (!useMetric && !isCurrentlyFahrenheit) {
+                tempChangeElement.textContent = `Temperature change: ${celsiusToFahrenheit(change).toFixed(1)}°F`;
+            }
         }
     }
 
@@ -1681,9 +1552,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const metricBtn = document.getElementById('metric-btn');
 
     if (imperialBtn && metricBtn) {
+        // Set initial button states
+        imperialBtn.classList.toggle('active', !useMetric);
+        metricBtn.classList.toggle('active', useMetric);
+
         imperialBtn.addEventListener('click', () => {
             if (useMetric) {
                 useMetric = false;
+                localStorage.setItem('useMetric', 'false');
                 updateDisplayedUnits();
             }
         });
@@ -1691,9 +1567,13 @@ document.addEventListener('DOMContentLoaded', () => {
         metricBtn.addEventListener('click', () => {
             if (!useMetric) {
                 useMetric = true;
+                localStorage.setItem('useMetric', 'true');
                 updateDisplayedUnits();
             }
         });
+
+        // Update units on initial load
+        updateDisplayedUnits();
     }
 });
 
@@ -1835,4 +1715,27 @@ function showErrorAlert() {
             errorAlert.style.display = 'none'; // Hide after a delay
         }, 5000); // Adjust the duration as needed
     }
-} 
+}
+
+// Function to get the next season
+function getNextSeason() {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentDay = now.getDate();
+
+    // Find the next season
+    for (const [season, date] of Object.entries(SEASON_DATES)) {
+        const seasonDate = new Date(now.getFullYear(), date.month, date.day);
+        if (currentMonth < date.month || (currentMonth === date.month && currentDay < date.day)) {
+            return { season, date: seasonDate };
+        }
+    }
+
+    // If we've passed all seasons this year, return first season of next year
+    const firstSeason = Object.entries(SEASON_DATES)[0];
+    return {
+        season: firstSeason[0],
+        date: new Date(now.getFullYear() + 1, firstSeason[1].month, firstSeason[1].day)
+    };
+}
+  
