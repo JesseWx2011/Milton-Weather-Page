@@ -140,10 +140,32 @@
             margin-top: 10px;
             text-align: center;
         }
+
+        .back-button {
+            position: absolute;
+            top: 50px;
+            left: 130px;
+            text-decoration: none;
+            color: #3498db;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.2);
+            color: #2980b9;
+        }
     </style>
 </head>
 <body>
     <div class="container">
+        <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+
         <div class="header">
             <h1>Nearby METAR Observations</h1>
             <p>Nearby METAR Data within 75 miles from the Weather Station. </p>
@@ -270,6 +292,7 @@
         async function loadMetarData() {
             const metarGrid = document.getElementById('metar-grid');
             metarGrid.innerHTML = '<div class="error-message">Loading data...</div>';
+            const useMetric = localStorage.getItem('useMetric') === 'true';
 
             try {
                 const stations = await fetchMetarData();
@@ -307,6 +330,13 @@
                     const properties = observation.properties;
                     const isOutdated = observationTime < threeHoursAgo;
 
+                    // Convert values based on unit preference
+                    const temp = properties.temperature.value ? (useMetric ? properties.temperature.value : (properties.temperature.value * 9/5) + 32) : null;
+                    const dewPoint = properties.dewpoint.value ? (useMetric ? properties.dewpoint.value : (properties.dewpoint.value * 9/5) + 32) : null;
+                    const windSpeed = properties.windSpeed.value ? (useMetric ? properties.windSpeed.value : properties.windSpeed.value * 2.23694) : null;
+                    const visibility = properties.visibility.value ? (useMetric ? properties.visibility.value / 1000 : properties.visibility.value * 0.000621371) : null;
+                    const pressure = properties.barometricPressure.value ? (useMetric ? properties.barometricPressure.value / 100 : properties.barometricPressure.value / 3386.39) : null;
+
                     const card = `
                         <div class="station-card">
                             ${isOutdated ? `<div class="outdated-warning">Outdated Data<br>Last updated ${formatDateTime(observationTime)}</div>` : ''}
@@ -314,27 +344,27 @@
                                 <div class="station-name">${station.properties.name}</div>
                                 <div class="station-distance">${distance.toFixed(1)} miles away</div>
                             </div>
-                            <img src="${properties.icon}" alt="Weather icon" class="weather-icon">
+                            <img src="${properties.icon || 'NA.jpg'}" alt="Weather icon" class="weather-icon" onerror="this.src='NA.jpg'">
                             <div class="weather-details">
                                 <div class="detail-item">
                                     <span class="detail-label">Temperature</span>
-                                    <span class="detail-value">${properties.temperature.value ? ((properties.temperature.value * 9/5) + 32).toFixed(1) + '°F' : 'N/A'}</span>
+                                    <span class="detail-value">${temp !== null ? temp.toFixed(1) + (useMetric ? '°C' : '°F') : 'N/A'}</span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">Dew Point</span>
-                                    <span class="detail-value">${properties.dewpoint.value ? ((properties.dewpoint.value * 9/5) + 32).toFixed(1) + '°F' : 'N/A'}</span>
+                                    <span class="detail-value">${dewPoint !== null ? dewPoint.toFixed(1) + (useMetric ? '°C' : '°F') : 'N/A'}</span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">Wind</span>
-                                    <span class="detail-value">${properties.windSpeed.value ? (properties.windSpeed.value * 2.23694).toFixed(1) + ' mph ' + properties.windDirection.value + '°' : 'N/A'}</span>
+                                    <span class="detail-value">${windSpeed !== null ? windSpeed.toFixed(1) + (useMetric ? ' m/s' : ' mph') + ' ' + properties.windDirection.value + '°' : 'N/A'}</span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">Visibility</span>
-                                    <span class="detail-value">${properties.visibility.value ? (properties.visibility.value * 0.000621371).toFixed(1) + ' miles' : 'N/A'}</span>
+                                    <span class="detail-value">${visibility !== null ? visibility.toFixed(1) + (useMetric ? ' km' : ' miles') : 'N/A'}</span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">Pressure</span>
-                                    <span class="detail-value">${properties.barometricPressure.value ? (properties.barometricPressure.value / 3386.39).toFixed(2) + ' inHg' : 'N/A'}</span>
+                                    <span class="detail-value">${pressure !== null ? pressure.toFixed(2) + (useMetric ? ' hPa' : ' inHg') : 'N/A'}</span>
                                 </div>
                                 <div class="detail-item">
                                     <span class="detail-label">Relative Humidity</span>
@@ -361,7 +391,7 @@
                 }
             } catch (error) {
                 console.error('Error loading METAR data:', error);
-                metarGrid.innerHTML = '<div class="error-message">Error loading METAR data. Please try again later.</div>';
+                metarGrid.innerHTML = '<div class="error-message">Error loading data. Please try again later.</div>';
             }
         }
 

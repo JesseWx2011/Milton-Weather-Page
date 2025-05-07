@@ -192,24 +192,33 @@
     <script>
         // Location coordinates mapping
         const locationCoordinates = {
-            'Milton,FL': { lat: 30.68, lon: 87.03, grid: 'MOB/90,67' },
-            'Pensacola,FL': { lat: 30.42, lon: 87.22, grid: 'MOB/91,66' },
-            'HurlburtField,FL': { lat: 30.43, lon: 86.68, grid: 'MOB/88,66' },
-            'Baker,FL': { lat: 30.80, lon: 86.68, grid: 'MOB/88,68' },
-            'Crestview,FL': { lat: 30.76, lon: 86.57, grid: 'MOB/87,68' },
-            'Navarre,FL': { lat: 30.40, lon: 86.86, grid: 'MOB/89,66' },
-            'EglinAFB,FL': { lat: 30.46, lon: 86.56, grid: 'MOB/87,66' },
-            'FortWaltonBeach,FL': { lat: 30.41, lon: 86.62, grid: 'MOB/87,66' },
-            'Destin,FL': { lat: 30.39, lon: 86.50, grid: 'MOB/86,66' },
-            'GulfBreeze,FL': { lat: 30.36, lon: 87.16, grid: 'MOB/90,66' },
-            'Molino,FL': { lat: 30.72, lon: 87.31, grid: 'MOB/91,68' },
-            'Century,FL': { lat: 30.97, lon: 87.26, grid: 'MOB/91,70' },
-            'LaurelHill,FL': { lat: 30.96, lon: 86.45, grid: 'MOB/87,70' },
-            'GulfShores,AL': { lat: 30.25, lon: 87.70, grid: 'MOB/93,65' },
-            'PanamaCity,FL': { lat: 30.16, lon: 85.66, grid: 'MOB/84,65' },
-            'Enterprise,AL': { lat: 31.32, lon: 85.85, grid: 'MOB/85,72' },
-            'Tallahassee,FL': { lat: 30.44, lon: 84.28, grid: 'TAE/115,91' }
+            'Milton,FL': { lat: 30.68, lon: 87.03, grid: 'MOB/90,67', office: 'Mobile' },
+            'Pensacola,FL': { lat: 30.42, lon: 87.22, grid: 'MOB/91,66', office: 'Mobile' },
+            'HurlburtField,FL': { lat: 30.43, lon: 86.68, grid: 'MOB/88,66', office: 'Mobile' },
+            'Baker,FL': { lat: 30.80, lon: 86.68, grid: 'MOB/88,68', office: 'Mobile' },
+            'Crestview,FL': { lat: 30.76, lon: 86.57, grid: 'MOB/87,68', office: 'Mobile' },
+            'Navarre,FL': { lat: 30.40, lon: 86.86, grid: 'MOB/89,66', office: 'Mobile' },
+            'EglinAFB,FL': { lat: 30.46, lon: 86.56, grid: 'MOB/87,66', office: 'Mobile' },
+            'FortWaltonBeach,FL': { lat: 30.41, lon: 86.62, grid: 'MOB/87,66', office: 'Mobile' },
+            'Destin,FL': { lat: 30.39, lon: 86.50, grid: 'MOB/86,66', office: 'Mobile' },
+            'GulfBreeze,FL': { lat: 30.36, lon: 87.16, grid: 'MOB/90,66', office: 'Mobile' },
+            'Molino,FL': { lat: 30.72, lon: 87.31, grid: 'MOB/91,68', office: 'Mobile' },
+            'Century,FL': { lat: 30.97, lon: 87.26, grid: 'MOB/91,70', office: 'Mobile' },
+            'LaurelHill,FL': { lat: 30.96, lon: 86.45, grid: 'MOB/87,70', office: 'Mobile' },
+            'GulfShores,AL': { lat: 30.25, lon: 87.70, grid: 'MOB/93,65', office: 'Mobile' },
+            'PanamaCity,FL': { lat: 30.16, lon: 85.66, grid: 'TAE/84,65', office: 'Tallahassee' },
+            'Enterprise,AL': { lat: 31.32, lon: 85.85, grid: 'TAE/85,72', office: 'Tallahassee' },
+            'Tallahassee,FL': { lat: 30.44, lon: 84.28, grid: 'TAE/115,91', office: 'Tallahassee' }
         };
+
+        // Function to get NWS office URL
+        function getNwsOfficeUrl(office) {
+            const officeUrls = {
+                'Mobile': 'https://www.weather.gov/mob',
+                'Tallahassee': 'https://www.weather.gov/tae'
+            };
+            return officeUrls[office] || 'https://www.weather.gov';
+        }
 
         // Function to fetch the weather forecast
         async function fetchForecast(location) {
@@ -226,7 +235,7 @@
                     console.log('API Fetch was successful! Displaying API Data...');
                 }
                 const data = await response.json();
-                displayForecast(data);
+                displayForecast(data, coordinates.office);
                 console.log(data);
             } catch (error) {
                 console.error('There was a problem with the fetch operation:', error);
@@ -234,14 +243,14 @@
         }
 
         // Function to display the forecast data
-        function displayForecast(data) {
+        function displayForecast(data, nwsOffice) {
             const daytimeContainer = document.querySelector('.daytime .forecast');
             const nighttimeContainer = document.querySelector('.nighttime .forecast');
             daytimeContainer.innerHTML = ''; // Clear existing content
             nighttimeContainer.innerHTML = ''; // Clear existing content
 
-            // Get the last update time
-            const lastUpdateTime = data.properties.generatedAt;
+            // Get the last update time from updateTime instead of generatedAt
+            const lastUpdateTime = data.properties.updateTime;
             const dateObj = new Date(lastUpdateTime);
             const parts = new Intl.DateTimeFormat('en-US', {
                 hour: 'numeric',
@@ -260,7 +269,23 @@
             const lastUpdateTimeFormatted = `${get('hour')}:${get('minute')} ${get('dayPeriod').toLowerCase()} ${get('timeZoneName')} ${dateString}`;
             const lastUpdateElement = document.getElementById('last-update');
             if (lastUpdateElement) {
-                lastUpdateElement.textContent = `Last Update: ${lastUpdateTimeFormatted}`;
+                lastUpdateElement.innerHTML = `<a href="https://www.weather.gov/glossary/index.php?word=Last+update"><b>Last Update: </b></a>${lastUpdateTimeFormatted}`;
+            }
+
+            // Update the NWS office text and link
+            const allParagraphs = document.querySelectorAll('p');
+            for (const p of allParagraphs) {
+                if (p.textContent.includes('Issued by:')) {
+                    p.textContent = `Issued by: National Weather Service ${nwsOffice}, ${nwsOffice === 'Mobile' ? 'AL' : 'FL'}`;
+                    break;
+                }
+            }
+
+            // Update the NWS office link in the footer
+            const nwsOfficeLink = document.querySelector('tr:last-child td a');
+            if (nwsOfficeLink) {
+                nwsOfficeLink.href = getNwsOfficeUrl(nwsOffice);
+                nwsOfficeLink.textContent = `https://www.weather.gov/${nwsOffice.toLowerCase()}`;
             }
 
             // Separate daytime and nighttime forecasts
@@ -302,7 +327,8 @@
         document.getElementById('location-dropdown').addEventListener('change', function(e) {
             const selectedLocation = e.target.value;
             if (selectedLocation) {
-                document.getElementById('location-name').textContent = selectedLocation;
+                const [city, state] = selectedLocation.split(',');
+                document.getElementById('location-name').textContent = `${city}, ${state}`;
                 fetchForecast(selectedLocation);
             }
         });
@@ -310,7 +336,9 @@
         // Initial load with default location
         window.onload = function() {
             const defaultLocation = 'Milton,FL';
+            const [city, state] = defaultLocation.split(',');
             document.getElementById('location-dropdown').value = defaultLocation;
+            document.getElementById('location-name').textContent = `${city}, ${state}`;
             fetchForecast(defaultLocation);
         };
     </script>

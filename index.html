@@ -1491,6 +1491,74 @@
                 transform: none;
             }
         }
+
+        /* Menu Styles */
+        .menu-category {
+            position: relative;
+        }
+
+        .menu-category-header {
+            cursor: pointer;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .menu-category-header::after {
+            content: '▶';
+            margin-left: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .menu-category.active .menu-category-header::after {
+            transform: rotate(90deg);
+        }
+
+        .menu-category-content {
+            display: none;
+            background-color: #f8f9fa;
+            position: absolute;
+            left: 100%;
+            top: 0;
+            min-width: 200px;
+            box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            opacity: 0;
+            transform: translateX(-10px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 1001;
+            transform-origin: left center;
+            padding: 5px 0;
+        }
+
+        .menu-category.active .menu-category-content {
+            display: block;
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+
+        .menu-category-content .menu-item {
+            padding: 10px 20px;
+            white-space: nowrap;
+            transform: translateX(-5px);
+            opacity: 0;
+            transition: all 0.2s ease;
+            transition-delay: calc(var(--item-index) * 0.05s);
+            display: block;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .menu-category.active .menu-category-content .menu-item {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .menu-category-content .menu-item:hover {
+            background-color: #f0f0f0;
+            transform: translateX(5px);
+        }
     </style>
 </head>
 <body>
@@ -1511,9 +1579,20 @@
                 </svg>
             </button>
             <div id="menu-popup" class="menu-popup">
-                <a href="forecast.html" class="menu-item">Weather Forecast</a>
-                <a href="spc.html" class="menu-item">SPC Outlooks</a>
-                <a href="embed.html" class="menu-item">Embed Widget</a>
+                <div class="menu-category">
+                    <div class="menu-category-header">Weather Forecasting</div>
+                    <div class="menu-category-content">
+                        <a href="forecast.html" class="menu-item">Weather Forecast</a>
+                        <a href="spc.html" class="menu-item">SPC Outlooks</a>
+                        <a href="alerts.html" class="menu-item">Weather Alerts</a>
+                    </div>
+                </div>
+                <div class="menu-category">
+                    <div class="menu-category-header">Weather Scripts</div>
+                    <div class="menu-category-content">
+                        <a href="embed.html" class="menu-item">Embed Widget</a>
+                    </div>
+                </div>
                 <a href="about.html" class="menu-item">About</a>
                 <a href="maps.html" class="menu-item">Weather Maps</a>
                 <a href="noaawxradio.html" class="menu-item">NOAA Weather Radio</a>
@@ -1857,5 +1936,24 @@
         </div>
         <button id="close-alert">Close</button>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuCategories = document.querySelectorAll('.menu-category-header');
+            
+            menuCategories.forEach(category => {
+                category.addEventListener('click', function() {
+                    const parent = this.parentElement;
+                    parent.classList.toggle('active');
+                    
+                    // Add indices to menu items for staggered animation
+                    const menuItems = parent.querySelectorAll('.menu-item');
+                    menuItems.forEach((item, index) => {
+                        item.style.setProperty('--item-index', index);
+                    });
+                });
+            });
+        });
+    </script>
 </body>
 </html> 

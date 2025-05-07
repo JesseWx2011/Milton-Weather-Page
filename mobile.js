@@ -23,14 +23,15 @@ async function fetchWeatherData() {
 function updateWeatherUI(ambientData) {
     const currentWeather = ambientData[0].lastData; // Accessing lastData for current weather
     const locationInfo = ambientData[0].info; // Accessing location info
+    const useMetric = localStorage.getItem('useMetric') === 'true';
  
-    document.querySelector('#current-temp').textContent = `${currentWeather.tempf !== undefined ? currentWeather.tempf : 'N/A'}°F`;
-    document.querySelector('#feels-like').textContent = `${currentWeather.feelsLike !== undefined ? currentWeather.feelsLike : 'N/A'}°F`;
+    document.querySelector('#current-temp').textContent = `${currentWeather.tempf !== undefined ? (useMetric ? fahrenheitToCelsius(currentWeather.tempf) : currentWeather.tempf).toFixed(1) : 'N/A'}${useMetric ? '°C' : '°F'}`;
+    document.querySelector('#feels-like').textContent = `${currentWeather.feelsLike !== undefined ? (useMetric ? fahrenheitToCelsius(currentWeather.feelsLike) : currentWeather.feelsLike).toFixed(1) : 'N/A'}${useMetric ? '°C' : '°F'}`;
     document.querySelector('#humidity').textContent = `${currentWeather.humidity !== undefined ? currentWeather.humidity : 'N/A'}%`;
-    document.querySelector('#wind').textContent = `${currentWeather.windspeedmph !== undefined ? currentWeather.windspeedmph : 'N/A'} mph`;
-    document.querySelector('#pressure').textContent = `${currentWeather.baromrelin !== undefined ? currentWeather.baromrelin : 'N/A'} inHg`;
-    document.querySelector('#dew-point').textContent = `${currentWeather.dewPoint !== undefined ? currentWeather.dewPoint : 'N/A'}°F`;
-    document.querySelector('#rain-today').textContent = `${currentWeather.dailyrainin !== undefined ? currentWeather.dailyrainin : 'N/A'} in`;
+    document.querySelector('#wind').textContent = `${currentWeather.windspeedmph !== undefined ? (useMetric ? mphToKmh(currentWeather.windspeedmph) : currentWeather.windspeedmph).toFixed(1) : 'N/A'} ${useMetric ? 'km/h' : 'mph'}`;
+    document.querySelector('#pressure').textContent = `${currentWeather.baromrelin !== undefined ? (useMetric ? inHgToHpa(currentWeather.baromrelin) : currentWeather.baromrelin).toFixed(2) : 'N/A'} ${useMetric ? 'hPa' : 'inHg'}`;
+    document.querySelector('#dew-point').textContent = `${currentWeather.dewPoint !== undefined ? (useMetric ? fahrenheitToCelsius(currentWeather.dewPoint) : currentWeather.dewPoint).toFixed(1) : 'N/A'}${useMetric ? '°C' : '°F'}`;
+    document.querySelector('#rain-today').textContent = `${currentWeather.dailyrainin !== undefined ? (useMetric ? inchesToMm(currentWeather.dailyrainin) : currentWeather.dailyrainin).toFixed(2) : 'N/A'} ${useMetric ? 'mm' : 'in'}`;
     document.querySelector('#weather-icon').innerHTML = `<img src="${currentWeather.icon || './NA.jpg'}" alt="${currentWeather.weather || 'No weather data'}">`;
     document.querySelector('#last-update').textContent = `Last updated: ${new Date(currentWeather.dateutc).toLocaleString() || 'Unknown time'}`;
 }
