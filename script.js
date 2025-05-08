@@ -123,33 +123,39 @@ function interpolateColor(color1, color2, factor) {
 
 // Function to get color for a specific temperature
 function getColorForTemp(temp) {
-    if (temp < 0) return "#1a237e"; // Dark Blue
-    if (temp < 15) return "#3949ab"; // Indigo
-    if (temp < 25) return "#5c6bc0"; // Blue
-    if (temp < 32) return "#7986cb"; // Light Blue
-    if (temp < 43) return "#90caf9"; // Pale Blue
-    if (temp < 55) return "#bbdefb"; // Very Light Blue
-    if (temp < 66) return "#e3f2fd"; // Extremely Light Blue
-    if (temp < 79) return "#fff3e0"; // Light Gray
-    if (temp < 87) return "#ffccbc"; // Light Orange
-    if (temp < 95) return "#ffab91"; // Orange
-    if (temp < 99) return "#ff7043"; // Deep Orange
+    // Convert to Fahrenheit if in Celsius for color calculation
+    const tempF = useMetric ? celsiusToFahrenheit(temp) : temp;
+    
+    if (tempF < 0) return "#1a237e"; // Dark Blue
+    if (tempF < 15) return "#3949ab"; // Indigo
+    if (tempF < 25) return "#5c6bc0"; // Blue
+    if (tempF < 32) return "#7986cb"; // Light Blue
+    if (tempF < 43) return "#90caf9"; // Pale Blue
+    if (tempF < 55) return "#bbdefb"; // Very Light Blue
+    if (tempF < 66) return "#e3f2fd"; // Extremely Light Blue
+    if (tempF < 79) return "#fff3e0"; // Light Gray
+    if (tempF < 87) return "#ffccbc"; // Light Orange
+    if (tempF < 95) return "#ffab91"; // Orange
+    if (tempF < 99) return "#ff7043"; // Deep Orange
     return "#d32f2f"; // Red
 }
 
 // Function to get the color range for a temperature
 function getColorRangeForTemp(temp) {
-    if (temp < 0) return { min: -20, max: 0, minColor: "#000080", maxColor: "#1a237e" };
-    if (temp < 15) return { min: 0, max: 15, minColor: "#1a237e", maxColor: "#3949ab" };
-    if (temp < 25) return { min: 15, max: 25, minColor: "#3949ab", maxColor: "#5c6bc0" };
-    if (temp < 32) return { min: 25, max: 32, minColor: "#5c6bc0", maxColor: "#7986cb" };
-    if (temp < 43) return { min: 32, max: 43, minColor: "#7986cb", maxColor: "#90caf9" };
-    if (temp < 55) return { min: 43, max: 55, minColor: "#90caf9", maxColor: "#bbdefb" };
-    if (temp < 66) return { min: 55, max: 66, minColor: "#bbdefb", maxColor: "#e3f2fd" };
-    if (temp < 79) return { min: 66, max: 79, minColor: "#fff3e0", maxColor: "#ffe0b2" };
-    if (temp < 87) return { min: 79, max: 87, minColor: "#f5f5f5", maxColor: "#ffccbc" };
-    if (temp < 95) return { min: 87, max: 95, minColor: "#ffccbc", maxColor: "#ffab91" };
-    if (temp < 99) return { min: 95, max: 99, minColor: "#ffab91", maxColor: "#ff7043" };
+    // Convert to Fahrenheit if in Celsius for color calculation
+    const tempF = useMetric ? celsiusToFahrenheit(temp) : temp;
+    
+    if (tempF < 0) return { min: -20, max: 0, minColor: "#000080", maxColor: "#1a237e" };
+    if (tempF < 15) return { min: 0, max: 15, minColor: "#1a237e", maxColor: "#3949ab" };
+    if (tempF < 25) return { min: 15, max: 25, minColor: "#3949ab", maxColor: "#5c6bc0" };
+    if (tempF < 32) return { min: 25, max: 32, minColor: "#5c6bc0", maxColor: "#7986cb" };
+    if (tempF < 43) return { min: 32, max: 43, minColor: "#7986cb", maxColor: "#90caf9" };
+    if (tempF < 55) return { min: 43, max: 55, minColor: "#90caf9", maxColor: "#bbdefb" };
+    if (tempF < 66) return { min: 55, max: 66, minColor: "#bbdefb", maxColor: "#e3f2fd" };
+    if (tempF < 79) return { min: 66, max: 79, minColor: "#fff3e0", maxColor: "#ffe0b2" };
+    if (tempF < 87) return { min: 79, max: 87, minColor: "#f5f5f5", maxColor: "#ffccbc" };
+    if (tempF < 95) return { min: 87, max: 95, minColor: "#ffccbc", maxColor: "#ffab91" };
+    if (tempF < 99) return { min: 95, max: 99, minColor: "#ffab91", maxColor: "#ff7043" };
     return { min: 99, max: 110, minColor: "#ff7043", maxColor: "#d32f2f" };
 }
 
@@ -593,7 +599,8 @@ async function updateWeather() {
             
             // Animate the temperature
             const tempElement = document.getElementById('current-temp');
-            animateTemperature(tempElement, currentTemp);
+            const displayTemp = useMetric ? fahrenheitToCelsius(currentTemp) : currentTemp;
+            animateTemperature(tempElement, displayTemp);
             
             // Update other elements
             const tempFeelElement = document.getElementById('temp-feel');
@@ -637,10 +644,17 @@ async function updateWeather() {
             const lowTempElement = document.getElementById('low-temp');
 
             if (highTempElement && lowTempElement) {
-                const highTemp = useMetric ? fahrenheitToCelsius(currentData.maxTemp) : currentData.maxTemp;
-                const lowTemp = useMetric ? fahrenheitToCelsius(currentData.minTemp) : currentData.minTemp;
-                highTempElement.textContent = `↑ ${highTemp ? highTemp.toFixed(1) : '--'}${useMetric ? '°C' : '°F'}`;
-                lowTempElement.textContent = `↓ ${lowTemp ? lowTemp.toFixed(1) : '--'}${useMetric ? '°C' : '°F'}`;
+                // Get today's forecast periods (day and night)
+                const todayForecasts = forecastData.properties.periods.slice(0, 2);
+                if (todayForecasts.length >= 2) {
+                    // First period is daytime (high temp), second is nighttime (low temp)
+                    const highTemp = todayForecasts[0].temperature;
+                    const lowTemp = todayForecasts[1].temperature;
+                    const displayHighTemp = useMetric ? fahrenheitToCelsius(highTemp) : highTemp;
+                    const displayLowTemp = useMetric ? fahrenheitToCelsius(lowTemp) : lowTemp;
+                    highTempElement.textContent = `↑ ${Math.round(displayHighTemp)}${useMetric ? '°C' : '°F'}`;
+                    lowTempElement.textContent = `↓ ${Math.round(displayLowTemp)}${useMetric ? '°C' : '°F'}`;
+                }
             }
 
             // Update wind display with Beaufort scale
@@ -794,17 +808,8 @@ async function updateWeather() {
         const lastSummary = dailySummaryData.summaries[dailySummaryData.summaries.length - 1];
         
         // Extract high and low temperatures
-        const highTemp = lastSummary.imperial.tempHigh; // Assuming you want the imperial values
+        const highTemp = lastSummary.imperial.tempHigh;
         const lowTemp = lastSummary.imperial.tempLow;
-
-        // Update high and low temperatures in the dashboard
-        const highTempElement = document.getElementById('high-temp');
-        const lowTempElement = document.getElementById('low-temp');
-
-        if (highTempElement && lowTempElement) {
-            highTempElement.textContent = `↑ ${highTemp}°F`;
-            lowTempElement.textContent = `↓ ${lowTemp}°F`;
-        }
 
     } catch (error) {
         console.error('Error updating weather:', error);
@@ -1640,6 +1645,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 useMetric = false;
                 localStorage.setItem('useMetric', 'false');
                 updateDisplayedUnits();
+                // Trigger a weather update to get fresh data in the new units
+                updateWeather();
             }
         });
 
@@ -1648,6 +1655,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 useMetric = true;
                 localStorage.setItem('useMetric', 'true');
                 updateDisplayedUnits();
+                // Trigger a weather update to get fresh data in the new units
+                updateWeather();
             }
         });
 
