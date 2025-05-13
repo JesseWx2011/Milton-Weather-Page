@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hourly Forecast - Milton Weather</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .hourly-container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .hourly-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .hourly-header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            color: #ffffff;
+        }
+
+        .hourly-header p {
+            font-size: 1.2em;
+            color: #cccccc;
+        }
+
+        .location-selector {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        #location-dropdown {
+            padding: 8px 15px;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #ffffff;
+            cursor: pointer;
+            min-width: 200px;
+            backdrop-filter: blur(5px);
+        }
+
+        #location-dropdown:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        #location-dropdown option {
+            background-color: #2d2d2d;
+            color: #ffffff;
+        }
+
+        .hourly-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .date-header {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #ffffff;
+            padding: 15px 0;
+            margin-top: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .date-header:first-child {
+            margin-top: 0;
+        }
+
+        .hourly-item {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            transition: transform 0.2s, background 0.2s;
+            backdrop-filter: blur(10px);
+        }
+
+        .hourly-item:hover {
+            transform: translateX(10px);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .time {
+            width: 100px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .weather-icon-container {
+            width: 60px;
+            height: 60px;
+            margin: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .weather-icon {
+            width: 80px;
+            height: auto;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+
+        .temp {
+            width: 80px;
+            font-size: 1.6em;
+            font-weight: 800;
+            color: #ffffff;
+            margin-right: 30px;
+        }
+
+        .condition {
+            flex-grow: 1;
+            font-size: 1.1em;
+            color: #cccccc;
+        }
+
+        .wind {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 200px;
+            color: #cccccc;
+        }
+
+        .wind-icon {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .wind-speed {
+            font-size: 1.1em;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin: 20px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            text-decoration: none;
+            color: #ffffff;
+            transition: background 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .error-message {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 0, 0, 0.1);
+            border-radius: 10px;
+            color: #ff6b6b;
+            font-size: 1.1em;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 768px) {
+            .hourly-item {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .time, .temp, .condition, .wind {
+                width: 100%;
+            }
+
+            .weather-icon {
+                margin: 0;
+            }
+
+            .hourly-header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="hourly-container">
+        <a href="index.html" class="back-link">← Back to Weather Dashboard</a>
+        
+        <div class="hourly-header">
+            <h1>Hourly Forecast</h1>
+            <div class="location-selector">
+                <select id="location-dropdown">
+                    <option value="Milton,FL">Milton, FL</option>
+                    <option value="Pensacola,FL">Pensacola, FL</option>
+                    <option value="HurlburtField,FL">Hurlburt Field, FL</option>
+                    <option value="Baker,FL">Baker, FL</option>
+                    <option value="Crestview,FL">Crestview, FL</option>
+                    <option value="Navarre,FL">Navarre, FL</option>
+                    <option value="EglinAFB,FL">Eglin AFB, FL</option>
+                    <option value="FortWaltonBeach,FL">Fort Walton Beach, FL</option>
+                    <option value="Destin,FL">Destin, FL</option>
+                    <option value="GulfBreeze,FL">Gulf Breeze, FL</option>
+                    <option value="Molino,FL">Molino, FL</option>
+                    <option value="Century,FL">Century, FL</option>
+                    <option value="LaurelHill,FL">Laurel Hill, FL</option>
+                    <option value="GulfShores,AL">Gulf Shores, AL</option>
+                    <option value="PanamaCity,FL">Panama City, FL</option>
+                    <option value="Enterprise,AL">Enterprise, AL</option>
+                    <option value="Tallahassee,FL">Tallahassee, FL</option>
+                </select>
+            </div>
+            <p id="location-name">Milton, FL, USA</p>
+        </div>
+
+        <div class="hourly-grid" id="hourly-forecast">
+            <!-- Hourly forecast items will be dynamically added here -->
+        </div>
+    </div>
+
+    <script src="hourly.js"></script>
+</body>
+</html> 
