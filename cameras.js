@@ -83,6 +83,8 @@ class CameraManager {
                 fluid: true,
                 aspectRatio: '16:9',
                 playbackRates: [0.5, 1, 1.5, 2],
+                autoplay: true,
+                muted: true,
                 html5: {
                     hls: {
                         overrideNative: true
