@@ -258,67 +258,6 @@ function formatTimeRemaining(milliseconds) {
     return `${hours > 0 ? hours + 'h ' : ''}${minutes}m ${seconds}s`;
 }
 
-// Function to update countdown timer
-function updateCountdown() {
-    const nextSeason = getNextSeason();
-    const now = new Date();
-    const timeRemaining = nextSeason.date.getTime() - now.getTime();
-
-    // Calculate time components
-    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
-
-    // Update seasonal countdown elements
-    document.getElementById('season-days').textContent = days;
-    document.getElementById('season-hours').textContent = hours;
-    document.getElementById('season-minutes').textContent = minutes;
-    document.getElementById('season-seconds').textContent = seconds;
-
-    // Update next season text
-    const nextSeasonText = document.getElementById('next-season-text');
-    if (nextSeasonText) {
-        nextSeasonText.textContent = `Next season: ${nextSeason.season.charAt(0).toUpperCase() + nextSeason.season.slice(1)}`;
-    }
-
-    // Update weather update countdown
-    if (!lastUpdateTime) {
-        lastUpdateTime = new Date();
-    }
-
-    const nextUpdate = new Date(lastUpdateTime.getTime() + updateInterval);
-    const updateTimeRemaining = nextUpdate.getTime() - now.getTime();
-
-    const nextUpdateElement = document.getElementById('next-update');
-    if (nextUpdateElement) {
-        if (updateTimeRemaining <= 0) {
-            nextUpdateElement.textContent = 'Updating...';
-            return;
-        }
-
-        const updateMinutes = Math.floor((updateTimeRemaining / 1000 / 60) % 60);
-        const updateSeconds = Math.floor((updateTimeRemaining / 1000) % 60);
-        nextUpdateElement.textContent = `Next update in: ${updateMinutes}m ${updateSeconds < 10 ? '0' : ''}${updateSeconds}s`;
-
-        // Format last update time for display
-        const formattedLastUpdateTime = lastUpdateTime.toLocaleString("en-US", {
-            month: 'short',
-            day: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: 'numeric',
-            hour12: true
-        });
-
-        // Update last update time display
-        const lastUpdateElement = document.getElementById('last-update');
-        if (lastUpdateElement) {
-            lastUpdateElement.textContent = `Last updated: ${formattedLastUpdateTime}`;
-        }
-    }
-}
-
 // Function to update temperature difference
 function updateTemperatureDifference(currentTemp) {
     const tempChangeElement = document.getElementById('temp-change');
@@ -639,21 +578,44 @@ async function updateWeather() {
                 rainElement.textContent = `${rain.toFixed(2)} ${useMetric ? 'mm' : 'in'}`;
             }
 
+            // Fetch daily summary data from Weather API (Wunderground History API)
+            let dailySummaryData;
+            try {
+                dailySummaryData = await fetchWithRetry(
+                    'https://api.weather.com/v2/pws/dailysummary/7day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909'
+                );
+                console.log('Wunderground History API Response:', dailySummaryData);
+            } catch (error) {
+                console.error('Error fetching Wunderground History API data:', error);
+                dailySummaryData = null;
+            }
+
             // Update high and low temperatures
             const highTempElement = document.getElementById('high-temp');
             const lowTempElement = document.getElementById('low-temp');
 
-            if (highTempElement && lowTempElement) {
-                // Get today's forecast periods (day and night)
-                const todayForecasts = forecastData.properties.periods.slice(0, 2);
-                if (todayForecasts.length >= 2) {
-                    // First period is daytime (high temp), second is nighttime (low temp)
-                    const highTemp = todayForecasts[0].temperature;
-                    const lowTemp = todayForecasts[1].temperature;
-                    const displayHighTemp = useMetric ? fahrenheitToCelsius(highTemp) : highTemp;
-                    const displayLowTemp = useMetric ? fahrenheitToCelsius(lowTemp) : lowTemp;
-                    highTempElement.textContent = `↑ ${Math.round(displayHighTemp)}${useMetric ? '°C' : '°F'}`;
-                    lowTempElement.textContent = `↓ ${Math.round(displayLowTemp)}${useMetric ? '°C' : '°F'}`;
+            if (highTempElement && lowTempElement && dailySummaryData && dailySummaryData.summaries && dailySummaryData.summaries.length > 0) {
+                const todaySummary = dailySummaryData.summaries[0];
+                const highTemp = todaySummary.imperial.tempHigh;
+                const lowTemp = todaySummary.imperial.tempLow;
+                const displayHighTemp = useMetric ? fahrenheitToCelsius(highTemp) : highTemp;
+                const displayLowTemp = useMetric ? fahrenheitToCelsius(lowTemp) : lowTemp;
+                highTempElement.textContent = `↑ ${Math.round(displayHighTemp)}${useMetric ? '°C' : '°F'}`;
+                lowTempElement.textContent = `↓ ${Math.round(displayLowTemp)}${useMetric ? '°C' : '°F'}`;
+            } else {
+                // Fallback to NWS data if Wunderground data is not available
+                if (highTempElement && lowTempElement) {
+                    // Get today's forecast periods (day and night)
+                    const todayForecasts = forecastData.properties.periods.slice(0, 2);
+                    if (todayForecasts.length >= 2) {
+                        // First period is daytime (high temp), second is nighttime (low temp)
+                        const highTemp = todayForecasts[0].temperature;
+                        const lowTemp = todayForecasts[1].temperature;
+                        const displayHighTemp = useMetric ? fahrenheitToCelsius(highTemp) : highTemp;
+                        const displayLowTemp = useMetric ? fahrenheitToCelsius(lowTemp) : lowTemp;
+                        highTempElement.textContent = `↑ ${Math.round(displayHighTemp)}${useMetric ? '°C' : '°F'}`;
+                        lowTempElement.textContent = `↓ ${Math.round(displayLowTemp)}${useMetric ? '°C' : '°F'}`;
+                    }
                 }
             }
 
@@ -721,6 +683,62 @@ async function updateWeather() {
 
             // Call the new function to fetch graph data and create graphs
             fetchAndCreateGraphs();
+
+            // Update last update time using the timestamp from Ambient Weather API
+            const lastUpdateElement = document.getElementById('last-update');
+            if (lastUpdateElement && currentData.date) {
+                // Debug logs for timezone handling
+                console.log("Raw API date:", currentData.date);
+                console.log("User's timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+                
+                const stationTime = new Date(currentData.date);
+                const stationTimeZone = currentData.tz || 'America/Chicago';
+                const formatter = new Intl.DateTimeFormat('en-US', {
+                    timeZone: stationTimeZone,
+                    month: 'short',
+                    day: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                const formattedLastUpdateTime = formatter.format(stationTime);
+                console.log("Station time (", stationTimeZone, "):", formattedLastUpdateTime);
+                lastUpdateElement.textContent = `Last updated: ${formattedLastUpdateTime}`;
+            }
+
+            const latitude = 30.6319;
+            const longitude = -87.0372199;
+            // Check for alerts
+            const alertsData = await fetchWithRetry(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
+            
+            const alertsContainer = document.getElementById('alerts');
+            const currentTime = new Date().getTime("en-US", {timezone: "America/Chicago"});
+            
+            if (alertsData.features && alertsData.features.length > 0) {
+                const activeAlerts = alertsData.features.filter(alert => {
+                    const endTime = new Date(alert.properties.expires).getTime();
+                    return endTime > currentTime;
+                });
+                
+                if (activeAlerts.length > 0) {
+                    alertsContainer.innerHTML = activeAlerts.map(alert => `
+                        <div class="alert-item">
+                            <strong>${alert.properties.event}</strong>
+                            <p>${alert.properties.description}</p>
+                        </div>
+                    `).join('');
+                    alertsContainer.classList.remove('hidden');
+                } else {
+                    alertsContainer.classList.add('hidden');
+                }
+            } else {
+                alertsContainer.classList.add('hidden');
+            }
+
+            // Hide notification after successful update
+            hideNotification();
+
         }
 
         // Update forecast
@@ -757,15 +775,21 @@ async function updateWeather() {
         lastUpdateTime = new Date();
         const lastUpdateElement = document.getElementById('last-update');
         if (lastUpdateElement) {
-            const formattedLastUpdateTime = lastUpdateTime.toLocaleString("en-US", {
+            // Create a date object in Chicago time
+            const chicagoTime = new Date(lastUpdateTime.toLocaleString("en-US", {
+                timeZone: 'America/Chicago'
+            }));
+            
+            const formattedLastUpdateTime = chicagoTime.toLocaleString("en-US", {
                 timeZone: 'America/Chicago',
                 month: 'short',
                 day: '2-digit',
                 year: 'numeric',
                 hour: '2-digit',
-                minute: 'numeric'
+                minute: 'numeric',
+                second: '2-digit',
+                hour12: true
             });
-            lastUpdateElement.textContent = `Last updated: ${formattedLastUpdateTime}`;
         }
 
         const latitude = 30.6319;
@@ -799,17 +823,6 @@ async function updateWeather() {
 
         // Hide notification after successful update
         hideNotification();
-
-        // Fetch daily summary data from Weather API
-        const dailySummaryResponse = await fetch('https://api.weather.com/v2/pws/dailysummary/7day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909');
-        const dailySummaryData = await dailySummaryResponse.json();
-
-        // Get the last summary object
-        const lastSummary = dailySummaryData.summaries[dailySummaryData.summaries.length - 1];
-        
-        // Extract high and low temperatures
-        const highTemp = lastSummary.imperial.tempHigh;
-        const lowTemp = lastSummary.imperial.tempLow;
 
     } catch (error) {
         console.error('Error updating weather:', error);
@@ -1766,22 +1779,45 @@ document.addEventListener('DOMContentLoaded', checkDeviceWidth);
 // Check device width on window resize
 window.addEventListener('resize', checkDeviceWidth);
 
-function updateNextUpdate() {
-    const nextUpdateTime = new Date(Date.now() + 10 * 60 * 1000); // Example: 10 minutes from now
+function updateCountdown() {
+    const nextSeason = getNextSeason();
     const now = new Date();
-    const timeRemaining = nextUpdateTime - now;
+    const timeRemaining = nextSeason.date.getTime() - now.getTime();
 
-    if (timeRemaining > 0) {
-        const minutes = Math.floor((timeRemaining / 1000 / 60) % 60);
-        const seconds = Math.floor((timeRemaining / 1000) % 60);
-        document.getElementById('next-update').textContent = `Next update in: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    } else {
-        document.getElementById('next-update').textContent = 'Next update in: --:--';
+    // Calculate time components
+    const days = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((timeRemaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((timeRemaining % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
+
+    // Update seasonal countdown elements
+    document.getElementById('season-days').textContent = days;
+    document.getElementById('season-hours').textContent = hours;
+    document.getElementById('season-minutes').textContent = minutes;
+    document.getElementById('season-seconds').textContent = seconds;
+
+    // Update next season text
+    const nextSeasonText = document.getElementById('next-season-text');
+    if (nextSeasonText) {
+        nextSeasonText.textContent = `Next season: ${nextSeason.season.charAt(0).toUpperCase() + nextSeason.season.slice(1)}`;
     }
 
-    console.log("Next update time:", nextUpdateTime);
-    console.log("Current time:", now);
-    console.log("Time remaining:", timeRemaining);
+    // Update weather update countdown
+    if (!lastUpdateTime) {
+        lastUpdateTime = new Date();
+    }
+    const nextUpdate = new Date(lastUpdateTime.getTime() + updateInterval);
+    const updateTimeRemaining = nextUpdate.getTime() - now.getTime();
+    const nextUpdateElement = document.getElementById('next-update');
+    if (nextUpdateElement) {
+        if (updateTimeRemaining <= 0) {
+            nextUpdateElement.textContent = 'Updating...';
+            return;
+        }
+        const updateMinutes = Math.floor((updateTimeRemaining / 1000 / 60) % 60);
+        const updateSeconds = Math.floor((updateTimeRemaining / 1000) % 60);
+        nextUpdateElement.textContent = `Next update in: ${updateMinutes}m ${updateSeconds < 10 ? '0' : ''}${updateSeconds}s`;
+    }
 }
 
 function showErrorAlert() {
