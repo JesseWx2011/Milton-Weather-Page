@@ -285,7 +285,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         .satellite-card img {
-            width: 90%;
+            width: 85%;
             height: auto;
             border-radius: 4px;
             margin: 10px auto;
@@ -301,6 +301,16 @@
             color: #666;
             font-size: 14px;
         }
+        .disturbance-info {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .disturbance-info p {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
     </style>
 </head>
 <body>
@@ -315,6 +325,7 @@
                 <a href="#" class="dropdown-item" onclick="showSection('outlooks')">Outlooks</a>
                 <a href="#" class="dropdown-item" onclick="showSection('preparedness')">Preparedness Actions</a>
                 <a href="#" class="dropdown-item" onclick="showSection('satellite')">Satellite Imagery</a>
+                <a href="disturbances.html" class="dropdown-item">Active Disturbances</a>
             </div>
         </div>
 
@@ -403,7 +414,7 @@
                         <li>Stay informed about weather conditions</li>
                     </ul>
                 </div>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/a/af/Katrina_2005-08-28_1700Z.jpg" alt="Hurricane Katrina, August 28, 2005">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Katrina_2005-08-28_1700Z.jpg/960px-Katrina_2005-08-28_1700Z.jpg" alt="Hurricane Katrina, August 28, 2005">
             </div>
             <div class="preparedness-card">
                 <div class="preparedness-content">
@@ -417,7 +428,7 @@
                         <li>Stay in a safe room or interior space</li>
                     </ul>
                 </div>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Hurricane_Idalia_storm_surge_St._Petersburg%2C_Florida_6.jpg" alt="Storm Surge in St. Petersburg, Florida">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Hurricane_Idalia_storm_surge_St._Petersburg%2C_Florida_6.jpg/960px-Hurricane_Idalia_storm_surge_St._Petersburg%2C_Florida_6.jpg" alt="Storm Surge in St. Petersburg, Florida">
             </div>
             <div class="preparedness-card">
                 <div class="preparedness-content">
@@ -431,7 +442,7 @@
                         <li>Help neighbors if it's safe to do so</li>
                     </ul>
                 </div>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/5/5f/NOAA_Hurricane_Hunters_inside_Hurricane_Jose.jpg" alt="Inside the Eye of Hurricane Jose">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5f/NOAA_Hurricane_Hunters_inside_Hurricane_Jose.jpg/960px-NOAA_Hurricane_Hunters_inside_Hurricane_Jose.jpg" alt="Inside the Eye of Hurricane Jose">
             </div>
         </div>
 
@@ -439,10 +450,50 @@
             <h2>Latest Satellite Imagery</h2>
             <div class="satellite-card">
                 <h3>Gulf of America/Mexico</h3>
-                <img id="satelliteImage" src="" alt="Latest satellite imagery of Gulf of America/Mexico">
+                <img id="gulfSatelliteImage" src="" alt="Latest satellite imagery of Gulf of America/Mexico">
                 <div class="satellite-info">
-                    <p>Last updated: <span id="lastUpdated"></span></p>
-                    <p>Image quality: <span id="imageQuality"></span></p>
+                    <p>Last updated: <span id="gulfLastUpdated"></span></p>
+                    <p>Image quality: <span id="gulfImageQuality"></span></p>
+                </div>
+            </div>
+            <div class="satellite-card">
+                <h3>Tropical Atlantic Ocean</h3>
+                <img id="atlanticSatelliteImage" src="" alt="Latest satellite imagery of Tropical Atlantic Ocean">
+                <div class="satellite-info">
+                    <p>Last updated: <span id="atlanticLastUpdated"></span></p>
+                    <p>Image quality: <span id="atlanticImageQuality"></span></p>
+                </div>
+            </div>
+            <div class="satellite-card">
+                <h3>Eastern Pacific</h3>
+                <img id="easternPacificImage" src="" alt="Latest satellite imagery of Eastern Pacific">
+                <div class="satellite-info">
+                    <p>Last updated: <span id="easternPacificLastUpdated"></span></p>
+                    <p>Image quality: <span id="easternPacificImageQuality"></span></p>
+                </div>
+            </div>
+            <div class="satellite-card">
+                <h3>U.S. Atlantic Coast</h3>
+                <img id="atlanticCoastImage" src="" alt="Latest satellite imagery of U.S. Atlantic Coast">
+                <div class="satellite-info">
+                    <p>Last updated: <span id="atlanticCoastLastUpdated"></span></p>
+                    <p>Image quality: <span id="atlanticCoastImageQuality"></span></p>
+                </div>
+            </div>
+            <div class="satellite-card">
+                <h3>Caribbean</h3>
+                <img id="caribbeanImage" src="" alt="Latest satellite imagery of Caribbean">
+                <div class="satellite-info">
+                    <p>Last updated: <span id="caribbeanLastUpdated"></span></p>
+                    <p>Image quality: <span id="caribbeanImageQuality"></span></p>
+                </div>
+            </div>
+            <div class="satellite-card">
+                <h3>Puerto Rico</h3>
+                <img id="puertoRicoImage" src="" alt="Latest satellite imagery of Puerto Rico">
+                <div class="satellite-info">
+                    <p>Last updated: <span id="puertoRicoLastUpdated"></span></p>
+                    <p>Image quality: <span id="puertoRicoImageQuality"></span></p>
                 </div>
             </div>
         </div>
@@ -466,35 +517,110 @@
                 document.getElementById("preparedness-section").style.display = "block";
             } else if (section === "satellite") {
                 document.getElementById("satellite-section").style.display = "block";
-                updateSatelliteImage();
+                updateSatelliteImages();
             }
             
             // Close dropdown
             document.getElementById("myDropdown").classList.remove("show");
         }
 
-        function updateSatelliteImage() {
-            const satelliteImage = document.getElementById("satelliteImage");
-            const lastUpdated = document.getElementById("lastUpdated");
-            const imageQuality = document.getElementById("imageQuality");
+        async function checkBasinImagery(basin) {
+            const satelliteSection = document.getElementById("satellite-section");
+            const basinImage = document.createElement('div');
+            basinImage.className = 'satellite-card';
             
-            // Check if the device is using cellular data
-            if (navigator.connection && navigator.connection.type === 'cellular') {
-                satelliteImage.src = "https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/ga/GEOCOLOR/500x500.jpg";
-                imageQuality.textContent = "Low (Cellular Mode)";
-            } else {
-                satelliteImage.src = "https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/ga/GEOCOLOR/4000x4000.jpg";
-                imageQuality.textContent = "High (WiFi Mode)";
+            let imageUrl;
+            let title;
+            
+            if (basin === 'EP') {
+                imageUrl = 'https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/eep/GEOCOLOR/20251431410_GOES19-ABI-eep-GEOCOLOR-3600x2160.jpg';
+                title = 'East Pacific Basin';
+            } else if (basin === 'AL') {
+                imageUrl = 'https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/taw/GEOCOLOR/20251431410_GOES19-ABI-taw-GEOCOLOR-3600x2160.jpg';
+                title = 'Atlantic Basin';
             }
 
-            // Add click event to open original image
-            satelliteImage.onclick = function() {
+            if (imageUrl) {
+                basinImage.innerHTML = `
+                    <h3>${title} Overview</h3>
+                    <img src="${imageUrl}" alt="${title} satellite imagery" class="satellite-image">
+                    <div class="satellite-info">
+                        <p>Last updated: ${new Date().toLocaleString()}</p>
+                        <p>Image quality: High</p>
+                    </div>
+                `;
+                
+                // Add click event to open full image
+                const img = basinImage.querySelector('img');
+                img.onclick = function() {
+                    window.open(this.src, '_blank');
+                };
+                
+                satelliteSection.appendChild(basinImage);
+            }
+        }
+
+        function updateSatelliteImages() {
+            const isOld = isOldDevice();
+            const isCellular = navigator.connection && navigator.connection.type === 'cellular';
+            
+            // Clear existing content
+            const satelliteSection = document.getElementById("satellite-section");
+            satelliteSection.innerHTML = '<h2>Latest Satellite Imagery</h2>';
+            
+            // Add basin imagery
+            checkBasinImagery('EP'); // East Pacific
+            checkBasinImagery('AL'); // Atlantic
+            
+            // Gulf of Mexico image
+            const gulfImage = document.createElement('div');
+            gulfImage.className = 'satellite-card';
+            
+            if (isOld || isCellular) {
+                gulfImage.innerHTML = `
+                    <h3>Gulf of America/Mexico</h3>
+                    <img src="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/ga/GEOCOLOR/1000x1000.jpg" alt="Latest satellite imagery of Gulf of America/Mexico">
+                    <div class="satellite-info">
+                        <p>Last updated: ${new Date().toLocaleString()}</p>
+                        <p>Image quality: ${isOld ? "Low (Legacy Device)" : "Low (Cellular Mode)"}</p>
+                    </div>
+                `;
+            } else {
+                gulfImage.innerHTML = `
+                    <h3>Gulf of America/Mexico</h3>
+                    <img src="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/ga/GEOCOLOR/4000x4000.jpg" alt="Latest satellite imagery of Gulf of America/Mexico">
+                    <div class="satellite-info">
+                        <p>Last updated: ${new Date().toLocaleString()}</p>
+                        <p>Image quality: High (WiFi Mode)</p>
+                    </div>
+                `;
+            }
+            
+            // Add click event to open full image
+            const img = gulfImage.querySelector('img');
+            img.onclick = function() {
                 window.open(this.src, '_blank');
             };
+            
+            satelliteSection.appendChild(gulfImage);
+        }
 
-            // Update the last updated time
-            const now = new Date();
-            lastUpdated.textContent = now.toLocaleString();
+        function isOldDevice() {
+            const userAgent = navigator.userAgent;
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent);
+            const isAndroid = /Android/.test(userAgent);
+            
+            if (isIOS) {
+                const iosVersion = userAgent.match(/OS (\d+)_/);
+                return iosVersion && parseInt(iosVersion[1]) <= 12;
+            }
+            
+            if (isAndroid) {
+                const androidVersion = userAgent.match(/Android (\d+)/);
+                return androidVersion && parseInt(androidVersion[1]) <= 8;
+            }
+            
+            return false;
         }
 
         // Close dropdown when clicking outside
@@ -510,8 +636,8 @@
             }
         }
 
-        // Update satellite image every 5 minutes
-        setInterval(updateSatelliteImage, 300000);
+        // Update satellite images every 5 minutes
+        setInterval(updateSatelliteImages, 300000);
     </script>
 </body>
 </html>

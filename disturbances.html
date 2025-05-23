@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Tropical Disturbances</title>
+    <style>
+        body {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background: #007BFF;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+        main {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .back-button {
+            position: fixed;
+            top: 35px;
+            left: 30px;
+            text-decoration: none;
+            color: #06314e;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(19, 71, 105, 0.373);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.626);
+            color: #06314e;
+        }
+        .disturbance-section {
+            margin-bottom: 30px;
+        }
+        .disturbance-section h2 {
+            color: #06314e;
+            border-bottom: 2px solid #007BFF;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .disturbance-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .disturbance-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        .disturbance-info {
+            padding: 15px;
+            background: white;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .disturbance-info p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+        .disturbance-info strong {
+            color: #06314e;
+        }
+        .update-time {
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 15px;
+            text-align: right;
+        }
+        .formation-chance {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-left: 5px;
+        }
+        .chance-low {
+            background-color: #e3f2fd;
+            color: #0d47a1;
+        }
+        .chance-medium {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
+        .chance-high {
+            background-color: #ffebee;
+            color: #b71c1c;
+        }
+        .storm-image {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border-radius: 4px;
+            margin: 15px 0;
+            display: block;
+        }
+        .image-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .image-loading {
+            color: #666;
+            font-style: italic;
+        }
+        .image-error {
+            color: #b71c1c;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <a href="hurricanes.html" class="back-button" title="Back to hurricane outlooks">Return to Hurricane Outlooks</a>
+    <header>
+        <h1>Active Tropical Disturbances</h1>
+    </header>
+    <main>
+        <div id="disturbances-section" class="disturbance-section">
+            <h2>Current Disturbances</h2>
+            <!-- Disturbance cards will be inserted here -->
+        </div>
+    </main>
+
+    <script>
+        async function fetchDisturbances() {
+            try {
+                const response = await fetch('https://data2.weatherwise.app/tropical/USA/NHC/disturbances.geojson');
+                const data = await response.json();
+                
+                const disturbancesSection = document.getElementById('disturbances-section');
+                disturbancesSection.innerHTML = '<h2>Current Disturbances</h2>';
+                
+                if (data.features.length === 0) {
+                    disturbancesSection.innerHTML += '<p>No active disturbances at this time.</p>';
+                    return;
+                }
+
+                data.features.forEach(feature => {
+                    const props = feature.properties;
+                    const disturbanceCard = document.createElement('div');
+                    disturbanceCard.className = 'disturbance-card';
+                    
+                    const lastUpdate = new Date(props.last_update_at).toLocaleString();
+                    const [location, discussion] = props.discussion.split(':');
+                    
+                    // Determine chance category class
+                    const getChanceClass = (category) => {
+                        switch(category.toLowerCase()) {
+                            case 'low': return 'chance-low';
+                            case 'medium': return 'chance-medium';
+                            case 'high': return 'chance-high';
+                            default: return '';
+                        }
+                    };
+                    
+                    disturbanceCard.innerHTML = `
+                        <h3>Disturbance ${props.disturbance}</h3>
+                        <div class="disturbance-info">
+                            <p><strong>Location:</strong> ${location}</p>
+                            <p>
+                                <strong>48-Hour Formation Chance:</strong>
+                                <span class="formation-chance ${getChanceClass(props.day_2_category)}">
+                                    ${props.day_2_percentage} (${props.day_2_category})
+                                </span>
+                            </p>
+                            <p>
+                                <strong>7-Day Formation Chance:</strong>
+                                <span class="formation-chance ${getChanceClass(props.day_7_category)}">
+                                    ${props.day_7_percentage} (${props.day_7_category})
+                                </span>
+                            </p>
+                            <p><strong>Discussion:</strong> ${discussion}</p>
+                            <div class="update-time">Last Updated: ${lastUpdate}</div>
+                        </div>
+                    `;
+                    
+                    // Add image container
+                    const imageContainer = document.createElement('div');
+                    imageContainer.className = 'image-container';
+                    imageContainer.innerHTML = '<p class="image-loading">Checking for storm imagery...</p>';
+                    disturbanceCard.appendChild(imageContainer);
+                    
+                    // Check for storm images
+                    checkStormImages(props.disturbance, imageContainer);
+                    
+                    disturbancesSection.appendChild(disturbanceCard);
+                });
+            } catch (error) {
+                console.error('Error fetching disturbance data:', error);
+                document.getElementById('disturbances-section').innerHTML = `
+                    <h2>Current Disturbances</h2>
+                    <p>Error loading disturbance data. Please try again later.</p>
+                `;
+            }
+        }
+
+        async function checkStormImages(disturbanceNumber, container) {
+            const year = '2025';
+            const basin = 'EP';
+            const maxStorms = 30;
+            let foundValidImage = false;
+
+            // Try the current disturbance number first
+            const currentStormNumber = disturbanceNumber.padStart(2, '0');
+            const currentImageUrl = `https://cdn.star.nesdis.noaa.gov/FLOATER/data/${basin}${currentStormNumber}${year}/GEOCOLOR/2000x2000.jpg`;
+            
+            try {
+                const response = await fetch(currentImageUrl, { method: 'HEAD' });
+                if (response.ok) {
+                    container.innerHTML = `
+                        <img src="${currentImageUrl}" alt="Storm ${currentStormNumber} Imagery" class="storm-image">
+                        <p>Storm ${currentStormNumber} Imagery</p>
+                    `;
+                    foundValidImage = true;
+                }
+            } catch (error) {
+                console.log(`No image found for storm ${currentStormNumber}`);
+            }
+
+            // If no image found for current disturbance, check other storms
+            if (!foundValidImage) {
+                container.innerHTML = '<p class="image-loading">Checking for other storm imagery...</p>';
+                
+                for (let i = 1; i <= maxStorms; i++) {
+                    const stormNumber = i.toString().padStart(2, '0');
+                    const imageUrl = `https://cdn.star.nesdis.noaa.gov/FLOATER/data/${basin}${stormNumber}${year}/GEOCOLOR/2000x2000.jpg`;
+                    
+                    try {
+                        const response = await fetch(imageUrl, { method: 'HEAD' });
+                        if (response.ok) {
+                            container.innerHTML = `
+                                <img src="${imageUrl}" alt="Storm ${stormNumber} Imagery" class="storm-image">
+                                <p>Storm ${stormNumber} Imagery</p>
+                            `;
+                            foundValidImage = true;
+                            break;
+                        }
+                    } catch (error) {
+                        console.log(`No image found for storm ${stormNumber}`);
+                    }
+                }
+
+                if (!foundValidImage) {
+                    container.innerHTML = '<p class="image-error">No storm imagery available</p>';
+                }
+            }
+        }
+
+        // Fetch data when page loads
+        window.addEventListener('load', fetchDisturbances);
+        
+        // Refresh data every 5 minutes
+        setInterval(fetchDisturbances, 300000);
+    </script>
+</body>
+</html> 
