@@ -4,10 +4,6 @@
     ],
     "specialEvents": [
         {
-            "eventName": "West Virginia Catastrophic Flash Flooding",
-            "audioFile": "2025-02-15 16-15-00 WXJ84.mp3"
-        },
-        {
             "eventName": "2025 Florida Blizzard",
             "audioFile": "2025-01-21 09-00-00 KEC86.mp3"
         },
