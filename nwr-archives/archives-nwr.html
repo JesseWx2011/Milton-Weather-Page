@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NOAA Weather Radio Archives</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="../Favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0 20px;
+            color: #2c3e50;
+            font-size: 2.5em;
+            font-weight: 700;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            text-decoration: none;
+            color: #3498db;
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 8px;
+            background: rgba(52, 152, 219, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .back-button:hover {
+            background: #3498db;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .archive-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 30px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .archive-title {
+            color: #34495e;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            font-weight: 500;
+        }
+
+        .year-section {
+            margin-bottom: 30px;
+        }
+
+        .year-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .year-header:hover {
+            background: #e9ecef;
+        }
+
+        .year-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.3em;
+        }
+
+        .year-content {
+            display: none;
+            padding: 20px 0;
+        }
+
+        .year-content.active {
+            display: block;
+        }
+
+        .month-section {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+
+        .month-header {
+            background: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #e9ecef;
+            transition: all 0.3s;
+        }
+
+        .month-header:hover {
+            background: #f8f9fa;
+            transform: translateX(5px);
+        }
+
+        .month-header h4 {
+            margin: 0;
+            color: #34495e;
+            font-size: 1.1em;
+        }
+
+        .month-content {
+            display: none;
+            padding: 15px 0;
+        }
+
+        .month-content.active {
+            display: block;
+        }
+
+        .archive-list {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .archive-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .archive-item:last-child {
+            border-bottom: none;
+        }
+
+        .archive-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .archive-date {
+            color: #666;
+            font-size: 0.9em;
+            min-width: 150px;
+        }
+
+        .archive-description {
+            color: #2c3e50;
+            flex-grow: 1;
+        }
+
+        .archive-link {
+            color: #3498db;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .archive-link:hover {
+            color: #2980b9;
+            text-decoration: underline;
+        }
+
+        .audio-player {
+            width: 100%;
+            max-width: 300px;
+            margin-top: 10px;
+        }
+
+        .no-archives {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        .toggle-icon {
+            transition: transform 0.3s;
+        }
+
+        .active .toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                font-size: 2em;
+                padding: 30px 0 15px;
+            }
+
+            .archive-section {
+                padding: 20px;
+            }
+
+            .month-section {
+                padding-left: 10px;
+            }
+
+            .archive-list {
+                padding-left: 10px;
+            }
+
+            .archive-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+            }
+
+            .archive-date {
+                min-width: auto;
+            }
+
+            .audio-player {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="../index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+    <div class="container">
+        <h1 class="header">NOAA Weather Radio Archives</h1>
+        
+        <div class="archive-section">
+            <h2 class="archive-title">Archived Broadcasts</h2>
+            <div id="archives-container">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Loading archives...
+                </div>
+            </div>
+        </div>
+
+        <div class="archive-section">
+            <h2 class="archive-title">Special Weather Events</h2>
+            <div id="special-events-container">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    Loading special events...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleYear(element) {
+            const content = element.nextElementSibling;
+            element.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        function toggleMonth(element) {
+            const content = element.nextElementSibling;
+            element.classList.toggle('active');
+            content.classList.toggle('active');
+        }
+
+        function formatDate(date) {
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            let hours = date.getHours();
+            const minutes = date.getMinutes().toString().padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            // Convert to 12-hour format
+            hours = hours % 12;
+            hours = hours ? hours : 12; // the hour '0' should be '12'
+            
+            return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} - ${hours}:${minutes} ${ampm}`;
+        }
+
+        function getMonthName(month) {
+            const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+            return months[month - 1];
+        }
+
+        async function loadArchives() {
+            try {
+                const response = await fetch('audio-files.json');
+                const data = await response.json();
+                console.log('Loaded data:', data);
+                
+                // Handle normal clips
+                const archives = {};
+                if (data.normalClips && data.normalClips.length > 0) {
+                    console.log('Processing normal clips:', data.normalClips);
+                    data.normalClips.forEach(file => {
+                        const match = file.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2})-(\d{2})-(\d{2}) ([A-Z0-9]+)/);
+                        console.log('File match:', file, match);
+                        if (match) {
+                            const year = match[1];
+                            const month = parseInt(match[2]);
+                            const callsign = match[7];
+                            
+                            if (!archives[year]) {
+                                archives[year] = {};
+                            }
+                            if (!archives[year][month]) {
+                                archives[year][month] = [];
+                            }
+                            
+                            archives[year][month].push({ file, callsign });
+                        }
+                    });
+                }
+                console.log('Processed archives:', archives);
+
+                // Sort years and months in descending order
+                const years = Object.keys(archives).sort((a, b) => b - a);
+                console.log('Sorted years:', years);
+                
+                const container = document.getElementById('archives-container');
+                container.innerHTML = '';
+
+                if (years.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-archives">
+                            <p>As of now, there are currently no archives, please check back soon.</p>
+                            <br>
+                            <p>We plan to make our archives completely free and accessible, and free of use with appropriate credit.</p>
+                        </div>`;
+                } else {
+                    years.forEach(year => {
+                        const yearSection = document.createElement('div');
+                        yearSection.className = 'year-section';
+                        
+                        const yearHeader = document.createElement('div');
+                        yearHeader.className = 'year-header';
+                        yearHeader.onclick = () => toggleYear(yearHeader);
+                        yearHeader.innerHTML = `
+                            <h3>${year}</h3>
+                            <span class="toggle-icon">▼</span>
+                        `;
+                        
+                        const yearContent = document.createElement('div');
+                        yearContent.className = 'year-content';
+                        
+                        const months = Object.keys(archives[year]).sort((a, b) => b - a);
+                        
+                        months.forEach(month => {
+                            const monthSection = document.createElement('div');
+                            monthSection.className = 'month-section';
+                            
+                            const monthHeader = document.createElement('div');
+                            monthHeader.className = 'month-header';
+                            monthHeader.onclick = () => toggleMonth(monthHeader);
+                            monthHeader.innerHTML = `
+                                <h4>${getMonthName(parseInt(month))}</h4>
+                                <span class="toggle-icon">▼</span>
+                            `;
+                            
+                            const monthContent = document.createElement('div');
+                            monthContent.className = 'month-content';
+                            
+                            const archiveList = document.createElement('ul');
+                            archiveList.className = 'archive-list';
+                            
+                            archives[year][month].forEach(({ file, callsign }) => {
+                                const match = file.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2})-(\d{2})-(\d{2})/);
+                                if (match) {
+                                    const date = new Date(
+                                        parseInt(match[1]),
+                                        parseInt(match[2]) - 1,
+                                        parseInt(match[3]),
+                                        parseInt(match[4]),
+                                        parseInt(match[5]),
+                                        parseInt(match[6])
+                                    );
+                                    
+                                    const listItem = document.createElement('li');
+                                    listItem.className = 'archive-item';
+                                    listItem.innerHTML = `
+                                        <div class="archive-date">${formatDate(date)}</div>
+                                        <div class="archive-description">
+                                            <a href="audioclips/${file}" class="archive-link" target="_blank">NOAA Weather Radio Broadcast - ${callsign}</a>
+                                            <audio class="audio-player" controls>
+                                                <source src="audioclips/${file}" type="audio/mpeg">
+                                                Your browser does not support the audio element.
+                                            </audio>
+                                        </div>
+                                    `;
+                                    archiveList.appendChild(listItem);
+                                }
+                            });
+                            
+                            monthContent.appendChild(archiveList);
+                            monthSection.appendChild(monthHeader);
+                            monthSection.appendChild(monthContent);
+                            yearContent.appendChild(monthSection);
+                        });
+                        
+                        yearSection.appendChild(yearHeader);
+                        yearSection.appendChild(yearContent);
+                        container.appendChild(yearSection);
+                    });
+                }
+
+                // Handle special events
+                const specialEventsContainer = document.getElementById('special-events-container');
+                if (specialEventsContainer) {
+                    // Clear the loading spinner first
+                    specialEventsContainer.innerHTML = '';
+                    
+                    if (data.specialEvents && data.specialEvents.length > 0) {
+                        // Group special events by year and month
+                        const specialArchives = {};
+                        data.specialEvents.forEach(event => {
+                            const match = event.audioFile.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2})-(\d{2})-(\d{2})/);
+                            if (match) {
+                                const year = match[1];
+                                const month = parseInt(match[2]);
+                                
+                                if (!specialArchives[year]) {
+                                    specialArchives[year] = {};
+                                }
+                                if (!specialArchives[year][month]) {
+                                    specialArchives[year][month] = [];
+                                }
+                                
+                                specialArchives[year][month].push(event);
+                            }
+                        });
+
+                        // Sort years and months in descending order
+                        const years = Object.keys(specialArchives).sort((a, b) => b - a);
+                        
+                        years.forEach(year => {
+                            const yearSection = document.createElement('div');
+                            yearSection.className = 'year-section';
+                            
+                            const yearHeader = document.createElement('div');
+                            yearHeader.className = 'year-header';
+                            yearHeader.onclick = () => toggleYear(yearHeader);
+                            yearHeader.innerHTML = `
+                                <h3>${year}</h3>
+                                <span class="toggle-icon">▼</span>
+                            `;
+                            
+                            const yearContent = document.createElement('div');
+                            yearContent.className = 'year-content';
+                            
+                            const months = Object.keys(specialArchives[year]).sort((a, b) => b - a);
+                            
+                            months.forEach(month => {
+                                const monthSection = document.createElement('div');
+                                monthSection.className = 'month-section';
+                                
+                                const monthHeader = document.createElement('div');
+                                monthHeader.className = 'month-header';
+                                monthHeader.onclick = () => toggleMonth(monthHeader);
+                                monthHeader.innerHTML = `
+                                    <h4>${getMonthName(parseInt(month))}</h4>
+                                    <span class="toggle-icon">▼</span>
+                                `;
+                                
+                                const monthContent = document.createElement('div');
+                                monthContent.className = 'month-content';
+                                
+                                const eventsList = document.createElement('ul');
+                                eventsList.className = 'archive-list';
+                                
+                                specialArchives[year][month].forEach(event => {
+                                    const match = event.audioFile.match(/(\d{4})-(\d{2})-(\d{2}) (\d{2})-(\d{2})-(\d{2})/);
+                                    if (match) {
+                                        const date = new Date(
+                                            parseInt(match[1]),
+                                            parseInt(match[2]) - 1,
+                                            parseInt(match[3]),
+                                            parseInt(match[4]),
+                                            parseInt(match[5]),
+                                            parseInt(match[6])
+                                        );
+                                        
+                                        const listItem = document.createElement('li');
+                                        listItem.className = 'archive-item';
+                                        listItem.innerHTML = `
+                                            <div class="archive-date">${formatDate(date)}</div>
+                                            <div class="archive-description">
+                                                <a href="audioclips/${event.audioFile}" class="archive-link" target="_blank">${event.eventName}</a>
+                                                <audio class="audio-player" controls>
+                                                    <source src="audioclips/${event.audioFile}" type="audio/mpeg">
+                                                    Your browser does not support the audio element.
+                                                </audio>
+                                            </div>
+                                        `;
+                                        eventsList.appendChild(listItem);
+                                    }
+                                });
+                                
+                                monthContent.appendChild(eventsList);
+                                monthSection.appendChild(monthHeader);
+                                monthSection.appendChild(monthContent);
+                                yearContent.appendChild(monthSection);
+                            });
+                            
+                            yearSection.appendChild(yearHeader);
+                            yearSection.appendChild(yearContent);
+                            specialEventsContainer.appendChild(yearSection);
+                        });
+                    } else {
+                        specialEventsContainer.innerHTML = `
+                            <div class="no-archives">
+                                <p>No special weather events have been archived yet.</p>
+                            </div>`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading archives:', error);
+                document.getElementById('archives-container').innerHTML = `
+                    <div class="no-archives">
+                        <p>As of now, there are currently no archives, please check back soon.</p>
+                        <br>
+                        <p>We plan to make our archives completely free and accessible, and free of use with appropriate credit.</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Load archives when the page loads
+        document.addEventListener('DOMContentLoaded', loadArchives);
+    </script>
+</body>
+</html>
