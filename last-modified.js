@@ -1,5 +1,6 @@
 function updateLastModified() {
-    const now = new Date();
+    // Get the last modified time from the document's metadata
+    const lastModified = new Date(document.lastModified);
     const options = {
         year: 'numeric',
         month: 'long',
@@ -10,7 +11,7 @@ function updateLastModified() {
         timeZoneName: 'short'
     };
     
-    const formattedDate = now.toLocaleString('en-US', options);
+    const formattedDate = lastModified.toLocaleString('en-US', options);
     const lastModifiedElement = document.querySelector('.credits p:last-child');
     
     if (lastModifiedElement) {
