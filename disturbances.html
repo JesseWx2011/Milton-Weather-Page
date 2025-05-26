@@ -121,6 +121,15 @@
             color: #b71c1c;
             font-style: italic;
         }
+        .weather-finder-link {
+            text-align: center;
+            margin: 20px 0;
+            padding: 10px;
+        }
+        .weather-finder-link img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -266,5 +275,12 @@
         // Refresh data every 5 minutes
         setInterval(fetchDisturbances, 300000);
     </script>
+
+    <!-- USA Weather Finder Link -->
+    <div class="weather-finder-link">
+        <a href="https://usaweatherfinder.com/">
+            <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
+        </a>
+    </div>
 </body>
 </html> 
