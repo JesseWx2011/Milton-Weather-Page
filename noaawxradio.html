@@ -5,91 +5,204 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NOAA Weather Radio</title>
     <link rel="icon" type="image/png" sizes="512x512" href="Favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
-    <h1 class="header">NOAA Weather Radio</h1>
-    <h2 class="subheader">KEC83 - Pensacola, FL - 162.400 MHz</h2>
+    <div class="container">
+        <h1 class="header">NOAA Weather Radio</h1>
+        <h2 class="subheader">KEC83 - Pensacola, FL - 162.400 MHz</h2>
 
-    <div class="audio-container">
-        <audio controls>
-            <source src="https://broadcastify.cdnstream1.com/37380" type="audio/mpeg">
-            Your browser does not support the audio eleme`nt.
-        </audio>
-</div>
-<h2 class="subheader">What is NOAA Weather Radio?</h2>
-<p class="subheader">NOAA Weather Radio is a nationwide network of stations that provide 24/7 weather alerts and information. There are hundreds of networks actively broadcasting weather information across the United States & it's territories.</p>
-<p class="subheader">Here is a map of the coverage NOAA Weather Radio provides for the United States:</p>
-<img class="placeholder-image" src="./images/noaa-weather-radio/NWR_Propagation.png" alt="NOAA Weather Radio Coverage Map">
+        <div class="audio-container">
+            <audio controls>
+                <source src="https://broadcastify.cdnstream1.com/37380" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+        </div>
 
-<h2 class="subheader">List of NOAA Weather Radio Stations in the Pensacola, FL area:</h2>
-<p class="subheader">KEC86 - Pensacola, FL - 162.400 MHz</p>
-<p class="subheader">WNG646 - Brewton, AL - 162.475 MHz</p>
-<p class="subheader">KEC61 - Mobile, AL - 162.550 MHz</p>
+        <div class="content-card">
+            <h2 class="subheader">What is NOAA Weather Radio?</h2>
+            <p class="description">NOAA Weather Radio is a nationwide network of stations that provide 24/7 weather alerts and information. There are hundreds of networks actively broadcasting weather information across the United States & it's territories.</p>
+            <p class="description">Here is a map of the coverage NOAA Weather Radio provides for the United States:</p>
+            <img class="placeholder-image" src="./images/noaa-weather-radio/NWR_Propagation.png" alt="NOAA Weather Radio Coverage Map">
+        </div>
 
-<p class="subheader">Find more information about NOAA Weather Radio <a href="https://www.weather.gov/nwr">here</a>.</p>
-</div>
+        <div class="content-card">
+            <h2 class="subheader">List of NOAA Weather Radio Stations in the Pensacola, FL area:</h2>
+            <div class="station-list">
+                <p class="station">KEC86 - Pensacola, FL - 162.400 MHz</p>
+                <p class="station">WNG646 - Brewton, AL - 162.475 MHz</p>
+                <p class="station">KEC61 - Mobile, AL - 162.550 MHz</p>
+            </div>
+            <p class="description">Find more information about NOAA Weather Radio <a href="https://www.weather.gov/nwr" class="external-link">here</a>.</p>
+        </div>
 
-    <!-- USA Weather Finder Link -->
-    <div align="center" class="weather-finder-link">
-        <a href="https://usaweatherfinder.com/">
-            <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
-        </a>
+        <div class="weather-finder-link">
+            <a href="https://usaweatherfinder.com/">
+                <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
+            </a>
+        </div>
     </div>
 </body>
 </html>
 <style>
     * {
-        font-family: Verdana, sans-serif;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Roboto', sans-serif;
     }
+
     body {
-        background-color: #f0f0f0;
+        background-color: #f5f7fa;
+        color: #2c3e50;
+        line-height: 1.6;
     }
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
     .header {
         text-align: center;
-        padding-top: 20px;
+        padding: 40px 0 20px;
+        color: #2c3e50;
+        font-size: 2.5em;
+        font-weight: 700;
     }
+
     .subheader {
         text-align: center;
-        padding-top: 20px;
+        padding: 20px 0;
+        color: #34495e;
+        font-size: 1.5em;
+        font-weight: 500;
     }
 
     .back-button {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            text-decoration: none;
-            color: #3498db;
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 4px;
-            background: rgba(52, 152, 219, 0.1);
-            transition: all 0.3s;
-            font-size: 14px;
-            z-index: 1000;
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        text-decoration: none;
+        color: #3498db;
+        display: inline-block;
+        padding: 10px 20px;
+        border-radius: 8px;
+        background: rgba(52, 152, 219, 0.1);
+        transition: all 0.3s;
+        font-size: 14px;
+        z-index: 1000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .back-button:hover {
+        background: #3498db;
+        color: white;
+        transform: translateY(-2px);
+    }
+
+    .audio-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin: 30px 0;
+    }
+
+    .audio-container audio {
+        width: 100%;
+        max-width: 500px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .content-card {
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        margin: 30px 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .content-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .description {
+        text-align: center;
+        color: #555;
+        margin: 15px 0;
+        font-size: 1.1em;
+    }
+
+    .placeholder-image {
+        width: 100%;
+        max-width: 800px;
+        height: auto;
+        margin: 20px auto;
+        display: block;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .placeholder-image:hover {
+        transform: scale(1.02);
+    }
+
+    .station-list {
+        text-align: center;
+        margin: 20px 0;
+    }
+
+    .station {
+        color: #555;
+        margin: 10px 0;
+        font-size: 1.1em;
+    }
+
+    .external-link {
+        color: #3498db;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+
+    .external-link:hover {
+        color: #2980b9;
+        text-decoration: underline;
+    }
+
+    .weather-finder-link {
+        text-align: center;
+        margin: 40px 0;
+    }
+
+    .weather-finder-link img {
+        transition: transform 0.3s ease;
+    }
+
+    .weather-finder-link img:hover {
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 768px) {
+        .container {
+            padding: 10px;
         }
 
-        .back-button:hover {
-            background: rgba(52, 152, 219, 0.2);
-            color: #2980b9;
-        }
-        .audio-container {
-            display: flex; /* Add this to enable flexbox */
-            flex-direction: column; /* Align items in a column */
-            align-items: center; /* Center items horizontally */
-            height: auto;
-        }
-        .placeholder-image {
-            width: auto;
-            height: auto;
-            margin-top: 20px;
-            display: block; /* Ensure it behaves like a block element */
-            margin-left: auto; /* Center the image */
-            margin-right: auto; /* Center the image */
-            transition: transform 0.3s ease; /* Add transition for smooth effect */
+        .header {
+            font-size: 2em;
+            padding: 30px 0 15px;
         }
 
-        .placeholder-image:hover {
-            transform: scale(1.05); /* Slightly expand the image on hover */
+        .subheader {
+            font-size: 1.2em;
         }
+
+        .content-card {
+            padding: 20px;
+        }
+    }
 </style>

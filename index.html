@@ -1585,6 +1585,48 @@
             background-color: #f0f0f0;
             transform: translateX(5px);
         }
+
+        .info-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            border-radius: 50%;
+            background-color: #666;
+            color: white;
+            font-size: 12px;
+            margin-left: 5px;
+            cursor: help;
+            position: relative;
+        }
+
+        .info-icon:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 5px;
+        }
+
+        .info-icon:hover::before {
+            content: '';
+            position: absolute;
+            bottom: calc(100% - 5px);
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
+        }
     </style>
 </head>
 <body>
@@ -1622,6 +1664,13 @@
                     </div>
                 </div>
                 <div class="menu-category">
+                    <div class="menu-category-header">Archives/Logs</div>
+                    <div class="menu-category-content">
+                        <a href="nwr-archives/index.html" class="menu-item">NOAA Weather Radio Archives</a>
+                        <a href="./weather-event-log/weather-event-log.html" class="menu-item">Weather Events Log</a>
+                    </div>
+                </div>
+                <div class="menu-category">
                     <div class="menu-category-header">About/Supporters</div>
                     <div class="menu-category-content">
                         <a href="about.html" class="menu-item">About</a>
@@ -1630,7 +1679,6 @@
                 </div>
                 <a href="maps.html" class="menu-item">Weather Maps</a>
                 <a href="noaawxradio.html" class="menu-item">NOAA Weather Radio</a>
-                <a href="./weather-event-log/weather-event-log.html" class="menu-item">Weather Events Log</a>
                 <a href="satellite.html" class="menu-item">Satellite Imagery</a>
                 <a href="metar.html" class="menu-item">METAR Weather Data</a>
             </div>
@@ -1672,7 +1720,10 @@
                         <span id="current-temp" class="temp-value">--°F</span>
                         <div id="temp-feel" class="temp-feel"></div>
                         <div>
-                            <div class="title-temp">High/Low</div>
+                            <div class="title-temp">
+                                High/Low
+                                <span class="info-icon" title="High/Low temperatures are the observed highs and lows so far today, not to be confused with the forecasts.">ⓘ</span>
+                            </div>
                             <span id="high-temp" class="temp-hover" style="font-size: 0.8em; color: red; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">--°F</span>
                             <span id="low-temp" class="temp-hover-low" style="font-size: 0.8em; color: blue; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">--°F</span>
                         </div>                    </div>
@@ -1691,6 +1742,7 @@
                     <div class="detail-item" data-metric="wind">
                         <span>Wind:</span>
                         <span id="wind">-- mph</span>
+                        <span class="graph-icon">📈</span>
                     </div>
                     <div class="detail-item" data-metric="pressure">
                         <span>Pressure:</span>
