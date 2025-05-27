@@ -850,86 +850,167 @@ function getLast12HoursLabels() {
 // Function to get historical data for a metric
 async function getHistoricalData(metric) {
     try {
-        // Use imperial units in the API call since that's what Ambient Weather provides
         const response = await fetch('https://api.weather.com/v2/pws/observations/all/1day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909');
         const data = await response.json();
         
         if (!data.observations || !Array.isArray(data.observations)) {
             console.error('Invalid data format from API');
-            return [];
+            return { values: [], labels: [] };
         }
 
         // Sort observations by time
-        const sortedObservations = data.observations.sort((a, b) => {
-            return new Date(a.obsTimeLocal) - new Date(b.obsTimeLocal);
+        const sortedObservations = data.observations
+            .sort((a, b) => new Date(a.obsTimeUtc) - new Date(b.obsTimeUtc));
+
+        // Get the most recent observation time
+        const mostRecentTime = new Date(sortedObservations[sortedObservations.length - 1].obsTimeUtc);
+        const twelveHoursAgo = new Date(mostRecentTime.getTime() - (12 * 60 * 60 * 1000));
+
+        // Filter observations within the window
+        const relevantObservations = sortedObservations.filter(obs => {
+            const obsTime = new Date(obs.obsTimeUtc);
+            return obsTime >= twelveHoursAgo && obsTime <= mostRecentTime;
         });
 
-        // Get the last 12 observations
-        const last12Observations = sortedObservations.slice(-12);
+        // Debug log for observations
+        console.log('Time window:', {
+            mostRecentTime: mostRecentTime.toISOString(),
+            twelveHoursAgo: twelveHoursAgo.toISOString(),
+            totalObservations: data.observations.length,
+            filteredObservations: relevantObservations.length
+        });
 
-        // Map the data based on the metric
-        // Only convert to metric if useMetric is true, otherwise use imperial values directly
-        const values = last12Observations.map(obs => {
-            if (!useMetric) {
-                // Use imperial values directly
-                switch (metric) {
-                    case 'temp':
-                        return obs.imperial.tempAvg;
-                    case 'humidity':
-                        return obs.humidityAvg;
-                    case 'wind':
-                        return obs.imperial.windspeedAvg;
-                    case 'pressure':
-                        return obs.imperial.pressureMax;
-                    case 'dew-point':
-                        return obs.imperial.dewptAvg;
-                    case 'rain':
-                        return obs.imperial.precipRate;
-                    case 'uv':
-                        return obs.uvHigh;
-                    case 'solar':
-                        return obs.solarRadiationHigh;
-                    default:
-                        return 0;
-                }
-            } else {
-                // Convert to metric
-                switch (metric) {
-                    case 'temp':
-                        return fahrenheitToCelsius(obs.imperial.tempAvg);
-                    case 'humidity':
-                        return obs.humidityAvg;
-                    case 'wind':
-                        return mphToKmh(obs.imperial.windspeedAvg);
-                    case 'pressure':
-                        return inHgToHpa(obs.imperial.pressureMax);
-                    case 'dew-point':
-                        return fahrenheitToCelsius(obs.imperial.dewptAvg);
-                    case 'rain':
-                        return inchesToMm(obs.imperial.precipRate);
-                    case 'uv':
-                        return obs.uvHigh;
-                    case 'solar':
-                        return obs.solarRadiationHigh;
-                    default:
-                        return 0;
+        if (metric === 'pressure') {
+            console.log('Pressure observations in last 12 hours:', relevantObservations.map(obs => ({
+                time: obs.obsTimeUtc,
+                pressure: obs.imperial.pressureMax,
+                isValid: obs.imperial.pressureMax >= 27
+            })));
+        }
+
+        // If we don't have enough observations, return empty arrays
+        if (relevantObservations.length < 2) {
+            console.warn('Not enough observations in the time window');
+            return { values: [], labels: [] };
+        }
+
+        // Create 12 evenly spaced timestamps
+        const values = [];
+        const labels = [];
+        let lastValidValue = null;
+        
+        for (let i = 0; i < 12; i++) {
+            // Calculate timestamp relative to the most recent observation
+            const targetTime = new Date(mostRecentTime.getTime() - ((11 - i) * 60 * 60 * 1000));
+            
+            // Find the two closest observations
+            let beforeObs = null;
+            let afterObs = null;
+            
+            for (let j = 0; j < relevantObservations.length - 1; j++) {
+                const currentTime = new Date(relevantObservations[j].obsTimeUtc);
+                const nextTime = new Date(relevantObservations[j + 1].obsTimeUtc);
+                
+                if (currentTime <= targetTime && nextTime >= targetTime) {
+                    beforeObs = relevantObservations[j];
+                    afterObs = relevantObservations[j + 1];
+                    break;
                 }
             }
-        });
 
-        // Get the timezone from the first observation
-        const timezone = data.observations[0].tz;
+            let value;
+            if (beforeObs && afterObs) {
+                // Interpolate between two observations
+                const beforeTime = new Date(beforeObs.obsTimeUtc);
+                const afterTime = new Date(afterObs.obsTimeUtc);
+                const ratio = (targetTime - beforeTime) / (afterTime - beforeTime);
+                
+                const beforeValue = getValueFromObservation(beforeObs, metric, useMetric);
+                const afterValue = getValueFromObservation(afterObs, metric, useMetric);
+                
+                // Debug log for interpolation
+                if (metric === 'pressure') {
+                    console.log('Interpolation:', {
+                        targetTime: targetTime.toISOString(),
+                        beforeTime: beforeTime.toISOString(),
+                        afterTime: afterTime.toISOString(),
+                        beforeValue,
+                        afterValue,
+                        ratio
+                    });
+                }
+                
+                // For pressure, only interpolate if both values are valid
+                if (metric === 'pressure') {
+                    if (beforeValue !== null && afterValue !== null) {
+                        value = beforeValue + (afterValue - beforeValue) * ratio;
+                    } else if (beforeValue !== null) {
+                        value = beforeValue;
+                    } else if (afterValue !== null) {
+                        value = afterValue;
+                    } else {
+                        value = lastValidValue;
+                    }
+                } else {
+                    value = beforeValue + (afterValue - beforeValue) * ratio;
+                }
+            } else if (beforeObs) {
+                value = getValueFromObservation(beforeObs, metric, useMetric);
+            } else if (afterObs) {
+                value = getValueFromObservation(afterObs, metric, useMetric);
+            } else {
+                value = lastValidValue;
+            }
 
-        // Format the labels using the station's timezone
-        const labels = last12Observations.map(obs => {
-            const date = new Date(obs.obsTimeLocal);
-            return date.toLocaleTimeString('en-US', {
-                hour: 'numeric',
-                minute: '2-digit',
-                hour12: true,
-                timeZone: timezone
-            });
-        });
+            // Validate the value based on metric type
+            let isValid = false;
+            if (typeof value === 'number' && !isNaN(value)) {
+                switch (metric) {
+                    case 'pressure':
+                        isValid = value >= 27;
+                        break;
+                    case 'humidity':
+                        isValid = value >= 0 && value <= 100;
+                        break;
+                    case 'temp':
+                        isValid = value >= -50 && value <= 150;
+                        break;
+                    case 'wind':
+                        isValid = value >= 0;
+                        break;
+                    case 'dew-point':
+                        isValid = value >= -50 && value <= 100;
+                        break;
+                    case 'rain':
+                        isValid = value >= 0;
+                        break;
+                    case 'uv':
+                        isValid = value >= 0 && value <= 20;
+                        break;
+                    case 'solar':
+                        isValid = value >= 0;
+                        break;
+                    default:
+                        isValid = true;
+                }
+            }
+
+            if (isValid) {
+                values.push(parseFloat(value.toFixed(3)));
+                lastValidValue = value;
+            } else {
+                console.warn(`Invalid value for ${metric} at ${targetTime.toISOString()}:`, value);
+                if (lastValidValue !== null) {
+                    values.push(lastValidValue);
+                } else {
+                    values.push(0);
+                }
+            }
+
+            // Format the label
+            const label = targetTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            labels.push(label);
+        }
 
         return { values, labels };
     } catch (error) {
@@ -938,48 +1019,73 @@ async function getHistoricalData(metric) {
     }
 }
 
+function getValueFromObservation(obs, metric, useMetric) {
+    if (!obs || !obs.imperial) {
+        console.warn('Invalid observation:', obs);
+        return 0;
+    }
+
+    switch (metric) {
+        case 'temp':
+            return useMetric ? fahrenheitToCelsius(obs.imperial.tempAvg) : obs.imperial.tempAvg;
+        case 'humidity':
+            return obs.humidityAvg;
+        case 'wind':
+            return useMetric ? mphToKmh(obs.imperial.windspeedAvg) : obs.imperial.windspeedAvg;
+        case 'pressure':
+            // Keep pressure values with 3 decimal places
+            const pressure = useMetric ? inHgToHpa(obs.imperial.pressureMax) : obs.imperial.pressureMax;
+            // Filter out unrealistic pressure values (below 27 inHg)
+            if (!pressure || pressure === 0 || pressure < 27) {
+                console.warn('Invalid or unrealistic pressure value:', {
+                    observation: obs,
+                    pressureMax: obs.imperial.pressureMax,
+                    timestamp: obs.obsTimeUtc,
+                    reason: pressure < 27 ? 'Below 27 inHg' : 'Zero or missing value'
+                });
+                return null; // Return null to indicate invalid value
+            }
+            return parseFloat(pressure.toFixed(3));
+        case 'dew-point':
+            return useMetric ? fahrenheitToCelsius(obs.imperial.dewptAvg) : obs.imperial.dewptAvg;
+        case 'rain':
+            return useMetric ? inchesToMm(obs.imperial.precipTotal) : obs.imperial.precipTotal;
+        case 'uv':
+            return obs.uvHigh;
+        case 'solar':
+            return obs.solarRadiationHigh;
+        default:
+            console.warn(`Unknown metric: ${metric}`);
+            return 0;
+    }
+}
+
 // Function to get chart configuration for a metric
 function getChartConfig(metric, values, labels) {
     const configs = {
         temp: {
-            label: `Temperature (${useMetric ? '°C' : '°F'})`,
-            color: 'rgb(255, 99, 132)',
-            title: `Temperature - Last 12 Hours (${useMetric ? '°C' : '°F'})`
+            color: 'rgb(255, 99, 132)'
         },
         humidity: {
-            label: 'Humidity (%)',
-            color: 'rgb(54, 162, 235)',
-            title: 'Humidity - Last 12 Hours (%)'
+            color: 'rgb(54, 162, 235)'
         },
         wind: {
-            label: `Wind Speed (${useMetric ? 'km/h' : 'mph'})`,
-            color: 'rgb(75, 192, 192)',
-            title: `Wind Speed - Last 12 Hours (${useMetric ? 'km/h' : 'mph'})`
+            color: 'rgb(75, 192, 192)'
         },
         pressure: {
-            label: `Pressure (${useMetric ? 'hPa' : 'inHg'})`,
-            color: 'rgb(153, 102, 255)',
-            title: `Pressure - Last 12 Hours (${useMetric ? 'hPa' : 'inHg'})`
+            color: 'rgb(153, 102, 255)'
         },
         'dew-point': {
-            label: `Dew Point (${useMetric ? '°C' : '°F'})`,
-            color: 'rgb(75, 192, 192)',
-            title: `Dew Point - Last 12 Hours (${useMetric ? '°C' : '°F'})`
+            color: 'rgb(75, 192, 192)'
         },
         rain: {
-            label: `Rain (${useMetric ? 'mm' : 'in'})`,
-            color: 'rgb(54, 162, 235)',
-            title: `Rain - Last 12 Hours (${useMetric ? 'mm' : 'in'})`
+            color: 'rgb(54, 162, 235)'
         },
         uv: {
-            label: 'UV Index',
-            color: 'rgb(255, 215, 0)',
-            title: 'UV Index - Last 12 Hours'
+            color: 'rgb(255, 215, 0)'
         },
         solar: {
-            label: 'Solar Radiation (W/m²)',
-            color: 'rgb(255, 165, 0)',
-            title: 'Solar Radiation - Last 12 Hours (W/m²)'
+            color: 'rgb(255, 165, 0)'
         }
     };
 
@@ -989,62 +1095,136 @@ function getChartConfig(metric, values, labels) {
         return null;
     }
 
-    // Calculate min and max values with padding
-    const min = Math.min(...values);
-    const max = Math.max(...values);
-    const range = max - min;
-    const padding = range * 0.1;
-
-    return {
+    const baseConfig = {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
-                label: config.label,
                 data: values,
                 borderColor: config.color,
                 backgroundColor: 'transparent',
                 borderWidth: 2,
-                pointRadius: 3,
-                pointHoverRadius: 5,
-                tension: 0.4,
-                fill: false
+                fill: false,
+                tension: 0.4
             }]
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                title: {
-                    display: true,
-                    text: config.title,
-                    font: {
-                        size: 14,
-                        weight: 'bold'
-                    }
-                },
                 legend: {
                     display: false
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let value = context.raw;
+                            // For wind, ensure the displayed value is positive
+                            if (metric === 'wind') {
+                                value = Math.abs(value);
+                            }
+                            switch (metric) {
+                                case 'temp':
+                                    return `${value.toFixed(1)}°${useMetric ? 'C' : 'F'}`;
+                                case 'humidity':
+                                    return `${value.toFixed(0)}%`;
+                                case 'wind':
+                                    return `${value.toFixed(1)} ${useMetric ? 'km/h' : 'mph'}`;
+                                case 'pressure':
+                                    return `${value.toFixed(3)} ${useMetric ? 'hPa' : 'inHg'}`;
+                                case 'dew-point':
+                                    return `${value.toFixed(1)}°${useMetric ? 'C' : 'F'}`;
+                                case 'rain':
+                                    return `${value.toFixed(2)} ${useMetric ? 'mm' : 'in'}`;
+                                case 'uv':
+                                    return `UV Index: ${value.toFixed(1)}`;
+                                case 'solar':
+                                    return `${value.toFixed(0)} W/m²`;
+                                default:
+                                    return value.toFixed(1);
+                            }
+                        }
+                    }
                 }
             },
             scales: {
-                y: {
-                    min: min - padding,
-                    max: max + padding,
-                    title: {
-                        display: true,
-                        text: config.label
+                x: {
+                    grid: {
+                        display: false
                     }
                 },
-                x: {
-                    title: {
-                        display: true,
-                        text: 'Time'
+                y: {
+                    beginAtZero: metric === 'rain' || metric === 'uv' || metric === 'solar',
+                    ticks: {
+                        callback: function(value) {
+                            // For wind, ensure the displayed value is positive
+                            if (metric === 'wind') {
+                                value = Math.abs(value);
+                            }
+                            switch (metric) {
+                                case 'temp':
+                                    return `${value.toFixed(1)}°${useMetric ? 'C' : 'F'}`;
+                                case 'humidity':
+                                    return `${value.toFixed(0)}%`;
+                                case 'wind':
+                                    return `${value.toFixed(1)} ${useMetric ? 'km/h' : 'mph'}`;
+                                case 'pressure':
+                                    return `${value.toFixed(3)} ${useMetric ? 'hPa' : 'inHg'}`;
+                                case 'dew-point':
+                                    return `${value.toFixed(1)}°${useMetric ? 'C' : 'F'}`;
+                                case 'rain':
+                                    return `${value.toFixed(2)} ${useMetric ? 'mm' : 'in'}`;
+                                case 'uv':
+                                    return value.toFixed(1);
+                                case 'solar':
+                                    return `${value.toFixed(0)} W/m²`;
+                                default:
+                                    return value.toFixed(1);
+                            }
+                        }
                     }
                 }
             }
         }
     };
+
+    // Add specific configurations for each metric
+    switch (metric) {
+        case 'temp':
+            baseConfig.options.scales.y.min = useMetric ? -10 : 14; // -10°C or 14°F
+            baseConfig.options.scales.y.max = useMetric ? 40 : 104;  // 40°C or 104°F
+            break;
+        case 'humidity':
+            baseConfig.options.scales.y.min = 0;
+            baseConfig.options.scales.y.max = 100;
+            break;
+        case 'wind':
+            baseConfig.options.scales.y.min = 0;
+            baseConfig.options.scales.y.max = useMetric ? 50 : 30; // 50 km/h or 30 mph
+            break;
+        case 'pressure':
+            baseConfig.options.scales.y.min = useMetric ? 980 : 28.5; // 980 hPa or 28.5 inHg
+            baseConfig.options.scales.y.max = useMetric ? 1030 : 30.5; // 1030 hPa or 30.5 inHg
+            break;
+        case 'dew-point':
+            baseConfig.options.scales.y.min = useMetric ? -10 : 14; // -10°C or 14°F
+            baseConfig.options.scales.y.max = useMetric ? 30 : 86;  // 30°C or 86°F
+            break;
+        case 'rain':
+            baseConfig.options.scales.y.min = 0;
+            baseConfig.options.scales.y.max = useMetric ? 50 : 2; // 50 mm or 2 in
+            break;
+        case 'uv':
+            baseConfig.options.scales.y.min = 0;
+            baseConfig.options.scales.y.max = 12;
+            break;
+        case 'solar':
+            baseConfig.options.scales.y.min = 0;
+            baseConfig.options.scales.y.max = 1200;
+            break;
+    }
+
+    return baseConfig;
 }
 
 // Function to position graphs on the screen

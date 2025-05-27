@@ -1,13 +1,14 @@
 {
-  "name": "weather-dashboard-cors-proxy",
+  "name": "milton-weather-proxy",
   "version": "1.0.0",
-  "description": "CORS proxy server for weather dashboard traffic camera",
-  "main": "cors-proxy.js",
+  "description": "Proxy server for Milton Weather Dashboard",
+  "main": "server.js",
   "scripts": {
-    "start": "node cors-proxy.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "node-fetch": "^2.6.9"
   }
 } 

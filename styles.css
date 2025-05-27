@@ -108,3 +108,32 @@ input:checked + .slider:before {
 .slider.round:before {
     border-radius: 50%;
 }
+
+.alert-item {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.alert-item strong {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+}
+
+.alert-item p {
+    margin: 0;
+    color: #666;
+}
+
+#alerts-container {
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+#alerts-container.hidden {
+    display: none;
+}
