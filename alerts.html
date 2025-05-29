@@ -261,7 +261,7 @@
         // Function to fetch alerts for a specific zone
         async function fetchZoneAlerts(zone) {
             try {
-                const response = await fetch(`https://api.weather.gov/alerts/active?zone=${zone}`);
+                const response = await fetch(`https://api.weather.gov/alerts/?zone=${zone}`);
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 const data = await response.json();
                 return data;
@@ -383,26 +383,44 @@
                     }
                     
                     if (data && data.features && data.features.length > 0) {
-                        hasAlerts = true;
-                        zoneDiv.innerHTML = `
-                            <div class="zone-header">
-                                <span class="zone-name">${zoneName}</span>
-                                <div class="alert-status">
-                                    <img src="alert-images/${getAlertIcon(data.features[0].properties.event)}" alt="${data.features[0].properties.event}" class="alert-icon">
-                                    <span>Active Alerts</span>
-                                </div>
-                            </div>
-                            <div class="alert-details visible">
-                                ${data.features.map(alert => `
-                                    <div class="alert-item">
-                                        <h3>${alert.properties.event}</h3>
-                                        <p>${alert.properties.description}</p>
-                                        <p class="time">Issued: ${new Date(alert.properties.sent).toLocaleString()}</p>
-                                        <p class="time">Expires: ${new Date(alert.properties.expires).toLocaleString()}</p>
+                        // Filter out test alerts
+                        const filteredAlerts = data.features.filter(alert => 
+                            !alert.properties.event.toLowerCase().includes('test') &&
+                            !alert.properties.description.toLowerCase().includes('test')
+                        );
+
+                        if (filteredAlerts.length > 0) {
+                            hasAlerts = true;
+                            zoneDiv.innerHTML = `
+                                <div class="zone-header">
+                                    <span class="zone-name">${zoneName}</span>
+                                    <div class="alert-status">
+                                        <img src="alert-images/${getAlertIcon(filteredAlerts[0].properties.event)}" alt="${filteredAlerts[0].properties.event}" class="alert-icon">
+                                        <span>Active Alerts</span>
                                     </div>
-                                `).join('')}
-                            </div>
-                        `;
+                                </div>
+                                <div class="alert-details visible">
+                                    ${filteredAlerts.map(alert => `
+                                        <div class="alert-item">
+                                            <h3>${alert.properties.event}</h3>
+                                            <p>${alert.properties.description}</p>
+                                            <p class="time">Issued: ${new Date(alert.properties.sent).toLocaleString()}</p>
+                                            <p class="time">Expires: ${new Date(alert.properties.expires).toLocaleString()}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `;
+                        } else {
+                            zoneDiv.innerHTML = `
+                                <div class="zone-header">
+                                    <span class="zone-name">${zoneName}</span>
+                                    <div class="alert-status">
+                                        <img src="alert-images/BNK.gif" alt="No Alerts" class="alert-icon">
+                                        <span>No Alerts</span>
+                                    </div>
+                                </div>
+                            `;
+                        }
                     } else {
                         zoneDiv.innerHTML = `
                             <div class="zone-header">

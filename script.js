@@ -645,6 +645,22 @@ async function updateWeather() {
                 solarRadiationElement.textContent = `${currentData.solarradiation.toFixed(2)} W/m²`;
             }
 
+            // Update records with current data
+            if (typeof updateRecords === 'function') {
+                const recordsData = {
+                    temp: currentData.tempf,
+                    heatIndex: currentData.feelsLike,
+                    windChill: currentData.windchill,
+                    windSpeed: currentData.windspeedmph,
+                    windGust: currentData.windgustmph,
+                    dailyRain: currentData.dailyrainin,
+                    hourlyRain: currentData.hourlyrainin,
+                    humidity: currentData.humidity,
+                    pressure: currentData.baromabsin
+                };
+                updateRecords(recordsData);
+            }
+
             // Update lightning data
             const strikesElement = document.getElementById('lightning-strikes');
             const lastStrikeElement = document.getElementById('last-lightning');
@@ -827,6 +843,9 @@ async function updateWeather() {
         // Hide notification after successful update
         hideNotification();
 
+        // Update all time displays after getting new data
+        updateAllTimeDisplays();
+
     } catch (error) {
         console.error('Error updating weather:', error);
         showErrorAlert();
@@ -872,20 +891,8 @@ async function getHistoricalData(metric) {
             return obsTime >= twelveHoursAgo && obsTime <= mostRecentTime;
         });
 
-        // Debug log for observations
-        console.log('Time window:', {
-            mostRecentTime: mostRecentTime.toISOString(),
-            twelveHoursAgo: twelveHoursAgo.toISOString(),
-            totalObservations: data.observations.length,
-            filteredObservations: relevantObservations.length
-        });
-
+        // Debug log for observation
         if (metric === 'pressure') {
-            console.log('Pressure observations in last 12 hours:', relevantObservations.map(obs => ({
-                time: obs.obsTimeUtc,
-                pressure: obs.imperial.pressureMax,
-                isValid: obs.imperial.pressureMax >= 27
-            })));
         }
 
         // If we don't have enough observations, return empty arrays
@@ -928,16 +935,8 @@ async function getHistoricalData(metric) {
                 const beforeValue = getValueFromObservation(beforeObs, metric, useMetric);
                 const afterValue = getValueFromObservation(afterObs, metric, useMetric);
                 
-                // Debug log for interpolation
+// Debuging for this feature removed 5/28/2025
                 if (metric === 'pressure') {
-                    console.log('Interpolation:', {
-                        targetTime: targetTime.toISOString(),
-                        beforeTime: beforeTime.toISOString(),
-                        afterTime: afterTime.toISOString(),
-                        beforeValue,
-                        afterValue,
-                        ratio
-                    });
                 }
                 
                 // For pressure, only interpolate if both values are valid
@@ -2097,5 +2096,62 @@ function getNextSeason() {
         season: firstSeason[0],
         date: new Date(now.getFullYear() + 1, firstSeason[1].month, firstSeason[1].day)
     };
+}
+
+// Format time (always use 12-hour format)
+function formatTime(date) {
+    return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+    });
+}
+
+// Update the last update time display
+function updateLastUpdateTime(timestamp) {
+    const lastUpdate = document.getElementById('last-update');
+    const nextUpdate = document.getElementById('next-update');
+    
+    if (lastUpdate && timestamp) {
+        const date = new Date(timestamp);
+        lastUpdate.textContent = `Last updated: ${formatTime(date)}`;
+    }
+    
+    if (nextUpdate) {
+        const nextDate = new Date(timestamp + 300000); // 5 minutes from last update
+        nextUpdate.textContent = `Next update in: ${formatTime(nextDate)}`;
+    }
+}
+
+// Update sun times display
+function updateSunTimes(sunrise, sunset) {
+    const sunriseTime = document.getElementById('sunrise-time');
+    const sunsetTime = document.getElementById('sunset-time');
+    const dayLength = document.getElementById('day-length');
+    
+    if (sunriseTime && sunsetTime && sunrise && sunset) {
+        const sunriseDate = new Date(sunrise);
+        const sunsetDate = new Date(sunset);
+        
+        sunriseTime.textContent = formatTime(sunriseDate);
+        sunsetTime.textContent = formatTime(sunsetDate);
+        
+        if (dayLength) {
+            const length = calculateDayLength(sunrise, sunset);
+            dayLength.textContent = `Day length: ${length}`;
+        }
+    }
+}
+
+// Update the time format for all time displays
+function updateAllTimeDisplays() {
+    const timeElements = document.querySelectorAll('[data-time]');
+    timeElements.forEach(element => {
+        const timestamp = element.getAttribute('data-time');
+        if (timestamp) {
+            const date = new Date(timestamp);
+            element.textContent = formatTime(date);
+        }
+    });
 }
   
