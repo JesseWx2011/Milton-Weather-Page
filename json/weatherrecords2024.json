@@ -1,0 +1,67 @@
+{
+    "year": 2024,
+    "records": {
+        "temperature": {
+            "high": {
+                "date": "2024-08-13 15:14:00 CDT",
+                "value": 100.4
+            },
+            "low": {
+                "date": "2024-12-04 05:04:00 CST",
+                "value": 25.5
+            }           
+        },
+        "feelsLike": {
+            "high": {
+                "date": "2024-08-13 15:14:00 CDT",
+                "value": 107.8
+            },
+            "low": {
+                "date": "2024-12-31 23:59:59 CST",
+                "value": 28.0
+            }
+        },
+        "humidity": {
+            "high": {
+                "date": "2024-07-28 04:04:00 CDT",
+                "value": 97
+            },
+            "low": {
+                "date": "2024-12-01 13:04:00 CST",
+                "value": 19
+            }
+        },
+        "wind": {
+            "speed": {
+                "date": "2024-08-22 18:44:00 CDT",
+                "value": 44.0
+            },
+            "gust": {
+                "date": "2024-08-22 18:44:00 CDT",
+                "value": 79.4
+            }
+        },
+        "pressure": {
+            "high": {
+                "date": "2024-12-13 10:14:00 CST",
+                "value": 30.50
+            },
+            "low": {
+                "date": "2024-09-26 23:04:00 CDT",
+                "value": 29.29
+            }
+        },
+        "uv": {
+            "high": {
+                "date": "2024-12-31 23:59:59 CST",
+                "value": 8
+            }
+        },
+        "solar": {
+            "high": {
+                "date": "2024-12-31 23:59:59 CST",
+                "value": 950
+            }
+        }
+    }
+} 

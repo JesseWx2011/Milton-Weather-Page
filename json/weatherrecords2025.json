@@ -1,53 +1,50 @@
 {
-    "stationInfo": {
-        "location": "Milton, FL",
-        "startDate": "2024-07-26"
-    },
+    "year": 2025,
     "records": {
         "temperature": {
             "high": {
-                "date": "2024-08-13 15:14:00 CDT",
-                "value": 100.4
+                "date": "2025-05-25 14:06:00 CST",
+                "value": 94.1
             },
             "low": {
-                "date": "2025-01-22 6:40:00 CST",
+                "date": "2025-01-22 07:15:24 CST",
                 "value": 14.2
             }           
         },
         "feelsLike": {
             "high": {
-                "date": "2025-05-25 14:03:00 CDT",
+                "date": "2025-01-22 07:15:24 CST",
                 "value": 107.4
             },
             "low": {
-                "date": "2025-01-22 7:05:00 CST",
+                "date": "2025-01-22 07:15:24 CST",
                 "value": 5.4
             }
         },
         "humidity": {
             "high": {
-                "date": "2025-03-25 7:17:00 CDT",
+                "date": "2025-03-25 07:17:00 CST",
                 "value": 99
             },
             "low": {
-                "date": "2025-03-2 13:09:00 CDT",
+                "date": "2025-03-02 13:09:00 CST",
                 "value": 17
             }
         },
         "wind": {
             "speed": {
-                "date": "2025-03-04 23:19:00 CDT",
-                "value": 41.6   
+                "date": "2025-03-31 11:13:00 CST",
+                "value": 44.3
             },
             "gust": {
-                "date": "2025-03-25 11:14:00 CDT",
+                "date": "2025-03-31 11:13:00 CST",
                 "value": 58.2
             }
         },
         "pressure": {
             "high": {
-                "date": "2025-02-21 15:01:00 CST",
-                "value": 30.54
+                "date": "2025-01-22 07:15:24 CST",
+                "value": 30.52
             },
             "low": {
                 "date": "2025-03-15 21:31:00 CDT",
@@ -67,4 +64,4 @@
             }
         }
     }
-}
+} 
