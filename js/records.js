@@ -32,7 +32,7 @@ function getTempColorClass(temp) {
 async function fetchRecords() {
     try {
         // Fetch all-time records
-        const allTimeResponse = await fetch('../json/weatheralltimerecords.json');
+        const allTimeResponse = await fetch('./json/weatheralltimerecords.json');
         if (!allTimeResponse.ok) {
             throw new Error('Failed to fetch all-time records');
         }
