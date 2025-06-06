@@ -1,0 +1,27 @@
+{
+    "location": "Milton, FL",
+    "unit": "inches",
+    "averages": {
+        "January": 2.18,
+        "February": 2.89,
+        "March": 8.73,
+        "April": 2.82,
+        "May": 12.34,
+        "June": 7.13,
+        "July": 7.0,
+        "August": 4.97,
+        "September": 2.50,
+        "October": 0.00,
+        "November": 6.40,
+        "December": 5.56
+    },
+    "yearly": {
+       "average": "66"
+    },
+    "metadata": {
+        "source": "Wunderground, Ambient Weather",
+        "period": "Station-start",
+        "lastUpdated": "2025-06-05",
+        "notes": "October 2024 was a dry month, more offical data will come overtime."
+    }
+} 
