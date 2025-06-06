@@ -361,17 +361,43 @@ function updateSunTimes(sunrise, sunset) {
 }
 
 // Function to retry fetching data until successful
-async function fetchWithRetry(url, options = {}, retries = 15, delay = 1000) {
+async function fetchWithRetry(url, options = {}, retries = 5, initialDelay = 1000) {
+    let delay = initialDelay;
+    
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url, options);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            
+            // Handle rate limiting
+            if (response.status === 429) {
+                const retryAfter = response.headers.get('Retry-After');
+                if (retryAfter) {
+                    delay = parseInt(retryAfter) * 1000;
+                } else {
+                    delay = Math.min(delay * 2, 30000); // Exponential backoff with max 30s
+                }
+                console.log(`Rate limited. Waiting ${delay/1000} seconds before retry...`);
+                await new Promise(res => setTimeout(res, delay));
+                continue;
+            }
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             return await response.json();
         } catch (error) {
             console.error(`Fetch attempt ${i + 1} failed: ${error.message}`);
-            if (i < retries - 1) await new Promise(res => setTimeout(res, delay));
+            
+            if (i < retries - 1) {
+                // Exponential backoff with jitter
+                const jitter = Math.random() * 0.1 * delay;
+                await new Promise(res => setTimeout(res, delay + jitter));
+                delay = Math.min(delay * 2, 30000); // Double the delay, max 30s
+            }
         }
     }
+    
     throw new Error('Max retries reached');
 }
 
@@ -628,14 +654,15 @@ async function updateWeather() {
             // Update UV Index
             const uvIndexElement = document.getElementById('uv-index');
             if (uvIndexElement) {
-                const uvIndex = currentData.uv || '--';
+                const uvIndex = currentData.uv;
                 const uvLevel = getUVIndexLevel(uvIndex);
                 
                 const uvLevelElement = document.createElement('span');
                 uvLevelElement.textContent = uvLevel;
                 uvLevelElement.className = `uv-level ${uvLevel.toLowerCase()}`;
 
-                uvIndexElement.innerHTML = `${uvIndex} `;
+                // Display UV index without unit conversion
+                uvIndexElement.innerHTML = `${uvIndex === 0 ? '0' : (uvIndex ? uvIndex.toFixed(1) : '--')} `;
                 uvIndexElement.appendChild(uvLevelElement);
             }
 
@@ -846,6 +873,11 @@ async function updateWeather() {
         // Update all time displays after getting new data
         updateAllTimeDisplays();
 
+        // Update rainfall data
+        if (ambientData && ambientData.length > 0) {
+            updateRainfallData(ambientData[0].lastData);
+        }
+
     } catch (error) {
         console.error('Error updating weather:', error);
         showErrorAlert();
@@ -891,25 +923,20 @@ async function getHistoricalData(metric) {
             return obsTime >= twelveHoursAgo && obsTime <= mostRecentTime;
         });
 
-        // Debug log for observation
-        if (metric === 'pressure') {
-        }
-
         // If we don't have enough observations, return empty arrays
         if (relevantObservations.length < 2) {
             console.warn('Not enough observations in the time window');
             return { values: [], labels: [] };
         }
 
-        // Create 12 evenly spaced timestamps
         const values = [];
         const labels = [];
         let lastValidValue = null;
-        
+
         for (let i = 0; i < 12; i++) {
             // Calculate timestamp relative to the most recent observation
             const targetTime = new Date(mostRecentTime.getTime() - ((11 - i) * 60 * 60 * 1000));
-            
+
             // Find the two closest observations
             let beforeObs = null;
             let afterObs = null;
@@ -934,10 +961,6 @@ async function getHistoricalData(metric) {
                 
                 const beforeValue = getValueFromObservation(beforeObs, metric, useMetric);
                 const afterValue = getValueFromObservation(afterObs, metric, useMetric);
-                
-// Debuging for this feature removed 5/28/2025
-                if (metric === 'pressure') {
-                }
                 
                 // For pressure, only interpolate if both values are valid
                 if (metric === 'pressure') {
@@ -1061,50 +1084,34 @@ function getValueFromObservation(obs, metric, useMetric) {
 
 // Function to get chart configuration for a metric
 function getChartConfig(metric, values, labels) {
-    const configs = {
-        temp: {
-            color: 'rgb(255, 99, 132)'
-        },
-        humidity: {
-            color: 'rgb(54, 162, 235)'
-        },
-        wind: {
-            color: 'rgb(75, 192, 192)'
-        },
-        pressure: {
-            color: 'rgb(153, 102, 255)'
-        },
-        'dew-point': {
-            color: 'rgb(75, 192, 192)'
-        },
-        rain: {
-            color: 'rgb(54, 162, 235)'
-        },
-        uv: {
-            color: 'rgb(255, 215, 0)'
-        },
-        solar: {
-            color: 'rgb(255, 165, 0)'
-        }
+    const colors = {
+        temp: { border: '#ff4500', background: 'rgba(255, 69, 0, 0.1)' },
+        humidity: { border: '#1e90ff', background: 'rgba(30, 144, 255, 0.1)' },
+        wind: { border: '#32cd32', background: 'rgba(50, 205, 50, 0.1)' },
+        pressure: { border: '#9370db', background: 'rgba(147, 112, 219, 0.1)' },
+        'dew-point': { border: '#4169e1', background: 'rgba(65, 105, 225, 0.1)' },
+        rain: { border: '#00bfff', background: 'rgba(0, 191, 255, 0.1)' },
+        uv: { border: '#ff8c00', background: 'rgba(255, 140, 0, 0.1)' },
+        solar: { border: '#ffd700', background: 'rgba(255, 215, 0, 0.1)' }
     };
 
-    const config = configs[metric];
-    if (!config) {
-        console.error(`No configuration found for metric: ${metric}`);
-        return null;
-    }
+    const color = colors[metric] || { border: '#666', background: 'rgba(102, 102, 102, 0.1)' };
 
-    const baseConfig = {
+    return {
         type: 'line',
         data: {
             labels: labels,
             datasets: [{
+                label: metric.charAt(0).toUpperCase() + metric.slice(1),
                 data: values,
-                borderColor: config.color,
-                backgroundColor: 'transparent',
+                borderColor: color.border,
+                backgroundColor: color.background,
                 borderWidth: 2,
-                fill: false,
-                tension: 0.4
+                fill: true,
+                tension: 0.2, // Subtle curve smoothing
+                cubicInterpolationMode: 'monotone', // Prevents overshooting
+                pointRadius: 3, // Make points visible
+                pointHoverRadius: 5 // Larger points on hover
             }]
         },
         options: {
@@ -1115,33 +1122,41 @@ function getChartConfig(metric, values, labels) {
                     display: false
                 },
                 tooltip: {
+                    mode: 'index',
+                    intersect: false,
                     callbacks: {
                         label: function(context) {
                             let value = context.raw;
-                            // For wind, ensure the displayed value is positive
-                            if (metric === 'wind') {
-                                value = Math.abs(value);
-                            }
-                            switch (metric) {
+                            let unit = '';
+                            
+                            switch(metric) {
                                 case 'temp':
-                                    return `${value.toFixed(1)}°${useMetric ? 'C' : 'F'}`;
+                                    unit = useMetric ? '°C' : '°F';
+                                    break;
                                 case 'humidity':
-                                    return `${value.toFixed(0)}%`;
+                                    unit = '%';
+                                    break;
                                 case 'wind':
-                                    return `${value.toFixed(1)} ${useMetric ? 'km/h' : 'mph'}`;
+                                    unit = useMetric ? ' km/h' : ' mph';
+                                    break;
                                 case 'pressure':
-                                    return `${value.toFixed(3)} ${useMetric ? 'hPa' : 'inHg'}`;
+                                    unit = useMetric ? ' hPa' : ' inHg';
+                                    break;
                                 case 'dew-point':
-                                    return `${value.toFixed(1)}°${useMetric ? 'C' : 'F'}`;
+                                    unit = useMetric ? '°C' : '°F';
+                                    break;
                                 case 'rain':
-                                    return `${value.toFixed(2)} ${useMetric ? 'mm' : 'in'}`;
+                                    unit = useMetric ? ' mm' : ' in';
+                                    break;
                                 case 'uv':
-                                    return `UV Index: ${value.toFixed(1)}`;
+                                    unit = '';
+                                    break;
                                 case 'solar':
-                                    return `${value.toFixed(0)} W/m²`;
-                                default:
-                                    return value.toFixed(1);
+                                    unit = ' W/m²';
+                                    break;
                             }
+                            
+                            return `${context.dataset.label}: ${value}${unit}`;
                         }
                     }
                 }
@@ -1150,80 +1165,22 @@ function getChartConfig(metric, values, labels) {
                 x: {
                     grid: {
                         display: false
+                    },
+                    ticks: {
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 6
                     }
                 },
                 y: {
-                    beginAtZero: metric === 'rain' || metric === 'uv' || metric === 'solar',
-                    ticks: {
-                        callback: function(value) {
-                            // For wind, ensure the displayed value is positive
-                            if (metric === 'wind') {
-                                value = Math.abs(value);
-                            }
-                            switch (metric) {
-                                case 'temp':
-                                    return `${value.toFixed(1)}°${useMetric ? 'C' : 'F'}`;
-                                case 'humidity':
-                                    return `${value.toFixed(0)}%`;
-                                case 'wind':
-                                    return `${value.toFixed(1)} ${useMetric ? 'km/h' : 'mph'}`;
-                                case 'pressure':
-                                    return `${value.toFixed(3)} ${useMetric ? 'hPa' : 'inHg'}`;
-                                case 'dew-point':
-                                    return `${value.toFixed(1)}°${useMetric ? 'C' : 'F'}`;
-                                case 'rain':
-                                    return `${value.toFixed(2)} ${useMetric ? 'mm' : 'in'}`;
-                                case 'uv':
-                                    return value.toFixed(1);
-                                case 'solar':
-                                    return `${value.toFixed(0)} W/m²`;
-                                default:
-                                    return value.toFixed(1);
-                            }
-                        }
+                    beginAtZero: metric === 'rain' || metric === 'humidity' || metric === 'uv' || metric === 'solar',
+                    grid: {
+                        color: 'rgba(0, 0, 0, 0.1)'
                     }
                 }
             }
         }
     };
-
-    // Add specific configurations for each metric
-    switch (metric) {
-        case 'temp':
-            baseConfig.options.scales.y.min = useMetric ? -10 : 14; // -10°C or 14°F
-            baseConfig.options.scales.y.max = useMetric ? 40 : 104;  // 40°C or 104°F
-            break;
-        case 'humidity':
-            baseConfig.options.scales.y.min = 0;
-            baseConfig.options.scales.y.max = 100;
-            break;
-        case 'wind':
-            baseConfig.options.scales.y.min = 0;
-            baseConfig.options.scales.y.max = useMetric ? 50 : 30; // 50 km/h or 30 mph
-            break;
-        case 'pressure':
-            baseConfig.options.scales.y.min = useMetric ? 980 : 28.5; // 980 hPa or 28.5 inHg
-            baseConfig.options.scales.y.max = useMetric ? 1030 : 30.5; // 1030 hPa or 30.5 inHg
-            break;
-        case 'dew-point':
-            baseConfig.options.scales.y.min = useMetric ? -10 : 14; // -10°C or 14°F
-            baseConfig.options.scales.y.max = useMetric ? 30 : 86;  // 30°C or 86°F
-            break;
-        case 'rain':
-            baseConfig.options.scales.y.min = 0;
-            baseConfig.options.scales.y.max = useMetric ? 50 : 2; // 50 mm or 2 in
-            break;
-        case 'uv':
-            baseConfig.options.scales.y.min = 0;
-            baseConfig.options.scales.y.max = 12;
-            break;
-        case 'solar':
-            baseConfig.options.scales.y.min = 0;
-            baseConfig.options.scales.y.max = 1200;
-            break;
-    }
-
-    return baseConfig;
 }
 
 // Function to position graphs on the screen
@@ -1722,9 +1679,9 @@ function updateDisplayedUnits() {
 
     // Helper function to convert temperature
     const convertTemp = (tempStr, isCurrentlyFahrenheit) => {
-        const tempMatch = tempStr.match(/(\d+(?:\.\d+)?)/);
+        const tempMatch = tempStr.match(/([+-]?\d+(?:\.\d+)?)/); // Handle potential sign
         if (!tempMatch) return tempStr;
-        
+
         const temp = parseFloat(tempMatch[1]);
         if (useMetric && isCurrentlyFahrenheit) {
             return `${fahrenheitToCelsius(temp).toFixed(1)}°C`;
@@ -1743,7 +1700,18 @@ function updateDisplayedUnits() {
             tempElement.animationFrame = null;
         }
         const isCurrentlyFahrenheit = tempElement.textContent.includes('°F');
-        tempElement.textContent = convertTemp(tempElement.textContent, isCurrentlyFahrenheit);
+        // We don't convert the animated temperature value directly here,
+        // the animateTemperature function handles the unit based on useMetric.
+        // Instead, we just ensure the correct unit is displayed if no animation is running.
+        const currentValue = parseFloat(tempElement.textContent); // Get current numeric value displayed
+         if (!isNaN(currentValue)) {
+            const displayTemp = useMetric ? fahrenheitToCelsius(currentValue) : celsiusToFahrenheit(currentValue); // Convert the *displayed* value if units don't match
+             const unit = useMetric ? '°C' : '°F';
+             tempElement.textContent = `${displayTemp.toFixed(1)}${unit}`;
+         } else {
+             // If current value is '--', just set the unit
+             tempElement.textContent = `--${useMetric ? '°C' : '°F'}`;
+         }
     }
 
     const feelsLikeElement = document.getElementById('feels-like');
@@ -1753,31 +1721,66 @@ function updateDisplayedUnits() {
     }
 
     const highTempElement = document.getElementById('high-temp');
-    if (highTempElement) {
+     if (highTempElement) {
         const isCurrentlyFahrenheit = highTempElement.textContent.includes('°F');
         const convertedText = convertTemp(highTempElement.textContent, isCurrentlyFahrenheit);
-        highTempElement.textContent = convertedText.replace(/(\d+(?:\.\d+)?)/, `↑ $1`);
-    }
+        // Ensure the ↑ symbol is included and handle cases where conversion might result in NaN
+        const match = convertedText.match(/([+-]?\d+(?:\.\d+)?)/);
+        if (match) {
+            highTempElement.textContent = `↑ ${match[0]}${useMetric ? '°C' : '°F'}`;
+         } else if (highTempElement.textContent.includes('--')) {
+              highTempElement.textContent = `↑ --${useMetric ? '°C' : '°F'}`;
+         }
+     }
 
     const lowTempElement = document.getElementById('low-temp');
-    if (lowTempElement) {
+     if (lowTempElement) {
         const isCurrentlyFahrenheit = lowTempElement.textContent.includes('°F');
         const convertedText = convertTemp(lowTempElement.textContent, isCurrentlyFahrenheit);
-        lowTempElement.textContent = convertedText.replace(/(\d+(?:\.\d+)?)/, `↓ $1`);
-    }
+         // Ensure the ↓ symbol is included and handle cases where conversion might result in NaN
+        const match = convertedText.match(/([+-]?\d+(?:\.\d+)?)/);
+         if (match) {
+            lowTempElement.textContent = `↓ ${match[0]}${useMetric ? '°C' : '°F'}`;
+         } else if (lowTempElement.textContent.includes('--')) {
+              lowTempElement.textContent = `↓ --${useMetric ? '°C' : '°F'}`;
+         }
+     }
 
     // Wind speed conversion
     const windElement = document.getElementById('wind');
     if (windElement) {
-        const windMatch = windElement.textContent.match(/(\d+(?:\.\d+)?)/);
-        if (windMatch) {
-            const windSpeed = parseFloat(windMatch[1]);
+        // Extract only the numeric speed part, ignoring direction and Beaufort scale
+        const speedMatch = windElement.textContent.match(/(\d+(?:\.\d+)?)/);
+        if (speedMatch) {
+            const windSpeed = parseFloat(speedMatch[1]);
             const isCurrentlyMph = windElement.textContent.includes('mph');
+            const directionMatch = windElement.textContent.match(/[A-Z]{1,3}/); // Match compass direction
+             const beaufortMatch = windElement.textContent.match(/\((.*?)\)/); // Match Beaufort scale
+
+            let displaySpeed = windSpeed;
+            let unit = useMetric ? 'km/h' : 'mph';
+
             if (useMetric && isCurrentlyMph) {
-                windElement.textContent = `${mphToKmh(windSpeed).toFixed(1)} km/h`;
-            } else if (!useMetric && !isCurrentlyMph) {
-                windElement.textContent = `${kmhToMph(windSpeed).toFixed(1)} mph`;
+                displaySpeed = mphToKmh(windSpeed);
+            } else if (!useMetric && !isCurrentlyMph) { // Convert from km/h back to mph if necessary
+                 displaySpeed = kmhToMph(windSpeed);
+                 unit = 'mph';
             }
+
+            const direction = directionMatch ? directionMatch[0] : '--';
+            const beaufortScale = beaufortMatch ? beaufortMatch[1] : '--';
+
+
+            windElement.textContent = `⠀${direction} ${displaySpeed.toFixed(1)} ${unit} ⠀(${beaufortScale})  `;
+        } else if (windElement.textContent.includes('--')) {
+             // Handle case where initial value was '-- mph'
+             const directionMatch = windElement.textContent.match(/[A-Z]{1,3}/); // Match compass direction
+             const beaufortMatch = windElement.textContent.match(/\((.*?)\)/); // Match Beaufort scale
+             const direction = directionMatch ? directionMatch[0] : '--';
+             const beaufortScale = beaufortMatch ? beaufortMatch[1] : '--';
+        const unit = useMetric ? 'km/h' : 'mph';
+             windElement.textContent = `⠀${direction} -- ${unit} ⠀(${beaufortScale})  `;
+
         }
     }
 
@@ -1788,11 +1791,19 @@ function updateDisplayedUnits() {
         if (pressureMatch) {
             const pressure = parseFloat(pressureMatch[1]);
             const isCurrentlyInHg = pressureElement.textContent.includes('inHg');
+            let displayPressure = pressure;
+            let unit = useMetric ? 'hPa' : 'inHg';
+
             if (useMetric && isCurrentlyInHg) {
-                pressureElement.textContent = `${inHgToHpa(pressure).toFixed(1)} hPa`;
-            } else if (!useMetric && !isCurrentlyInHg) {
-                pressureElement.textContent = `${hpaToInHg(pressure).toFixed(1)} inHg`;
+                displayPressure = inHgToHpa(pressure);
+            } else if (!useMetric && !isCurrentlyInHg) { // Convert from hPa back to inHg if necessary
+                 displayPressure = hpaToInHg(pressure);
+                 unit = 'inHg';
             }
+            pressureElement.textContent = `${displayPressure.toFixed(2)} ${unit}`;
+        } else if (pressureElement.textContent.includes('--')) {
+        const unit = useMetric ? 'hPa' : 'inHg';
+             pressureElement.textContent = `-- ${unit}`;
         }
     }
 
@@ -1810,26 +1821,49 @@ function updateDisplayedUnits() {
         if (rainMatch) {
             const rain = parseFloat(rainMatch[1]);
             const isCurrentlyInches = rainElement.textContent.includes('in');
+            let displayRain = rain;
+            let unit = useMetric ? 'mm' : 'in';
             if (useMetric && isCurrentlyInches) {
-                rainElement.textContent = `${inchesToMm(rain).toFixed(1)} mm`;
-            } else if (!useMetric && !isCurrentlyInches) {
-                rainElement.textContent = `${mmToInches(rain).toFixed(1)} in`;
+                displayRain = inchesToMm(rain);
+            } else if (!useMetric && !isCurrentlyInches) { // Convert from mm back to inches
+                 displayRain = mmToInches(rain);
+                 unit = 'in';
             }
+            rainElement.textContent = `${displayRain.toFixed(2)} ${unit}`;
+        } else if (rainElement.textContent.includes('--')) {
+        const unit = useMetric ? 'mm' : 'in';
+              rainElement.textContent = `-- ${unit}`;
         }
     }
 
     // Temperature change conversion
     const tempChangeElement = document.getElementById('temp-change');
     if (tempChangeElement) {
-        const changeMatch = tempChangeElement.textContent.match(/(\d+(?:\.\d+)?)/);
+        // Extract the numeric value, including the sign
+        const changeMatch = tempChangeElement.textContent.match(/([+-]?\d+(?:\.\d+)?)/);
         if (changeMatch) {
             const change = parseFloat(changeMatch[1]);
-            const isCurrentlyFahrenheit = tempChangeElement.textContent.includes('°F');
-            if (useMetric && isCurrentlyFahrenheit) {
-                tempChangeElement.textContent = `Temperature change: ${fahrenheitToCelsius(change).toFixed(1)}°C`;
-            } else if (!useMetric && !isCurrentlyFahrenheit) {
-                tempChangeElement.textContent = `Temperature change: ${celsiusToFahrenheit(change).toFixed(1)}°F`;
+            const isCurrentlyFahrenheitChange = tempChangeElement.textContent.includes('°F'); // Check current unit
+
+            let displayChange = change;
+        let unit = useMetric ? '°C' : '°F';
+
+            if (useMetric && isCurrentlyFahrenheitChange) {
+                // Convert temperature *difference*: F diff to C diff (multiply by 5/9)
+                displayChange = change * 5 / 9;
+            } else if (!useMetric && !isCurrentlyFahrenheitChange) {
+                 // Convert temperature *difference*: C diff to F diff (multiply by 9/5)
+                 displayChange = change * 9 / 5;
+                 unit = '°F';
             }
+
+        const sign = displayChange >= 0 ? '+' : '';
+        tempChangeElement.textContent = `Temperature change: ${sign}${displayChange.toFixed(1)}${unit}`;
+
+        } else if (tempChangeElement.textContent.includes('--')) {
+             // Handle case where initial value was '--°F'
+         const unit = useMetric ? '°C' : '°F';
+         tempChangeElement.textContent = `Temperature change: --${unit}`;
         }
     }
 
@@ -1996,7 +2030,9 @@ async function updateMoonPhases() {
 }
 
 function getUVIndexLevel(uvIndex) {
-    if (uvIndex < 3) {
+    if (uvIndex === 0 || uvIndex === undefined || uvIndex === null) {
+        return "None";
+    } else if (uvIndex < 3) {
         return "Low";
     } else if (uvIndex < 6) {
         return "Moderate";
@@ -2005,7 +2041,7 @@ function getUVIndexLevel(uvIndex) {
     } else if (uvIndex < 11) {
         return "Very High";
     } else {
-        return "NA";
+        return "Extreme";
     }
 }
 
@@ -2111,8 +2147,7 @@ function formatTime(date) {
 function updateLastUpdateTime(timestamp) {
     const lastUpdate = document.getElementById('last-update');
     const nextUpdate = document.getElementById('next-update');
-    
-    if (lastUpdate && timestamp) {
+        if (lastUpdate && timestamp) {
         const date = new Date(timestamp);
         lastUpdate.textContent = `Last updated: ${formatTime(date)}`;
     }
@@ -2154,4 +2189,98 @@ function updateAllTimeDisplays() {
         }
     });
 }
+
+async function updateRainfallData(data) {
+    // Update hourly rainfall
+    const hourlyRain = document.getElementById('rain-hourly');
+    if (hourlyRain) {
+        const value = useMetric ? inchesToMm(data.hourlyrainin) : data.hourlyrainin;
+        const unit = useMetric ? 'mm' : 'in';
+        hourlyRain.textContent = `${value.toFixed(2)} ${unit}`;
+    }
+
+    // Update daily rainfall
+    const dailyRain = document.getElementById('rain-daily');
+    if (dailyRain) {
+        const value = useMetric ? inchesToMm(data.dailyrainin) : data.dailyrainin;
+        const unit = useMetric ? 'mm' : 'in';
+        dailyRain.textContent = `${value.toFixed(2)} ${unit}`;
+    }
+
+    // Update monthly rainfall
+    const monthlyRain = document.getElementById('rain-monthly');
+    if (monthlyRain) {
+        const currentMonth = new Date().toLocaleString('default', { month: 'long' });
+        try {
+            const response = await fetch('json/monthly-rainfall-averages.json');
+            const averages = await response.json();
+            const monthlyAverageInches = averages.averages[currentMonth];
+            const monthlyAverage = useMetric ? inchesToMm(monthlyAverageInches) : monthlyAverageInches;
+
+            const currentMonthlyRain = useMetric ? inchesToMm(data.monthlyrainin) : data.monthlyrainin;
+            const difference = currentMonthlyRain - monthlyAverage;
+            const unit = useMetric ? 'mm' : 'in';
+
+            const differenceText = difference >= 0 ? `(+${difference.toFixed(2)})` : `(${difference.toFixed(2)})`;
+            monthlyRain.textContent = `${currentMonthlyRain.toFixed(2)} ${unit} ${differenceText}`;
+
+            // Add color based on comparison
+            if (difference > 0) {
+                monthlyRain.style.color = '#006400'; // Dark green for above average
+            } else if (difference < 0) {
+                monthlyRain.style.color = '#8B0000'; // Dark red for below average
+            } else {
+                monthlyRain.style.color = '#000000'; // Black for average
+            }
+        } catch (error) {
+            console.error('Error loading rainfall averages:', error);
+            const value = useMetric ? inchesToMm(data.monthlyrainin) : data.monthlyrainin;
+            const unit = useMetric ? 'mm' : 'in';
+            monthlyRain.textContent = `${value.toFixed(2)} ${unit}`;
+        }
+    }
+
+    // Update yearly rainfall
+    const yearlyRain = document.getElementById('rain-yearly');
+    if (yearlyRain) {
+        try {
+            const response = await fetch('json/monthly-rainfall-averages.json');
+            const averages = await response.json();
+
+            // Calculate expected rainfall based on months passed
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth(); // 0-11
+            let expectedRainfallInches = 0;
+
+            // Sum up averages for all months up to current month
+            for (let i = 0; i <= currentMonth; i++) {
+                const monthName = new Date(2000, i, 1).toLocaleString('default', { month: 'long' });
+                expectedRainfallInches += averages.averages[monthName];
+            }
+
+            const expectedRainfall = useMetric ? inchesToMm(expectedRainfallInches) : expectedRainfallInches;
+            const currentYearlyRain = useMetric ? inchesToMm(data.yearlyrainin) : data.yearlyrainin;
+            const difference = currentYearlyRain - expectedRainfall;
+            const unit = useMetric ? 'mm' : 'in';
+
+            const differenceText = difference >= 0 ? `(+${difference.toFixed(2)})` : `(${difference.toFixed(2)})`;
+            yearlyRain.textContent = `${currentYearlyRain.toFixed(2)} ${unit} ${differenceText}`;
+
+            // Add color based on comparison
+            if (difference > 0) {
+                yearlyRain.style.color = '#006400'; // Dark green for above average
+            } else if (difference < 0) {
+                yearlyRain.style.color = '#8B0000'; // Dark red for below average
+            } else {
+                yearlyRain.style.color = '#000000'; // Black for average
+            }
+        } catch (error) {
+            console.error('Error loading rainfall averages:', error);
+            const value = useMetric ? inchesToMm(data.yearlyrainin) : data.yearlyrainin;
+            const unit = useMetric ? 'mm' : 'in';
+            yearlyRain.textContent = `${value.toFixed(2)} ${unit}`;
+        }
+    }
+}
   
+    

@@ -71,9 +71,9 @@
             gap: 20px;
             margin: 0 auto;
             margin-bottom: 30px;
-            position: relative; /* Added for centering */
-            left: 50%; /* Move to the center */
-            transform: translateX(-50%); /* Adjust to center */
+            position: relative;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .weather-card {
@@ -81,11 +81,14 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease; /* Smooth transition for scaling */
+            transition: transform 0.3s ease;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .weather-card:hover {
-            transform: scale(1.05); /* Slightly enlarge the card on hover */
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
         }
 
         .current-conditions {
@@ -540,6 +543,9 @@
 
         .sun-times {
             background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            margin-top: 30px;
+            width: 100%;
+            position: relative;
         }
 
         .sun-times h3 {
@@ -889,10 +895,12 @@
 
         /* Weather Cameras Styles */
         .cameras-section {
-            margin-top: 30px;
+            grid-column: 1 / -1;
+            margin-bottom: 30px;
         }
 
         .cameras-grid {
+            height: fit-content;
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 20px;
@@ -906,7 +914,7 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             transition: transform 0.3s ease;
             background: #000;
-            height: 250px;
+            height: fit-content;
             display: flex;
             flex-direction: column;
         }
@@ -1195,7 +1203,9 @@
         }
 
         .padding-div {
-            margin-top: 20px;
+            margin: 20px 0;
+            clear: both;
+            width: 100%;
         }
 
         /* Seasonal Countdown Styles */
@@ -1627,6 +1637,37 @@
             border-style: solid;
             border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent;
         }
+
+        .weather-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .weather-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .moon-phases-table td {
+            padding: 5px;
+        }
+
+        .weather-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .weather-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .moon-phases-table td {
+            padding: 3px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -1661,6 +1702,7 @@
                     <div class="menu-category-header">Weather Scripts</div>
                     <div class="menu-category-content">
                         <a href="embed.html" class="menu-item">Embed Widget</a>
+                        <a href="records.html" class="menu-item">Weather Records</a>
                     </div>
                 </div>
                 <div class="menu-category">
@@ -1668,6 +1710,17 @@
                     <div class="menu-category-content">
                         <a href="nwr-archives/archives-nwr.html" class="menu-item">NOAA Weather Radio Archives</a>
                         <a href="./weather-event-log/weather-event-log.html" class="menu-item">Weather Events Log</a>
+                    </div>
+                </div>
+                <div class="menu-category">
+                    <div class="menu-category-header">External Links</div>
+                    <div class="menu-category-content">
+                        <a href="https://www.weather.gov/mob/" target="_blank" class="menu-item">Local NWS Office</a>
+                        <a href="https://fl511.com/" target="_blank" class="menu-item">FLDOT/FL511</a>
+                        <a href="https://web.weatherwise.app/" target="_blank" class="menu-item">WeatherWise</a>
+                        <a href="https://www.star.nesdis.noaa.gov/GOES/" target="_blank" class="menu-item">NOAA Satellite Imagery</a>
+                        <a href="https://www.nhc.noaa.gov/" target="_blank" class="menu-item">National Hurricane Center</a>
+                        <a href="https://www.spc.noaa.gov/" target="_blank" class="menu-item">Storm Prediction Center</a>
                     </div>
                 </div>
                 <div class="menu-category">
@@ -1681,6 +1734,7 @@
                 <a href="noaawxradio.html" class="menu-item">NOAA Weather Radio</a>
                 <a href="satellite.html" class="menu-item">Satellite Imagery</a>
                 <a href="metar.html" class="menu-item">METAR Weather Data</a>
+                <a href="records.html" class="menu-item">Weather Records</a>
             </div>
             <p id="last-update" data-time="">Last updated: --:--:--</p>
             <p id="next-update" data-time="">Next update in: --:--</p>
@@ -1784,6 +1838,27 @@
                     </div>
                 </div>
             </div>
+            <div class="weather-card rainfall-data" style="display: block;">
+                <h3>Rainfall Totals</h3>
+                <div class="rainfall-details">
+                    <div class="detail-item">
+                        <span>Hourly:</span>
+                        <span id="rain-hourly">-- in</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Daily:</span>
+                        <span id="rain-daily">-- in</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Monthly:</span>
+                        <span id="rain-monthly">-- in</span>
+                    </div>
+                    <div class="detail-item">
+                        <span>Yearly:</span>
+                        <span id="rain-yearly">-- in</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="forecast-section">
@@ -1794,7 +1869,7 @@
         </div>
 
         <!-- Weather Cameras Section -->
-        <div class="weather-card cameras-section">
+        <div class="weather-card cameras-section" style="margin-bottom: 50px;">
             <h3>Weather Cameras</h3>
             <div class="cameras-grid" id="cameras-grid">
                 <!-- Camera feeds will be dynamically inserted here -->
@@ -1803,22 +1878,22 @@
                 </div>
             </div>
         </div>
-<div class="padding-div"></div>
+
         <!-- Sunrise/Sunset Card -->
-        <div class="weather-card sun-times">
+        <div class="weather-card sun-times" style="margin-top: 100px; padding: 30px; max-width: 1276px; margin-left: auto; margin-right: auto;">
             <h3>Sunrise & Sunset Times</h3>
             <div class="sun-timeline">
                 <div class="timeline-container">
                     <div class="timeline">
                         <div class="sun-icon sunrise">
                             <svg viewBox="0 0 24 24" width="24" height="24">
-                                <path d="M12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-12c-.28 0-.5-.22-.5-.5V2c0-.28.22-.5.5-.5s.5.22.5.5v2.5c0 .28-.22.5-.5.5zm0 14c-.28 0-.5.22-.5.5V22c0 .28.22.5.5.5s.5-.22.5-.5v-2.5c0-.28-.22-.5-.5-.5zM3.5 12c0 .28-.22.5-.5.5H.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5H3c.28 0 .5.22.5.5zm20 0c0 .28.22.5.5.5h2.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5H24c-.28 0-.5.22-.5.5zM4.93 4.93c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zm14.14 14.14c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zM4.93 19.07c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71zm14.14-14.14c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71z"/>
+                                <path d="M12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-12c-.28 0-.5-.22-.5-.5V2c0-.28.22-.5.5-.5s.5.22.5.5v2.5c0 .28-.22.5-.5.5zm0 14c-.28 0-.5.22-.5.5V22c0 .28.22.5.5.5s.5-.22.5-.5v-2.5c0-.28-.22-.5-.5-.5zM3.5 12c0 .28-.22.5-.5.5H.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5H3c.28 0 .5.22.5.5zm20 0c0 .28.22.5.5.5h2.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5H24c-.28 0-.5.22-.5.5zM4.93 4.93c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zm14.14 14.14c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zM4.93 19.07c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71zm14.14-14.14c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71z"/>
                             </svg>
                         </div>
                         <div class="timeline-bar"></div>
                         <div class="sun-icon sunset">
                             <svg viewBox="0 0 24 24" width="24" height="24">
-                                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 12c-.28 0-.5.22-.5.5V22c0 .28.22.5.5.5s.5-.22.5-.5v-2.5c0-.28-.22-.5-.5-.5zM3.5 12c0 .28-.22.5-.5.5H.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5H3c.28 0 .5.22.5.5zm20 0c0 .28.22.5.5.5h2.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5H24c-.28 0-.5.22-.5.5zM4.93 4.93c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zm14.14 14.14c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zM4.93 19.07c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71zm14.14-14.14c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71z"/>
+                                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0 12c-.28 0-.5.22-.5.5V22c0 .28.22.5.5.5s.5-.22.5-.5v-2.5c0-.28-.22-.5-.5-.5zM3.5 12c0 .28-.22.5-.5.5H.5c-.28 0-.5-.22-.5-.5s.22-.5.5-.5H3c.28 0 .5.22.5.5zm20 0c0 .28.22.5.5.5h2.5c.28 0 .5-.22.5-.5s-.22-.5-.5-.5H24c-.28 0-.5.22-.5.5zM4.93 4.93c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zm14.14 14.14c.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71zM4.93 19.07c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71zm14.14-14.14c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c-.2-.2-.51-.2-.71 0l-1.77 1.77c-.2.2-.2.51 0 .71.2.2.51.2.71 0l1.77-1.77c.2-.2.2-.51 0-.71z"/>
                             </svg>
                         </div>
                     </div>
@@ -1832,43 +1907,62 @@
                 </div>
             </div>
         </div>
-        <div class="padding-div"></div>
 
+        <!-- Cards Container -->
+        <div style="width: 1276px; margin: 30px auto;">
+            <!-- Row 1 -->
+            <div class="row" style="margin-bottom: 30px; display: flex; justify-content: space-between;">
                 <!-- Rip Current Risk Card -->
-                <div class="weather-card rip-current" style="width: calc(50% - 10px); margin-top: 30px;">
-                    <h3>Rip Current Risk</h3>
-                    <img src="https://www.weather.gov/images//mob/graphicast/image9.png" alt="Rip Current Risk" style="width: 100%; height: auto; border-radius: 5px;" />
-                    <p style="text-align: center; font-size: 0.8em; margin-top: 10px;">Graphic provided by National Weather Service at Mobile, AL</p>
+                <div class="weather-card rip-current" style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Rip Current Risk</h3>
+                    <img src="https://www.weather.gov/images//mob/graphicast/image1.png" alt="Rip Current Risk" style="width: 100%; height: auto; border-radius: 5px;" />
+                    <p style="text-align: center; font-size: 0.8em; margin: 5px 0 0 0;">Graphic provided by National Weather Service at Mobile, AL</p>
                 </div>
-        <!-- Moon Phases Card -->
-        <div class="weather-card moon-phases" style="width: calc(50% - 10px); margin-top: 30px;">
-            <h3>Upcoming Moon Phases</h3>
-            <table style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr>
-                        <th style="text-align: left; border-bottom: 1px solid #ccc;">Phase</th>
-                        <th style="text-align: left; border-bottom: 1px solid #ccc;">Date</th>
-                    </tr>
-                </thead>
-                <tbody class="moon-phases-table" id="moon-phases-table">
-                    <!-- Moon phases will be dynamically added here -->
-                </tbody>
-            </table>
-        </div>
-        <div class="weather-card radar-card" style="width: calc(50% - 10px);margin-left: 50%;height: fit-content;margin-top: -748px;">
-            <h3 style="margin-bottom: 10px;">Weather Radar</h3>
-            <img src="https://radar.weather.gov/ridge/standard/KMOB_loop.gif" alt="Weather Radar" style="width: 100%; height: auto; border-radius: 5px;" />
+
+                <!-- Moon Phases Card -->
+                <div class="weather-card moon-phases" style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Upcoming Moon Phases</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; border-bottom: 1px solid #ccc; padding: 3px;">Phase</th>
+                                <th style="text-align: left; border-bottom: 1px solid #ccc; padding: 3px;">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="moon-phases-table" style="height: fit-content;" id="moon-phases-table">
+                            <!-- Moon phases will be dynamically added here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="row" style="display: flex; justify-content: space-between;">
+                <!-- Weather Radar Card -->
+                <div class="weather-card radar-card" style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                    <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Weather Radar</h3>
+                    <img src="https://radar.weather.gov/ridge/standard/KMOB_loop.gif" alt="Weather Radar" style="width: 100%; height: auto; border-radius: 5px;" />
+                </div>
+
+                <!-- Weather Alert Map Card -->
+                <div class="weather-card alert-map" style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease; height: fit-content;">
+                    <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Weather Alert Maps</h3>
+                    <div class="alert-map-carousel" style="position: relative; width: 100%; height: 300px; overflow: hidden; border-radius: 5px;">
+                        <img src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_severe.jpg" alt="Severe Weather Alerts" class="alert-map-slide" style="width: 100%; height: 100%; object-fit: contain; position: absolute; transition: opacity 0.5s ease-in-out;" />
+                        <img src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_heat.jpg" alt="Heat Alerts" class="alert-map-slide" style="width: 100%; height: 100%; object-fit: contain; position: absolute; opacity: 0; transition: opacity 0.5s ease-in-out;" />
+                        <img src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_wind.jpg" alt="Wind Alerts" class="alert-map-slide" style="width: 100%; height: 100%; object-fit: contain; position: absolute; opacity: 0; transition: opacity 0.5s ease-in-out;" />
+                    </div>
+                    <p style="text-align: center; font-size: 0.8em; margin: 5px 0 0 0;">Maps provided by <a href="https://www.wkrg.com/weather/maps/" target="_blank">WKRG-TV</a></p>
+                </div>
+            </div>
         </div>
 
-        <!-- Weather Alert Map Card -->
-        <div class="weather-card alert-map" style="width: calc(50% - 10px); margin-left: 50%; margin-top: 25px;">
-            <h3>Weather Alert Maps</h3>
-            <div class="alert-map-carousel" style="position: relative; width: 100%; height: 300px; overflow: hidden;">
-                <img src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_severe.jpg" alt="Severe Weather Alerts" class="alert-map-slide" style="width: 100%; height: 100%; object-fit: cover; position: absolute; transition: opacity 0.5s ease-in-out;" />
-                <img src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_heat.jpg" alt="Heat Alerts" class="alert-map-slide" style="width: 100%; height: 100%; object-fit: cover; position: absolute; opacity: 0; transition: opacity 0.5s ease-in-out;" />
-                <img src="https://media.psg.nexstardigital.net/wkrg/weather/maps/alerts_wind.jpg" alt="Wind Alerts" class="alert-map-slide" style="width: 100%; height: 100%; object-fit: cover; position: absolute; opacity: 0; transition: opacity 0.5s ease-in-out;" />
-            </div>
-            <p style="text-align: center; font-size: 0.8em; margin-top: 10px;">Maps provided by <a href="https://www.wkrg.com/weather/maps/" target="_blank">WKRG-TV</a></p>
+        <!-- Credits Section -->
+        <div class="credits" style="margin-top: 50px;">
+            <p>Weather data provided by <a href="https://www.weather.gov/" target="_blank">National Weather Service</a> and <a href="https://ambientweather.com/" target="_blank">Ambient Weather</a></p>
+            <p>Icons by <a href="https://www.amcharts.com/free-animated-svg-weather-icons/" target="_blank">amCharts</a></p>
+            <p>Created with the Grace of God by Jesse Hasty (JesseLikesWeather, LaprasLover), with <a href="https://www.cursor.com">Cursor</a></p>
+            <p>Document last updated: May 20th, 2025 at 10:07 AM CDT</p>
         </div>
     </div>
 
@@ -1899,19 +1993,6 @@
                 <div id="stations-list"></div>
             </div>
         </div>
-    </div>
-
-    <!-- Credits Section -->
-    <div class="credits">
-        <p>Weather data provided by <a href="https://www.weather.gov/" target="_blank">National Weather Service</a> and <a href="https://ambientweather.com/" target="_blank">Ambient Weather</a></p>
-        <p>Icons by <a href="https://www.amcharts.com/free-animated-svg-weather-icons/" target="_blank">amCharts</a></p>
-        <p>Created with the Grace of God by Jesse Hasty (JesseLikesWeather, LaprasLover), with <a href="https://www.cursor.com">Cursor</a></p>
-        <p>Document last updated: May 20th, 2025 at 10:07 AM CDT</p>
-    </div>
-
-    <div class="bible-verse">
-        <p>"Trust in the Lord with all your heart, and lean not on your own understanding; in all your ways acknowledge Him, and He shall direct your paths."</p>
-        <p class="verse-reference">- Proverbs 3:5-6 (NKJV)</p>
     </div>
 
     <!-- Seasonal Countdown -->
@@ -1948,7 +2029,6 @@
         <script type="text/javascript" src="https://counter.websiteout.com/js/4/0/177/1"></script>
         <div>Visitors since April 10th 2025</div>
     </div>
-
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
