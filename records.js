@@ -1,19 +1,4 @@
-// Fetch and display records from JSON file
-async function fetchRecords() {
-    try {
-        const response = await fetch('json/weatheralltimerecords.json');
-        if (!response.ok) {
-            throw new Error('Failed to fetch records');
-        }
-        const data = await response.json();
-        displayRecords(data);
-    } catch (error) {
-        console.error('Error fetching records:', error);
-        document.getElementById('last-update').textContent = 'Error loading records';
-    }
-}
-
-// Format date to 12-hour format
+// Function to format dates in 12-hour format
 function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
@@ -21,170 +6,228 @@ function formatDate(dateString) {
         day: 'numeric',
         year: 'numeric',
         hour: 'numeric',
-        minute: '2-digit',
+        minute: 'numeric',
         hour12: true,
         timeZone: 'America/Chicago'
     });
 }
 
-// Display records on the page
-function displayRecords(data) {
-    // Update station info with explicit time to avoid timezone issues
-    const startDate = new Date(data.stationInfo.startDate + 'T12:00:00Z');
-    document.querySelector('.station-info .start-date').textContent = startDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+// Function to get temperature color class
+function getTempColorClass(temp) {
+    if (temp < 0) return 'temp-cold';
+    if (temp < 15) return 'temp-very-cold';
+    if (temp < 25) return 'temp-cool';
+    if (temp < 32) return 'temp-mild';
+    if (temp < 43) return 'temp-warm';
+    if (temp < 55) return 'temp-very-warm';
+    if (temp < 66) return 'temp-hot';
+    if (temp < 79) return 'temp-very-hot';
+    if (temp < 87) return 'temp-extreme';
+    if (temp < 95) return 'temp-dangerous';
+    if (temp < 99) return 'temp-extreme-danger';
+    return 'temp-critical';
+}
+
+// Function to fetch and display records
+async function fetchRecords() {
+    try {
+        // Fetch all-time records
+        const allTimeResponse = await fetch('./json/weatheralltimerecords.json');
+        if (!allTimeResponse.ok) {
+            throw new Error('Failed to fetch all-time records');
+        }
+        const allTimeData = await allTimeResponse.json();
+        displayRecords(allTimeData, 'all-time');
+
+        // Fetch 2024 records
+        const records2024Response = await fetch('./json/weatherrecords2024.json');
+        if (records2024Response.ok) {
+            const records2024Data = await records2024Response.json();
+            displayRecords(records2024Data, '2024');
+        }
+
+        // Fetch 2025 records
+        const records2025Response = await fetch('./json/weatherrecords2025.json');
+        if (records2025Response.ok) {
+            const records2025Data = await records2025Response.json();
+            displayRecords(records2025Data, '2025');
+        }
+    } catch (error) {
+        console.error('Error fetching records:', error);
+    }
+}
+
+// Function to display records
+function displayRecords(data, year) {
+    const prefix = year === 'all-time' ? '' : `-${year}`;
+
+    // Update station info if it's all-time records
+    if (year === 'all-time' && data.stationInfo) {
+        document.getElementById('station-start-date').textContent = formatDate(data.stationInfo.startDate + 'T12:00:00Z');
+    }
 
     // Update temperature records
-    document.getElementById('highest-temp').textContent = `${data.records.temperature.high.value}°F`;
-    document.getElementById('highest-temp-date').textContent = formatDate(data.records.temperature.high.date);
-    document.getElementById('lowest-temp').textContent = `${data.records.temperature.low.value}°F`;
-    document.getElementById('lowest-temp-date').textContent = formatDate(data.records.temperature.low.date);
+    if (data.records.temperature) {
+        if (data.records.temperature.high) {
+            const element = document.getElementById(`highest-temp${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.temperature.high.value}°F`;
+                element.className = getTempColorClass(data.records.temperature.high.value);
+            }
+            const dateElement = document.getElementById(`highest-temp-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.temperature.high.date);
+            }
+        }
+        if (data.records.temperature.low) {
+            const element = document.getElementById(`lowest-temp${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.temperature.low.value}°F`;
+                element.className = getTempColorClass(data.records.temperature.low.value);
+            }
+            const dateElement = document.getElementById(`lowest-temp-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.temperature.low.date);
+            }
+        }
+    }
 
     // Update feels like records
-    document.getElementById('highest-heat-index').textContent = `${data.records.feelsLike.high.value}°F`;
-    document.getElementById('highest-heat-index-date').textContent = formatDate(data.records.feelsLike.high.date);
-    document.getElementById('lowest-wind-chill').textContent = `${data.records.feelsLike.low.value}°F`;
-    document.getElementById('lowest-wind-chill-date').textContent = formatDate(data.records.feelsLike.low.date);
+    if (data.records.feelsLike) {
+        if (data.records.feelsLike.high) {
+            const element = document.getElementById(`highest-feels-like${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.feelsLike.high.value}°F`;
+                element.className = getTempColorClass(data.records.feelsLike.high.value);
+            }
+            const dateElement = document.getElementById(`highest-feels-like-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.feelsLike.high.date);
+            }
+        }
+        if (data.records.feelsLike.low) {
+            const element = document.getElementById(`lowest-feels-like${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.feelsLike.low.value}°F`;
+                element.className = getTempColorClass(data.records.feelsLike.low.value);
+            }
+            const dateElement = document.getElementById(`lowest-feels-like-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.feelsLike.low.date);
+            }
+        }
+    }
 
     // Update wind records
-    document.getElementById('highest-wind').textContent = `${data.records.wind.speed.value} mph`;
-    document.getElementById('highest-wind-date').textContent = formatDate(data.records.wind.speed.date);
-    document.getElementById('highest-gust').textContent = `${data.records.wind.gust.value} mph`;
-    document.getElementById('highest-gust-date').textContent = formatDate(data.records.wind.gust.date);
+    if (data.records.wind) {
+        if (data.records.wind.speed) {
+            const element = document.getElementById(`highest-wind${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.wind.speed.value} mph`;
+            }
+            const dateElement = document.getElementById(`highest-wind-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.wind.speed.date);
+            }
+        }
+        if (data.records.wind.gust) {
+            const element = document.getElementById(`highest-gust${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.wind.gust.value} mph`;
+            }
+            const dateElement = document.getElementById(`highest-gust-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.wind.gust.date);
+            }
+        }
+    }
 
     // Update humidity records
-    document.getElementById('highest-humidity').textContent = `${data.records.humidity.high.value}%`;
-    document.getElementById('highest-humidity-date').textContent = formatDate(data.records.humidity.high.date);
-    document.getElementById('lowest-humidity').textContent = `${data.records.humidity.low.value}%`;
-    document.getElementById('lowest-humidity-date').textContent = formatDate(data.records.humidity.low.date);
+    if (data.records.humidity) {
+        if (data.records.humidity.high) {
+            const element = document.getElementById(`highest-humidity${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.humidity.high.value}%`;
+            }
+            const dateElement = document.getElementById(`highest-humidity-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.humidity.high.date);
+            }
+        }
+        if (data.records.humidity.low) {
+            const element = document.getElementById(`lowest-humidity${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.humidity.low.value}%`;
+            }
+            const dateElement = document.getElementById(`lowest-humidity-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.humidity.low.date);
+            }
+        }
+    }
 
     // Update pressure records
     if (data.records.pressure) {
         if (data.records.pressure.high) {
-            document.getElementById('highest-pressure').textContent = `${data.records.pressure.high.value} inHg`;
-            document.getElementById('highest-pressure-date').textContent = formatDate(data.records.pressure.high.date);
+            const element = document.getElementById(`highest-pressure${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.pressure.high.value} inHg`;
+            }
+            const dateElement = document.getElementById(`highest-pressure-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.pressure.high.date);
+            }
         }
         if (data.records.pressure.low) {
-            document.getElementById('lowest-pressure').textContent = `${data.records.pressure.low.value} inHg`;
-            document.getElementById('lowest-pressure-date').textContent = formatDate(data.records.pressure.low.date);
+            const element = document.getElementById(`lowest-pressure${prefix}`);
+            if (element) {
+                element.textContent = `${data.records.pressure.low.value} inHg`;
+            }
+            const dateElement = document.getElementById(`lowest-pressure-date${prefix}`);
+            if (dateElement) {
+                dateElement.textContent = formatDate(data.records.pressure.low.date);
+            }
         }
     }
 
     // Update UV record
     if (data.records.uv && data.records.uv.high) {
-        document.getElementById('highest-uv').textContent = data.records.uv.high.value;
-        document.getElementById('highest-uv-date').textContent = formatDate(data.records.uv.high.date);
+        const element = document.getElementById(`highest-uv${prefix}`);
+        if (element) {
+            element.textContent = data.records.uv.high.value;
+        }
+        const dateElement = document.getElementById(`highest-uv-date${prefix}`);
+        if (dateElement) {
+            dateElement.textContent = formatDate(data.records.uv.high.date);
+        }
     }
 
     // Update Solar Radiation record
     if (data.records.solar && data.records.solar.high) {
-        document.getElementById('highest-solar').textContent = `${data.records.solar.high.value} W/m²`;
-        document.getElementById('highest-solar-date').textContent = formatDate(data.records.solar.high.date);
+        const element = document.getElementById(`highest-solar${prefix}`);
+        if (element) {
+            element.textContent = `${data.records.solar.high.value} W/m²`;
+        }
+        const dateElement = document.getElementById(`highest-solar-date${prefix}`);
+        if (dateElement) {
+            dateElement.textContent = formatDate(data.records.solar.high.date);
+        }
     }
 
     // Update last update time
-    document.getElementById('last-update').textContent = `Last updated: ${new Date().toLocaleString('en-US', {
-        month: 'numeric',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/Chicago'
-    })}`;
-}
-
-// Initialize records when page loads
-document.addEventListener('DOMContentLoaded', fetchRecords);
-
-// Initialize records if they don't exist
-function initializeRecords() {
-    if (!localStorage.getItem('weatherRecords')) {
-        const initialRecords = {
-            temperature: {
-                highest: { value: -Infinity, date: null },
-                lowest: { value: Infinity, date: null },
-                highestHeatIndex: { value: -Infinity, date: null },
-                lowestWindChill: { value: Infinity, date: null }
-            },
-            wind: {
-                highestSpeed: { value: -Infinity, date: null },
-                highestGust: { value: -Infinity, date: null }
-            },
-            rainfall: {
-                highestDaily: { value: -Infinity, date: null },
-                highestHourly: { value: -Infinity, date: null }
-            },
-            other: {
-                highestHumidity: { value: -Infinity, date: null },
-                lowestHumidity: { value: Infinity, date: null },
-                highestPressure: { value: -Infinity, date: null },
-                lowestPressure: { value: Infinity, date: null }
-            }
-        };
-        localStorage.setItem('weatherRecords', JSON.stringify(initialRecords));
+    const lastUpdateElement = document.getElementById('last-update');
+    if (lastUpdateElement) {
+        lastUpdateElement.textContent = new Date().toLocaleString('en-US', {
+            month: 'numeric',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true,
+            timeZone: 'America/Chicago'
+        });
     }
 }
 
-// Update records with new data
-function updateRecords(data) {
-    const records = JSON.parse(localStorage.getItem('weatherRecords'));
-    const currentDate = new Date().toISOString().split('T')[0];
-
-    // Temperature records
-    if (data.temp > records.temperature.highest.value) {
-        records.temperature.highest = { value: data.temp, date: currentDate };
-    }
-    if (data.temp < records.temperature.lowest.value) {
-        records.temperature.lowest = { value: data.temp, date: currentDate };
-    }
-    if (data.heatIndex > records.temperature.highestHeatIndex.value) {
-        records.temperature.highestHeatIndex = { value: data.heatIndex, date: currentDate };
-    }
-    if (data.windChill < records.temperature.lowestWindChill.value) {
-        records.temperature.lowestWindChill = { value: data.windChill, date: currentDate };
-    }
-
-    // Wind records
-    if (data.windSpeed > records.wind.highestSpeed.value) {
-        records.wind.highestSpeed = { value: data.windSpeed, date: currentDate };
-    }
-    if (data.windGust > records.wind.highestGust.value) {
-        records.wind.highestGust = { value: data.windGust, date: currentDate };
-    }
-
-    // Rainfall records
-    if (data.dailyRain > records.rainfall.highestDaily.value) {
-        records.rainfall.highestDaily = { value: data.dailyRain, date: currentDate };
-    }
-    if (data.hourlyRain > records.rainfall.highestHourly.value) {
-        records.rainfall.highestHourly = { value: data.hourlyRain, date: currentDate };
-    }
-
-    // Other records
-    if (data.humidity > records.other.highestHumidity.value) {
-        records.other.highestHumidity = { value: data.humidity, date: currentDate };
-    }
-    if (data.humidity < records.other.lowestHumidity.value) {
-        records.other.lowestHumidity = { value: data.humidity, date: currentDate };
-    }
-    if (data.pressure > records.other.highestPressure.value) {
-        records.other.highestPressure = { value: data.pressure, date: currentDate };
-    }
-    if (data.pressure < records.other.lowestPressure.value) {
-        records.other.lowestPressure = { value: data.pressure, date: currentDate };
-    }
-
-    localStorage.setItem('weatherRecords', JSON.stringify(records));
-    displayRecords();
-}
-
-// Listen for unit changes
-window.addEventListener('storage', function(e) {
-    if (e.key === 'useMetric') {
-        displayRecords();
-    }
-}); 
+// Initialize records when the page loads
+document.addEventListener('DOMContentLoaded', fetchRecords); 
