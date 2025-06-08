@@ -137,3 +137,57 @@ input:checked + .slider:before {
 #alerts-container.hidden {
     display: none;
 }
+
+.weather-card.current-conditions {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.weather-card.current-conditions .weather-details {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.weather-card.current-conditions .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+}
+
+.weather-card.current-conditions .detail-item:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.weather-card.current-conditions .detail-item span:first-child {
+    min-width: 120px;
+    color: #fff;
+    font-weight: 500;
+}
+
+.weather-card.current-conditions .detail-item span:nth-child(2) {
+    flex: 1;
+    color: #fff;
+    font-weight: 600;
+}
+
+.weather-card.current-conditions .graph-icon {
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.weather-card.current-conditions .graph-icon:hover {
+    opacity: 1;
+}

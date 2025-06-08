@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Active Tropical Systems</title>
+    <link rel="icon" type="image/png" href="https://www.nhc.noaa.gov/graphics/HU.gif">
+    <style>
+        body {
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background: #007BFF;
+            color: white;
+            padding: 10px 0;
+            text-align: center;
+        }
+        main {
+            margin-top: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .back-button {
+            position: fixed;
+            top: 35px;
+            left: 30px;
+            text-decoration: none;
+            color: #06314e;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(19, 71, 105, 0.373);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.626);
+            color: #06314e;
+        }
+        .storm-card {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .storm-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .storm-name {
+            font-size: 24px;
+            color: #06314e;
+            margin: 0;
+        }
+        .storm-classification {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .storm-icon {
+            width: auto;
+            height: 25px;
+            object-fit: contain;
+        }
+        .storm-icon-container {
+            display: inline-flex;
+            align-items: center;
+        }
+        .storm-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .detail-item {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .detail-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .detail-value {
+            font-size: 16px;
+            color: #06314e;
+            font-weight: bold;
+        }
+        .advisory-text {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            margin-right: 170px;
+        }
+        .satellite-section {
+            margin-top: 20px;
+            position: relative;
+            width: 300px;
+            float: right;
+            margin-left: 20px;
+        }
+        .satellite-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .satellite-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .toggle-button {
+            padding: 6px 12px;
+            background: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .toggle-button:hover {
+            background: #0056b3;
+        }
+        .satellite-image {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .satellite-image:hover {
+            transform: scale(1.02);
+        }
+        .update-time {
+            font-size: 12px;
+            color: #666;
+        }
+        .satellite-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #666;
+        }
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #dc3545;
+            background: #f8d7da;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
+        .fullscreen-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            cursor: pointer;
+        }
+        .fullscreen-image {
+            max-width: 90%;
+            max-height: 90vh;
+            margin: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border-radius: 4px;
+        }
+        @media (max-width: 768px) {
+            .storm-details {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="hurricanes.html" class="back-button" title="Back to Outlooks">Return to Outlooks</a>
+    <header>
+        <h1>Active Tropical Systems</h1>
+    </header>
+    <main id="storms-container">
+        <div class="loading">Loading active storms...</div>
+    </main>
+
+    <script>
+        async function fetchStorms() {
+            try {
+                console.log('Fetching storm data...');
+                const response = await fetch('https://data2.weatherwise.app/tropical/USA/NHC/storms.json');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                console.log('Response received, parsing JSON...');
+                const storms = await response.json();
+                console.log('Raw storms data:', JSON.stringify(storms, null, 2));
+                
+                if (!Array.isArray(storms)) {
+                    throw new Error('Invalid data format: expected an array');
+                }
+                
+                displayStorms(storms);
+            } catch (error) {
+                console.error('Error fetching storms:', error);
+                document.getElementById('storms-container').innerHTML = `
+                    <div class="error">
+                        <h3>Error loading storm data</h3>
+                        <p>${error.message}</p>
+                        <p>Please try again later or check your internet connection.</p>
+                        <button onclick="fetchStorms()" style="
+                            padding: 8px 16px;
+                            background: #007BFF;
+                            color: white;
+                            border: none;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            margin-top: 10px;
+                        ">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function getClassificationColor(classification) {
+            const colors = {
+                'TS': '#ffc107', // Tropical Storm - Yellow
+                'HU': '#dc3545', // Hurricane - Red
+                'TD': '#17a2b8', // Tropical Depression - Cyan
+                'EX': '#6c757d', // Extratropical - Gray
+                'DB': '#6c757d', // Disturbance - Gray
+                'LO': '#6c757d', // Low - Gray
+                'WV': '#6c757d', // Wave - Gray
+                'SD': '#6c757d'  // Subtropical Depression - Gray
+            };
+            return colors[classification] || '#6c757d';
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString();
+        }
+
+        function getStormIcon(classification, windSpeed) {
+            // Hurricane categories
+            if (classification === 'HU') {
+                const category = windSpeed >= 157 ? 5 :
+                               windSpeed >= 130 ? 4 :
+                               windSpeed >= 111 ? 3 :
+                               windSpeed >= 96 ? 2 : 1;
+                return `<img src="https://www.nhc.noaa.gov/graphics/HU.gif" alt="Category ${category} Hurricane" class="storm-icon">`;
+            }
+            
+            // Other classifications
+            const iconMap = {
+                'TS': 'https://www.nhc.noaa.gov/graphics/TS.gif',  // Tropical Storm
+                'TD': 'https://www.nhc.noaa.gov/graphics/TD.gif',  // Tropical Depression
+                'SS': 'https://www.nhc.noaa.gov/graphics/TS.gif',  // Subtropical Storm
+                'SD': 'https://www.nhc.noaa.gov/graphics/TD.gif',  // Subtropical Depression
+                'EX': 'https://www.nhc.noaa.gov/graphics/RM.gif',  // Extratropical
+                'LO': 'https://www.nhc.noaa.gov/graphics/RM.gif',  // Low
+                'DB': 'https://www.nhc.noaa.gov/graphics/RM.gif',  // Disturbance
+                'WV': 'https://www.nhc.noaa.gov/graphics/RM.gif',  // Wave
+                'RE': 'https://www.nhc.noaa.gov/graphics/RM.gif'   // Remnant
+            };
+            
+            return `<img src="${iconMap[classification] || iconMap['LO']}" alt="${classification}" class="storm-icon">`;
+        }
+
+        function roundToNearest5(num) {
+            return Math.round(num / 5) * 5;
+        }
+
+        function getSatelliteUrls(storm) {
+            // Log the storm object to see its structure
+            console.log('Storm object for satellite URLs:', storm);
+            
+            // Default to empty strings if properties don't exist
+            const stormId = (storm.id || '').toUpperCase();
+            
+            return {
+                static: `https://cdn.star.nesdis.noaa.gov/FLOATER/data/${stormId}/GEOCOLOR/2000x2000.jpg`,
+                animated: `https://cdn.star.nesdis.noaa.gov/FLOATER/data/${stormId}/GEOCOLOR/${stormId}-GEOCOLOR-1000x1000.gif`
+            };
+        }
+
+        function displayStorms(storms) {
+            try {
+                const container = document.getElementById('storms-container');
+                
+                if (!storms || storms.length === 0) {
+                    container.innerHTML = '<div class="storm-card">No active storms at this time.</div>';
+                    return;
+                }
+
+                // Add fullscreen overlay to the body if it doesn't exist
+                if (!document.getElementById('fullscreen-overlay')) {
+                    const overlay = document.createElement('div');
+                    overlay.id = 'fullscreen-overlay';
+                    overlay.onclick = function() {
+                        this.style.display = 'none';
+                    };
+                    document.body.appendChild(overlay);
+                }
+
+                console.log('Displaying storms:', storms);
+                container.innerHTML = storms.map(storm => {
+                    try {
+                        // Validate required storm properties
+                        if (!storm.name || !storm.classification || !storm.position || !storm.wind_speed_mph) {
+                            console.warn('Invalid storm data:', storm);
+                            return '';
+                        }
+
+                        const satelliteUrls = getSatelliteUrls(storm);
+                        console.log('Satellite URLs for', storm.name, ':', satelliteUrls);
+
+                        return `
+                            <div class="storm-card">
+                                <div class="storm-header">
+                                    <h2 class="storm-name">${storm.name}</h2>
+                                    <span class="storm-classification" style="background-color: ${getClassificationColor(storm.classification)}">
+                                        ${storm.classification}
+                                        <div class="storm-icon-container">
+                                            ${getStormIcon(storm.classification, storm.wind_speed_mph)}
+                                        </div>
+                                    </span>
+                                </div>
+                                <div class="storm-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">Location</div>
+                                        <div class="detail-value">${storm.position[1].toFixed(1)}°N, ${Math.abs(storm.position[0]).toFixed(1)}°W</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Wind Speed</div>
+                                        <div class="detail-value">${roundToNearest5(storm.wind_speed_mph)} mph</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Pressure</div>
+                                        <div class="detail-value">${storm.pressure} mb</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Movement</div>
+                                        <div class="detail-value">${storm.movement_direction}° at ${storm.movement_speed} mph</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">Last Updated</div>
+                                        <div class="detail-value">${formatDate(storm.last_update_at)}</div>
+                                    </div>
+                                </div>
+                                ${storm.id ? `
+                                <div class="satellite-section" id="satellite-section-${storm.id}">
+                                    <img id="satellite-${storm.id}" 
+                                         src="${satelliteUrls.static}" 
+                                         alt="Satellite imagery of ${storm.name}" 
+                                         class="satellite-image"
+                                         onclick="showFullscreen(this.src)"
+                                         onerror="document.getElementById('satellite-section-${storm.id}').style.display = 'none';">
+                                    <div class="satellite-controls">
+                                        <button id="toggle-${storm.id}" 
+                                                class="toggle-button" 
+                                                onclick="toggleSatelliteView('${storm.id}')">
+                                            Show Animated
+                                        </button>
+                                        <span class="update-time" style="margin-left: 15px;">Last updated: ${formatDate(storm.last_update_at)}</span>
+                                    </div>
+                                </div>
+                                ` : ''}
+                                <div class="advisory-text">${storm.public_advisory}</div>
+                            </div>
+                        `;
+                    } catch (error) {
+                        console.error('Error rendering storm card:', error, storm);
+                        return '';
+                    }
+                }).join('');
+            } catch (error) {
+                console.error('Error in displayStorms:', error);
+                document.getElementById('storms-container').innerHTML = `
+                    <div class="error">
+                        <h3>Error displaying storm data</h3>
+                        <p>${error.message}</p>
+                        <button onclick="fetchStorms()" style="
+                            padding: 8px 16px;
+                            background: #007BFF;
+                            color: white;
+                            border: none;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            margin-top: 10px;
+                        ">Retry</button>
+                    </div>
+                `;
+            }
+        }
+
+        function showFullscreen(imageSrc) {
+            const overlay = document.getElementById('fullscreen-overlay');
+            if (!overlay.querySelector('img')) {
+                const img = document.createElement('img');
+                img.className = 'fullscreen-image';
+                overlay.appendChild(img);
+            }
+            const fullscreenImg = overlay.querySelector('img');
+            fullscreenImg.src = imageSrc;
+            overlay.style.display = 'block';
+        }
+
+        function toggleSatelliteView(stormId) {
+            const button = document.getElementById(`toggle-${stormId}`);
+            const image = document.getElementById(`satellite-${stormId}`);
+            const upperStormId = stormId.toUpperCase();
+            
+            if (button.textContent === 'Show Static') {
+                image.src = `https://cdn.star.nesdis.noaa.gov/FLOATER/data/${upperStormId}/GEOCOLOR/2000x2000.jpg`;
+                button.textContent = 'Show Animated';
+            } else {
+                image.src = `https://cdn.star.nesdis.noaa.gov/FLOATER/data/${upperStormId}/GEOCOLOR/${upperStormId}-GEOCOLOR-1000x1000.gif`;
+                button.textContent = 'Show Static';
+            }
+        }
+
+        // Fetch storms on page load
+        fetchStorms();
+
+        // Refresh data every 5 minutes
+        setInterval(fetchStorms, 300000);
+    </script>
+</body>
+</html> 
