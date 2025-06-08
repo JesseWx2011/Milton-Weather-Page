@@ -4,6 +4,27 @@ const AMBIENT_WEATHER_APPLICATION_KEY = '40b33f6a63754b5fb70a4d5fe557c64efcdd693
 const NWS_API_BASE_URL = 'https://api.weather.gov';
 const AMBIENT_WEATHER_BASE_URL = 'https://api.ambientweather.net/v1';
 
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+            console.log('Attempting to register service worker...');
+            const registration = await navigator.serviceWorker.register('/service-worker.js');
+            console.log('Service Worker registered successfully with scope:', registration.scope);
+            
+            // Check if notifications are supported
+            if ('Notification' in window) {
+                console.log('Notifications are supported');
+                console.log('Current notification permission:', Notification.permission);
+            } else {
+                console.log('Notifications are not supported');
+            }
+        } catch (error) {
+            console.error('Service Worker registration failed:', error);
+        }
+    });
+}
+
 // Global variable to store all chart instances
 const charts = {
     temp: null,
@@ -1449,6 +1470,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Start checking for alerts when the page loads
+    startAlertChecking();
 });
 
 // Make closeGraph function globally available
@@ -2281,6 +2305,246 @@ async function updateRainfallData(data) {
             yearlyRain.textContent = `${value.toFixed(2)} ${unit}`;
         }
     }
+}
+
+// Simplified notification system
+async function setupPushNotifications() {
+    try {
+        // Check if service workers are supported
+        if (!('serviceWorker' in navigator)) {
+            console.log('Service workers are not supported');
+            return;
+        }
+
+        // Register service worker
+        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        console.log('Service Worker registered');
+
+        // Request notification permission
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            console.log('Notification permission denied');
+            return;
+        }
+
+        // Update button state
+        const notificationButton = document.getElementById('notification-permission');
+        if (notificationButton) {
+            notificationButton.classList.add('enabled');
+        }
+
+        console.log('Notification setup complete');
+    } catch (error) {
+        console.error('Error setting up notifications:', error);
+    }
+}
+
+// Preload the notification sound
+const notificationSound = new Audio('./alert.mp3');
+notificationSound.load();
+
+// Function to show test notification
+function showTestNotification() {
+    console.log('Test notification button clicked');
+    
+    // Play notification sound
+    notificationSound.currentTime = 0; // Reset the audio to start
+    notificationSound.volume = 1.0;
+    notificationSound.play().catch(error => {
+        console.log('Could not play notification sound:', error);
+    });
+    
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = 'notification';
+    notification.innerHTML = `
+        <div class="notification-content">
+            <div class="notification-title">Test Notification</div>
+            <div class="notification-message">This is a test notification from your weather dashboard</div>
+        </div>
+        <button class="notification-close" onclick="this.parentElement.remove()">×</button>
+    `;
+
+    // Add to document
+    document.body.appendChild(notification);
+    
+    // Force a reflow to ensure the transition works
+    notification.offsetHeight;
+    
+    // Add the visible class to trigger the animation
+    notification.classList.add('visible');
+    console.log('Added notification to page');
+
+    // Remove after 5 seconds
+    setTimeout(() => {
+        notification.classList.remove('visible');
+        setTimeout(() => {
+            notification.remove();
+            console.log('Notification removed');
+        }, 300); // Wait for fade out animation
+    }, 5000);
+}
+
+// Add event listener for test notification button
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - Setting up test notification button');
+    const testNotificationBtn = document.getElementById('test-notification');
+    if (testNotificationBtn) {
+        console.log('Test notification button found, adding click listener');
+        testNotificationBtn.addEventListener('click', showTestNotification);
+    } else {
+        console.error('Test notification button not found in DOM');
+    }
+
+    // Start checking for alerts when the page loads
+    startAlertChecking();
+});
+
+// Developer mode toggle
+function toggleDevMode() {
+    const testButton = document.getElementById('test-notification');
+    if (testButton) {
+        testButton.style.display = testButton.style.display === 'none' ? 'flex' : 'none';
+    }
+}
+
+// Make toggleDevMode available in console
+window.toggleDevMode = toggleDevMode;
+
+// Function to show test notification
+async function showTestNotification() {
+    console.log('Test notification button clicked');
+    
+    try {
+        // Check if service worker is supported
+        if (!('serviceWorker' in navigator)) {
+            console.error('Service Worker not supported');
+            return;
+        }
+
+        // Check if notifications are supported
+        if (!('Notification' in window)) {
+            console.error('This browser does not support notifications');
+            return;
+        }
+
+        // Check if we have permission
+        if (Notification.permission !== 'granted') {
+            console.log('Requesting notification permission...');
+            const permission = await Notification.requestPermission();
+            if (permission !== 'granted') {
+                console.error('Notification permission denied');
+                return;
+            }
+        }
+
+        // Register service worker if not already registered
+        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        console.log('Service Worker registered:', registration);
+
+        // Show the notification through the service worker
+        await registration.showNotification('Weather Alert', {
+            body: 'This is a test notification from your weather dashboard',
+            icon: '/Favicon.png',
+            badge: '/Favicon.png',
+            vibrate: [100, 50, 100],
+            requireInteraction: true,
+            silent: false,
+            tag: 'weather-alert',
+            renotify: true
+        });
+
+    } catch (error) {
+        console.error('Error showing notification:', error);
+    }
+}
+
+// Add event listener for test notification button
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded - Setting up test notification button');
+    const testNotificationBtn = document.getElementById('test-notification');
+    if (testNotificationBtn) {
+        console.log('Test notification button found, adding click listener');
+        testNotificationBtn.addEventListener('click', showTestNotification);
+    } else {
+        console.error('Test notification button not found in DOM');
+    }
+});
+
+// Function to get stored alert IDs from localStorage
+function getStoredAlertIds() {
+    const storedIds = localStorage.getItem('lastAlertIds');
+    return storedIds ? new Set(JSON.parse(storedIds)) : new Set();
+}
+
+// Function to store alert IDs in localStorage
+function storeAlertIds(alertIds) {
+    localStorage.setItem('lastAlertIds', JSON.stringify([...alertIds]));
+}
+
+// Function to check for new weather alerts
+async function checkWeatherAlerts() {
+    try {
+        const response = await fetch('https://api.weather.gov/alerts?zone=FLZ203,FLZ204');
+        const data = await response.json();
+        
+        if (!data.features || !Array.isArray(data.features)) {
+            console.error('Invalid alert data received');
+            return;
+        }
+
+        // Get current alerts and stored alerts
+        const currentAlertIds = new Set();
+        const lastAlertIds = getStoredAlertIds();
+        
+        // Process each alert
+        for (const alert of data.features) {
+            const alertId = alert.id;
+            currentAlertIds.add(alertId);
+
+            // If this is a new alert we haven't seen before
+            if (!lastAlertIds.has(alertId)) {
+                const properties = alert.properties;
+                
+                // Create notification message
+                const notificationTitle = `${properties.event} - ${properties.severity}`;
+                const notificationBody = `${properties.headline}\n\n${properties.description}`;
+
+                // Show notification through service worker
+                if ('serviceWorker' in navigator) {
+                    const registration = await navigator.serviceWorker.ready;
+                    await registration.showNotification(notificationTitle, {
+                        body: notificationBody,
+                        icon: '/Favicon.png',
+                        badge: '/Favicon.png',
+                        vibrate: [100, 50, 100],
+                        requireInteraction: true,
+                        silent: false,
+                        tag: 'weather-alert',
+                        renotify: true,
+                        data: {
+                            url: properties.web
+                        }
+                    });
+                }
+            }
+        }
+
+        // Update stored alert IDs
+        storeAlertIds(currentAlertIds);
+
+    } catch (error) {
+        console.error('Error checking weather alerts:', error);
+    }
+}
+
+// Start checking for alerts every 2 minutes
+function startAlertChecking() {
+    // Check immediately on start
+    checkWeatherAlerts();
+    
+    // Then check every 2 minutes
+    setInterval(checkWeatherAlerts, 2 * 60 * 1000);
 }
   
     

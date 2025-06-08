@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -294,17 +293,17 @@
         /* Notification styles */
         .notification {
             position: fixed;
-            top: 140px;
-            right: 132px;
-            background-color: #ff9800;
+            top: 20px;
+            right: 20px;
+            background-color: #2196F3;
             color: white;
             padding: 15px 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            z-index: 2000;
+            z-index: 9999;
             opacity: 0;
-            transform: translateY(-20px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
             max-width: 300px;
             display: flex;
             align-items: center;
@@ -313,34 +312,38 @@
 
         .notification.visible {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateX(0);
         }
 
         .notification-content {
             flex-grow: 1;
+            margin-right: 10px;
         }
 
         .notification-title {
             font-weight: bold;
             margin-bottom: 5px;
+            font-size: 16px;
         }
 
         .notification-message {
-            font-size: 0.9em;
+            font-size: 14px;
+            opacity: 0.9;
         }
 
         .notification-close {
             background: none;
             border: none;
             color: white;
-            font-size: 18px;
+            font-size: 20px;
             cursor: pointer;
-            margin-left: 10px;
             padding: 0 5px;
+            opacity: 0.8;
+            transition: opacity 0.2s;
         }
 
         .notification-close:hover {
-            opacity: 0.8;
+            opacity: 1;
         }
 
         .refresh-button {
@@ -1096,6 +1099,39 @@
             height: 24px;
         }
 
+        .notification-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .notification-button:hover {
+            background: rgba(0, 0, 0, 0.05);
+            color: #333;
+            transform: scale(1.1);
+        }
+
+        .notification-button:active {
+            transform: scale(0.95);
+        }
+
+        .notification-button svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .notification-button.enabled {
+            color: #2196F3;
+        }
+
         /* Error Alert Box */
         .error-alert {
             position: fixed;
@@ -1669,6 +1705,10 @@
             padding: 3px;
             font-size: 0.9em;
         }
+
+        .dev-only {
+            display: inline-block !important;
+        }
     </style>
 </head>
 <body>
@@ -1679,6 +1719,16 @@
                 <button id="reload-weather" class="reload-button" title="Refresh weather data">
                     <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor" d="M17.65 6.35A7.958 7.958 0 0012 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0112 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+                    </svg>
+                </button>
+                <button id="notification-permission" class="notification-button" title="Enable Weather Alerts">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2zm-2 1H8v-6c0-2.48 1.51-4.5 4-4.5s4 2.02 4 4.5v6z"/>
+                    </svg>
+                </button>
+                <button id="test-notification" class="notification-button dev-only" style="display: none;" title="Test Notification" >
+                    <svg style="display: none;" viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                     </svg>
                 </button>
             </div>

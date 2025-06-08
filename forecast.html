@@ -9,98 +9,70 @@
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12"></script>
     <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --background-color: #f5f6fa;
+            --card-background: #ffffff;
+            --text-color: #2c3e50;
+            --border-radius: 12px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
         }
 
         body {
-            background-color: #f0f2f5;
-            color: #333;
+            background-color: var(--background-color);
+            color: var(--text-color);
             line-height: 1.6;
+            min-height: 100vh;
         }
 
         .container {
             max-width: 1300px;
             margin: 25px auto;
             padding: 20px;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-bottom: 20px;
+            position: relative;
         }
 
         h1 {
+            color: var(--primary-color);
             text-align: center;
             margin-bottom: 20px;
+            font-size: 2em;
         }
 
-        .forecast-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-
-        .forecast-table th, .forecast-table td {
-            padding: 10px;
-            border: 1px solid #ccc;
-            text-align: left;
-        }
-
-        .forecast {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            list-style-type: none;
-            padding: 0;
-        }
-
-        .forecast-tombstone {
-            width: 165px;
-            margin: 5px;
-            flex: 1 1 15px;
-            text-align: center;
-        }
-
-        .forecast-icon {
-            width: 50px;
-            height: 50px;
-        }
-
-        .txt-ctr-caps {
-            text-transform: capitalize;
-            font-weight: bold;
-        }
-
-        .warn {
-            color: red;
-            font-weight: bold;
-        }
-
-        .daytime, .nighttime {
-            display: flex; /* Use flexbox for horizontal layout */
-            justify-content: space-around; /* Space items evenly */
-            margin-bottom: 20px; /* Space between daytime and nighttime sections */
-        }
         .back-button {
             position: absolute;
-            top: 50px;
-            left: 130px;
+            top: 20px;
+            left: 20px;
             text-decoration: none;
-            color: #3498db;
-            display: inline-block;
+            color: var(--secondary-color);
+            display: inline-flex;
+            align-items: center;
             padding: 8px 16px;
-            border-radius: 4px;
+            border-radius: 20px;
             background: rgba(52, 152, 219, 0.1);
             transition: all 0.3s;
             font-size: 14px;
-            z-index: 1000;
         }
 
         .back-button:hover {
             background: rgba(52, 152, 219, 0.2);
-            color: #2980b9;
+            transform: translateY(-2px);
         }
 
         .location-selector {
@@ -109,111 +81,249 @@
         }
 
         #location-dropdown {
-            padding: 8px 15px;
+            padding: 12px 20px;
             font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
             background-color: white;
             cursor: pointer;
-            min-width: 200px;
+            min-width: 250px;
+            transition: all 0.3s;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 15px;
         }
 
         #location-dropdown:hover {
-            border-color: #3498db;
+            border-color: var(--secondary-color);
+        }
+
+        .forecast-container {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .forecast {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .forecast-tombstone {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 12px;
+            width: 160px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            flex: 0 0 auto;
+        }
+
+        .forecast-tombstone:hover {
+            transform: translateY(-5px);
+        }
+
+        .forecast-icon {
+            width: 50px;
+            height: 50px;
+            margin: 8px 0;
+        }
+
+        .txt-ctr-caps {
+            text-transform: capitalize;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .point-forecast-icons-high {
+            color: #e74c3c;
+            font-weight: 600;
+            margin: 4px 0;
+            font-size: 0.95em;
+        }
+
+        .point-forecast-icons-low {
+            color: #3498db;
+            font-weight: 600;
+            margin: 4px 0;
+            font-size: 0.95em;
+        }
+
+        .forecast-tombstone p {
+            font-size: 0.9em;
+            line-height: 1.4;
+        }
+
+        .daytime, .nighttime {
+            margin-bottom: 30px;
+        }
+
+        .daytime h2, .nighttime h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.5em;
+        }
+
+        .location-info {
+            background: var(--card-background);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .location-info p {
+            margin: 5px 0;
+            color: var(--text-color);
+        }
+
+        .nws-link {
+            color: var(--secondary-color);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .nws-link:hover {
+            color: #2980b9;
+        }
+
+        .weather-finder-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .weather-finder-link img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+                margin: 10px;
+            }
+
+            .forecast-tombstone {
+                min-width: 150px;
+            }
+
+            .back-button {
+                position: relative;
+                top: 0;
+                left: 0;
+                margin-bottom: 20px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
-
-        <h1>NWS Forecast for: <span id="location-name">Milton, FL</span></h1>
-        <div class="location-selector">
-            <select id="location-dropdown">
-                <option value="">- Select Forecast -</option>
-                <option value="Milton,FL">Milton, FL</option>
-                <option value="Pensacola,FL">Pensacola, FL</option>
-                <option value="HurlburtField,FL">Hurlburt Field, FL</option>
-                <option value="Baker,FL">Baker, FL</option>
-                <option value="Crestview,FL">Crestview, FL</option>
-                <option value="Navarre,FL">Navarre, FL</option>
-                <option value="EglinAFB,FL">Eglin AFB, FL</option>
-                <option value="FortWaltonBeach,FL">Fort Walton Beach, FL</option>
-                <option value="Destin,FL">Destin, FL</option>
-                <option value="GulfBreeze,FL">Gulf Breeze, FL</option>
-                <option value="Molino,FL">Molino, FL</option>
-                <option value="Century,FL">Century, FL</option>
-                <option value="LaurelHill,FL">Laurel Hill, FL</option>
-                <option value="GulfShores,AL">Gulf Shores, AL</option>
-                <option value="PanamaCity,FL">Panama City, FL</option>
-                <option value="Enterprise,AL">Enterprise, AL</option>
-                <option value="Tallahassee,FL">Tallahassee, FL</option>
-            </select>
+        <div class="header">
+            <a href="index.html" class="back-button" title="Back to main dashboard">← Return to Weather Dashboard</a>
+            <h1>NWS Forecast for: <span id="location-name">Milton, FL</span></h1>
+            <div class="location-selector">
+                <select id="location-dropdown">
+                    <option value="">- Select Forecast -</option>
+                    <optgroup label="Florida">
+                        <option value="Milton,FL">Milton, FL</option>
+                        <option value="Pensacola,FL">Pensacola, FL</option>
+                        <option value="Hurlburt Field,FL">Hurlburt Field, FL</option>
+                        <option value="Baker,FL">Baker, FL</option>
+                        <option value="Crestview,FL">Crestview, FL</option>
+                        <option value="Navarre,FL">Navarre, FL</option>
+                        <option value="Eglin AFB,FL">Eglin AFB, FL</option>
+                        <option value="Fort Walton Beach,FL">Fort Walton Beach, FL</option>
+                        <option value="Destin,FL">Destin, FL</option>
+                        <option value="Gulf Breeze,FL">Gulf Breeze, FL</option>
+                        <option value="Molino,FL">Molino, FL</option>
+                        <option value="Century,FL">Century, FL</option>
+                        <option value="Laurel Hill,FL">Laurel Hill, FL</option>
+                        <option value="Panama City,FL">Panama City, FL</option>
+                        <option value="Tallahassee,FL">Tallahassee, FL</option>
+                    </optgroup>
+                    <optgroup label="Alabama">
+                        <option value="Gulf Shores,AL">Gulf Shores, AL</option>
+                        <option value="Orange Beach,AL">Orange Beach, AL</option>
+                        <option value="Daphne,AL">Daphne, AL</option>
+                        <option value="Fairhope,AL">Fairhope, AL</option>
+                        <option value="Foley,AL">Foley, AL</option>
+                        <option value="Robertsdale,AL">Robertsdale, AL</option>
+                        <option value="Bay Minette,AL">Bay Minette, AL</option>
+                        <option value="Spanish Fort,AL">Spanish Fort, AL</option>
+                        <option value="Mobile,AL">Mobile, AL</option>
+                        <option value="Enterprise,AL">Enterprise, AL</option>
+                    </optgroup>
+                </select>
+            </div>
+            <p id="last-update"><a href="https://www.weather.gov/glossary/index.php?word=Last+update" class="nws-link"><b>Last Update: </b></a>3:14 pm CDT Apr 21, 2025</p>
         </div>
-        <p>Issued by: National Weather Service Mobile, AL</p>
-        <p id="last-update"><a href="https://www.weather.gov/glossary/index.php?word=Last+update"><b>Last Update: </b></a>3:14 pm CDT Apr 21, 2025</p>
-        
-        <table class="forecast-table">
-            <tbody>
-                <tr>
-                    <td colspan="2" align="center">
-                        <hr>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2" align="center">
-                        <div class="daytime">
-                            <ul class="forecast">
-                                <!-- Daytime forecast items will be dynamically added here -->
-                            </ul>
-                        </div>
-                        <div class="nighttime">
-                            <ul class="forecast">
-                                <!-- Nighttime forecast items will be dynamically added here -->
-                            </ul>
-                        </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2" align="left">
-                        Milton, FL<br>
-                        30.68°N 87.03°W (Elev. 66 ft)<br>
-                    </td>
-                </tr>
-                <tr>
-                    <td colspan="2" align="left">
-                        Visit your local NWS office at: <a href="https://www.weather.gov/mob">https://www.weather.gov/mob</a>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-            <!-- USA Weather Finder Link -->
-    <div class="weather-finder-link" align="center">
-        <a href="https://usaweatherfinder.com/">
-            <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
-        </a>
+
+        <div class="forecast-container">
+            <div class="daytime">
+                <h2>Daytime Forecast</h2>
+                <ul class="forecast">
+                    <!-- Daytime forecast items will be dynamically added here -->
+                </ul>
+            </div>
+            <div class="nighttime">
+                <h2>Nighttime Forecast</h2>
+                <ul class="forecast">
+                    <!-- Nighttime forecast items will be dynamically added here -->
+                </ul>
+            </div>
+        </div>
+
+        <div class="location-info">
+            <p id="coordinates">Milton, FL<br>30.68°N 87.03°W (Elev. 66 ft)</p>
+            <p>Visit your local NWS office at: <a href="https://www.weather.gov/mob" class="nws-link">https://www.weather.gov/mob</a></p>
+        </div>
+
+        <div class="weather-finder-link">
+            <a href="https://usaweatherfinder.com/">
+                <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
+            </a>
+        </div>
     </div>
-    </div>
-    
 
     <script>
         // Location coordinates mapping
         const locationCoordinates = {
             'Milton,FL': { lat: 30.68, lon: 87.03, grid: 'MOB/90,67', office: 'Mobile' },
             'Pensacola,FL': { lat: 30.42, lon: 87.22, grid: 'MOB/91,66', office: 'Mobile' },
-            'HurlburtField,FL': { lat: 30.43, lon: 86.68, grid: 'MOB/88,66', office: 'Mobile' },
+            'Hurlburt Field,FL': { lat: 30.43, lon: 86.68, grid: 'MOB/88,66', office: 'Mobile' },
             'Baker,FL': { lat: 30.80, lon: 86.68, grid: 'MOB/88,68', office: 'Mobile' },
             'Crestview,FL': { lat: 30.76, lon: 86.57, grid: 'MOB/87,68', office: 'Mobile' },
             'Navarre,FL': { lat: 30.40, lon: 86.86, grid: 'MOB/89,66', office: 'Mobile' },
-            'EglinAFB,FL': { lat: 30.46, lon: 86.56, grid: 'MOB/87,66', office: 'Mobile' },
-            'FortWaltonBeach,FL': { lat: 30.41, lon: 86.62, grid: 'MOB/87,66', office: 'Mobile' },
+            'Eglin AFB,FL': { lat: 30.46, lon: 86.56, grid: 'MOB/87,66', office: 'Mobile' },
+            'Fort Walton Beach,FL': { lat: 30.41, lon: 86.62, grid: 'MOB/87,66', office: 'Mobile' },
             'Destin,FL': { lat: 30.39, lon: 86.50, grid: 'MOB/86,66', office: 'Mobile' },
-            'GulfBreeze,FL': { lat: 30.36, lon: 87.16, grid: 'MOB/90,66', office: 'Mobile' },
+            'Gulf Breeze,FL': { lat: 30.36, lon: 87.16, grid: 'MOB/90,66', office: 'Mobile' },
             'Molino,FL': { lat: 30.72, lon: 87.31, grid: 'MOB/91,68', office: 'Mobile' },
             'Century,FL': { lat: 30.97, lon: 87.26, grid: 'MOB/91,70', office: 'Mobile' },
-            'LaurelHill,FL': { lat: 30.96, lon: 86.45, grid: 'MOB/87,70', office: 'Mobile' },
-            'GulfShores,AL': { lat: 30.25, lon: 87.70, grid: 'MOB/93,65', office: 'Mobile' },
-            'PanamaCity,FL': { lat: 30.16, lon: 85.66, grid: 'TAE/84,65', office: 'Tallahassee' },
+            'Laurel Hill,FL': { lat: 30.96, lon: 86.45, grid: 'MOB/87,70', office: 'Mobile' },
+            'Gulf Shores,AL': { lat: 30.25, lon: 87.70, grid: 'MOB/93,65', office: 'Mobile' },
+            'Orange Beach,AL': { lat: 30.27, lon: 87.58, grid: 'MOB/92,65', office: 'Mobile' },
+            'Daphne,AL': { lat: 30.60, lon: 87.90, grid: 'MOB/94,67', office: 'Mobile' },
+            'Fairhope,AL': { lat: 30.52, lon: 87.90, grid: 'MOB/94,66', office: 'Mobile' },
+            'Foley,AL': { lat: 30.41, lon: 87.68, grid: 'MOB/93,66', office: 'Mobile' },
+            'Robertsdale,AL': { lat: 30.55, lon: 87.70, grid: 'MOB/93,67', office: 'Mobile' },
+            'Bay Minette,AL': { lat: 30.88, lon: 87.77, grid: 'MOB/93,69', office: 'Mobile' },
+            'Spanish Fort,AL': { lat: 30.67, lon: 87.87, grid: 'MOB/94,68', office: 'Mobile' },
+            'Mobile,AL': { lat: 30.69, lon: 88.04, grid: 'MOB/95,68', office: 'Mobile' },
+            'Panama City,FL': { lat: 30.16, lon: 85.66, grid: 'TAE/84,65', office: 'Tallahassee' },
             'Enterprise,AL': { lat: 31.32, lon: 85.85, grid: 'TAE/85,72', office: 'Tallahassee' },
             'Tallahassee,FL': { lat: 30.44, lon: 84.28, grid: 'TAE/115,91', office: 'Tallahassee' }
         };
@@ -276,7 +386,7 @@
             const lastUpdateTimeFormatted = `${get('hour')}:${get('minute')} ${get('dayPeriod').toLowerCase()} ${get('timeZoneName')} ${dateString}`;
             const lastUpdateElement = document.getElementById('last-update');
             if (lastUpdateElement) {
-                lastUpdateElement.innerHTML = `<a href="https://www.weather.gov/glossary/index.php?word=Last+update"><b>Last Update: </b></a>${lastUpdateTimeFormatted}`;
+                lastUpdateElement.innerHTML = `<a href="https://www.weather.gov/glossary/index.php?word=Last+update" class="nws-link"><b>Last Update: </b></a>${lastUpdateTimeFormatted}`;
             }
 
             // Update the NWS office text and link
@@ -295,9 +405,28 @@
                 nwsOfficeLink.textContent = `https://www.weather.gov/${nwsOffice.toLowerCase()}`;
             }
 
+            // Check if first period is "Tonight"
+            const firstPeriod = data.properties.periods[0];
+            const startsWithTonight = firstPeriod.name === "Tonight";
+
             // Separate daytime and nighttime forecasts
-            const daytimeForecasts = data.properties.periods.filter(period => period.isDaytime);
-            const nighttimeForecasts = data.properties.periods.filter(period => !period.isDaytime);
+            let daytimeForecasts = data.properties.periods.filter(period => period.isDaytime);
+            let nighttimeForecasts = data.properties.periods.filter(period => !period.isDaytime);
+
+            // If starts with "Tonight", add an empty column to daytime
+            if (startsWithTonight) {
+                const emptyDaytimeItem = document.createElement('li');
+                emptyDaytimeItem.className = 'forecast-tombstone';
+                emptyDaytimeItem.innerHTML = `
+                    <div>
+                        <p class="txt-ctr-caps">Today</p>
+                        <p><img src="${firstPeriod.icon}" alt="No forecast" class="forecast-icon"></p>
+                        <p class="point-forecast-icons-high">High: --</p>
+                        <p>No forecast available</p>
+                    </div>
+                `;
+                daytimeForecasts.unshift(emptyDaytimeItem);
+            }
 
             // Append daytime forecasts
             daytimeForecasts.forEach(period => {
@@ -328,6 +457,19 @@
                 `;
                 nighttimeContainer.appendChild(forecastItem);
             });
+
+            // Update the coordinates and city information
+            const selectedLocation = document.getElementById('location-dropdown').value;
+            if (selectedLocation) {
+                const coordinates = locationCoordinates[selectedLocation];
+                if (coordinates) {
+                    const [city, state] = selectedLocation.split(',');
+                    const coordinatesCell = document.querySelector('tr:nth-last-child(2) td');
+                    if (coordinatesCell) {
+                        coordinatesCell.innerHTML = `${city}, ${state}<br>${coordinates.lat.toFixed(2)}°N ${coordinates.lon.toFixed(2)}°W (Elev. 66 ft)<br>`;
+                    }
+                }
+            }
         }
 
         // Add event listener for location dropdown
