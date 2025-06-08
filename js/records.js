@@ -40,14 +40,14 @@ async function fetchRecords() {
         displayRecords(allTimeData, 'all-time');
 
         // Fetch 2024 records
-        const records2024Response = await fetch('../json/weatherrecords2024.json');
+        const records2024Response = await fetch('./json/weatherrecords2024.json');
         if (records2024Response.ok) {
             const records2024Data = await records2024Response.json();
             displayRecords(records2024Data, '2024');
         }
 
         // Fetch 2025 records
-        const records2025Response = await fetch('../json/weatherrecords2025.json');
+        const records2025Response = await fetch('./json/weatherrecords2025.json');
         if (records2025Response.ok) {
             const records2025Data = await records2025Response.json();
             displayRecords(records2025Data, '2025');
