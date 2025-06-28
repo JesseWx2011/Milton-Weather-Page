@@ -4,107 +4,439 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Storm Prediction Center Convective Outlooks</title>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css' rel='stylesheet' />
     <style>
-        body {
-            font-family: Verdana, Geneva, Tahoma, sans-serif, sans-serif;
-            background-color: #f4f4f4;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 20px;
         }
-        header {
-            background: #007BFF;
-            color: white;
-            padding: 10px 0;
-            text-align: center;
-        }
-        main {
-            margin-top: 20px;
-            padding: 20px;
-            background: white;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        label {
-            font-weight: bold;
-        }
-        select {
-            margin: 10px 0;
-            padding: 5px;
-            font-size: 16px;
-        }
-        #outlook-display {
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            background: #e9ecef;
-            height: fit-content;
-        }
-        .outlookImg {
-            width: 75%;
-            max-width: 100%;
-            margin-left: 12.5%;
-        }
+
         .back-button {
             position: fixed;
-            top: 35px;
-            left: 30px;
+            top: 20px;
+            left: 20px;
             text-decoration: none;
-            color: #06314e;
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 4px;
-            background: rgba(19, 71, 105, 0.373);
-            transition: all 0.3s;
-            font-size: 14px;
+            color: white;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
             z-index: 1000;
+            font-weight: 500;
         }
 
         .back-button:hover {
-            background: rgba(52, 152, 219, 0.626);
-            color: #06314e;
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .controls-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            align-items: end;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        select {
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .outlook-section, .map-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            min-height: 500px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 2px;
+        }
+
+        #outlook-display {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+        }
+
+        .outlookImg {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        #map {
+            width: 100%;
+            height: 400px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .weather-finder-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .weather-finder-link img {
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .weather-finder-link img:hover {
+            transform: scale(1.05);
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 400px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .map-toggles {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e1e5e9;
+        }
+
+        .toggles-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .controls-toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            background: white;
+            color: #555;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .controls-toggle-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .controls-toggle-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+        }
+
+        .toggle-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .toggle-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .toggle-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .toggle-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 6px;
+            background: white;
+            color: #555;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 80px;
+            justify-content: center;
+        }
+
+        .toggle-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+            transform: translateY(-1px);
+        }
+
+        .toggle-btn.active {
+            border-color: #667eea;
+            background: #667eea;
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .toggle-btn.active:hover {
+            background: #5a6fd8;
+        }
+
+        .toggle-icon {
+            font-size: 14px;
+        }
+
+        .toggle-container-hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
-    <header>
-        <h1>Storm Prediction Center Convective Outlooks</h1>
-    </header>
-    <main>
-        <label for="outlook-select">Select Outlook:</label>
-        <select id="outlook-select">
-            <option value="day1">Day 1 Outlook</option>
-            <option value="day2">Day 2 Outlook</option>
-            <option value="day3">Day 3 Outlook</option>
-            <option value="day4">Day 4 Outlook</option>
-            <option value="day5">Day 5 Outlook</option>
-            <option value="day6">Day 6 Outlook</option>
-            <option value="day7">Day 7 Outlook</option>
-            <option value="day8">Day 8 Outlook</option>
-            <option value="day1tornado">Day 1 Tornado</option>
-            <option value="day2tornado">Day 2 Tornado</option>
-            <option value="day1wind">Day 1 Wind</option>
-            <option value="day2wind">Day 2 Wind</option>
-            <option value="day1hail">Day 1 Hail</option>
-            <option value="day2hail">Day 2 Hail</option>
-            <option value="day3probalistic">Day 3 Probalistic Severe</option>
-
-        </select>
-        <div id="outlook-display">
-            <!-- Outlook information will be displayed here -->
-        </div>
-    </main>
-    <!-- USA Weather Finder Link -->
-    <div class="weather-finder-link">
-        <a href="https://usaweatherfinder.com/">
-            <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
-        </a>
-    </div>
-    <script src="spc.js"></script> <!-- Link to your JavaScript file -->
-
+    <a href="index.html" class="back-button" title="Back to main dashboard">← Dashboard</a>
     
+    <div class="container">
+        <header>
+            <h1>Storm Prediction Center</h1>
+            <p>Convective Outlooks & Interactive Weather Map</p>
+        </header>
+
+        <div class="controls-section">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label for="outlook-select">Select Outlook Type:</label>
+                    <select id="outlook-select">
+                        <option value="day1">Day 1 Outlook</option>
+                        <option value="day2">Day 2 Outlook</option>
+                        <option value="day3">Day 3 Outlook</option>
+                        <option value="day4">Day 4 Outlook</option>
+                        <option value="day5">Day 5 Outlook</option>
+                        <option value="day6">Day 6 Outlook</option>
+                        <option value="day7">Day 7 Outlook</option>
+                        <option value="day8">Day 8 Outlook</option>
+                        <option value="day1tornado">Day 1 Tornado</option>
+                        <option value="day2tornado">Day 2 Tornado</option>
+                        <option value="day1wind">Day 1 Wind</option>
+                        <option value="day2wind">Day 2 Wind</option>
+                        <option value="day1hail">Day 1 Hail</option>
+                        <option value="day2hail">Day 2 Hail</option>
+                        <option value="day3probalistic">Day 3 Probabilistic Severe</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="map-toggles">
+                <div class="toggles-header">
+                    <h4 style="margin: 0; color: #555; font-size: 1rem;">Interactive Map Layers:</h4>
+                    <button class="controls-toggle-btn" id="controls-toggle">
+                        <span class="toggle-icon">⚙️</span>
+                        Controls
+                    </button>
+                </div>
+                <div class="toggle-grid" id="toggle-container">
+                    <div class="toggle-group">
+                        <h5 style="margin: 0 0 10px 0; color: #666; font-size: 0.9rem;">Day 1</h5>
+                        <div class="toggle-row">
+                            <button class="toggle-btn active" data-layer="day1cat" data-day="1" data-type="cat">
+                                <span class="toggle-icon">🗺️</span>
+                                Categorical
+                            </button>
+                            <button class="toggle-btn" data-layer="day1tornado" data-day="1" data-type="tornado">
+                                <span class="toggle-icon">🌪️</span>
+                                Tornado
+                            </button>
+                            <button class="toggle-btn" data-layer="day1hail" data-day="1" data-type="hail">
+                                <span class="toggle-icon">🧊</span>
+                                Hail
+                            </button>
+                            <button class="toggle-btn" data-layer="day1wind" data-day="1" data-type="wind">
+                                <span class="toggle-icon">💨</span>
+                                Wind
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="toggle-group">
+                        <h5 style="margin: 0 0 10px 0; color: #666; font-size: 0.9rem;">Day 2</h5>
+                        <div class="toggle-row">
+                            <button class="toggle-btn" data-layer="day2cat" data-day="2" data-type="cat">
+                                <span class="toggle-icon">🗺️</span>
+                                Categorical
+                            </button>
+                            <button class="toggle-btn" data-layer="day2tornado" data-day="2" data-type="tornado">
+                                <span class="toggle-icon">🌪️</span>
+                                Tornado
+                            </button>
+                            <button class="toggle-btn" data-layer="day2hail" data-day="2" data-type="hail">
+                                <span class="toggle-icon">🧊</span>
+                                Hail
+                            </button>
+                            <button class="toggle-btn" data-layer="day2wind" data-day="2" data-type="wind">
+                                <span class="toggle-icon">💨</span>
+                                Wind
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="toggle-group">
+                        <h5 style="margin: 0 0 10px 0; color: #666; font-size: 0.9rem;">Day 3</h5>
+                        <div class="toggle-row">
+                            <button class="toggle-btn" data-layer="day3cat" data-day="3" data-type="cat">
+                                <span class="toggle-icon">🗺️</span>
+                                Categorical
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="outlook-section">
+                <div class="section-title">SPC Convective Outlook</div>
+                <div id="outlook-display">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading outlook...
+                    </div>
+                </div>
+            </div>
+
+            <div class="map-section">
+                <div class="section-title">Interactive Weather Map</div>
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <div class="weather-finder-link">
+            <a href="https://usaweatherfinder.com/">
+                <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
+            </a>
+        </div>
+    </div>
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <script src="spc.js"></script>
 </body>
 </html>
