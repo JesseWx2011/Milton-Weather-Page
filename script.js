@@ -1039,6 +1039,11 @@ async function updateWeather() {
             updateRainfallData(ambientData[0].lastData);
         }
 
+        // Fetch and display tide data for Pensacola
+        if (typeof updateTideData === 'function') {
+            updateTideData();
+        }
+
     } catch (error) {
         console.error('Error updating weather:', error);
         showErrorAlert();
@@ -2673,6 +2678,127 @@ function startAlertChecking() {
     
     // Then check every 2 minutes
     setInterval(checkWeatherAlerts, 2 * 60 * 1000);
+}
+
+// Function to fetch and display tide data for Pensacola
+async function updateTideData() {
+    try {
+        // Get current date/time in local (Central) time
+        const now = new Date();
+        const endDate = new Date(now);
+        const startDate = new Date(now.getTime() - 12 * 60 * 60 * 1000); // 12 hours ago
+
+        // Format dates for API (YYYYMMDD HH:MM)
+        function formatDateForApi(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const hr = String(date.getHours()).padStart(2, '0');
+            const min = String(date.getMinutes()).padStart(2, '0');
+            return { yyyymmdd: `${yyyy}${mm}${dd}`, hr, min };
+        }
+        const start = formatDateForApi(startDate);
+        const end = formatDateForApi(endDate);
+
+        // Build API URL for water level
+        const apiUrl = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=water_level&begin_date=${start.yyyymmdd}%20${start.hr}%3A${start.min}&end_date=${end.yyyymmdd}%20${end.hr}%3A${end.min}&datum=MLLW&station=8729840&time_zone=LST_LDT&units=english&format=json&application=NOS.COOPS.TAC.STATIONHOME`;
+
+        const response = await fetch(apiUrl);
+        const data = await response.json();
+        if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
+            document.getElementById('tide-level').textContent = '-- ft';
+            document.getElementById('tide-time').textContent = '--';
+            document.getElementById('tide-high').textContent = '--';
+            document.getElementById('tide-low').textContent = '--';
+            return;
+        }
+        // Get latest datapoint
+        const latest = data.data[data.data.length - 1];
+        document.getElementById('tide-level').textContent = `${parseFloat(latest.v).toFixed(2)} ft`;
+        // Convert latest.t to CDT
+        const latestDate = new Date(latest.t.replace(' ', 'T'));
+        document.getElementById('tide-time').textContent = latestDate.toLocaleString('en-US', { timeZone: 'America/Chicago', hour: 'numeric', minute: '2-digit', hour12: true, month: 'short', day: 'numeric' });
+
+        // Prepare data for chart (last 12 hours)
+        const chartLabels = data.data.map(d => {
+            // Show hour:minute only in CDT
+            const t = new Date(d.t.replace(' ', 'T'));
+            return t.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Chicago' });
+        });
+        const chartValues = data.data.map(d => parseFloat(d.v));
+
+        // Draw mini chart using Chart.js
+        let tideChartInstance = window.tideChartInstance;
+        const ctxId = 'tideChartCanvas';
+        let ctx = document.getElementById(ctxId);
+        if (!ctx) {
+            // Create canvas if not present
+            const chartDiv = document.getElementById('tide-chart');
+            chartDiv.innerHTML = '<canvas id="tideChartCanvas" height="60"></canvas>';
+            ctx = document.getElementById(ctxId).getContext('2d');
+        } else {
+            ctx = ctx.getContext('2d');
+        }
+        if (tideChartInstance) {
+            tideChartInstance.destroy();
+        }
+        window.tideChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: chartLabels,
+                datasets: [{
+                    data: chartValues,
+                    borderColor: '#2196F3',
+                    backgroundColor: 'rgba(33,150,243,0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { display: false },
+                    y: { display: false }
+                },
+                elements: { line: { borderJoinStyle: 'round' } }
+            }
+        });
+
+        // Fetch high/low tide predictions for today and tomorrow
+        const today = new Date();
+        const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+        const predStart = formatDateForApi(today).yyyymmdd;
+        const predEnd = formatDateForApi(tomorrow).yyyymmdd;
+        const hiloUrl = `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?product=predictions&format=json&interval=hilo&time_zone=LST_LDT&units=english&datum=MLLW&station=8729840&begin_date=${predStart}&end_date=${predEnd}`;
+        const hiloResp = await fetch(hiloUrl);
+        const hiloData = await hiloResp.json();
+        if (hiloData && Array.isArray(hiloData.predictions)) {
+            // Find next high and low tides after now
+            const nowTime = now.getTime();
+            const nextHigh = hiloData.predictions.find(p => p.type === 'H' && new Date(p.t.replace(' ', 'T')).getTime() > nowTime);
+            const nextLow = hiloData.predictions.find(p => p.type === 'L' && new Date(p.t.replace(' ', 'T')).getTime() > nowTime);
+            function formatTide(tide) {
+                if (!tide) return '--';
+                const t = new Date(tide.t.replace(' ', 'T'));
+                // Show as '1.65 ft at 12:49 PM CDT'
+                return `${parseFloat(tide.v).toFixed(2)} ft at ${t.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'America/Chicago' })} CDT`;
+            }
+            document.getElementById('tide-high').textContent = formatTide(nextHigh);
+            document.getElementById('tide-low').textContent = formatTide(nextLow);
+        } else {
+            document.getElementById('tide-high').textContent = '--';
+            document.getElementById('tide-low').textContent = '--';
+        }
+    } catch (e) {
+        document.getElementById('tide-level').textContent = '-- ft';
+        document.getElementById('tide-time').textContent = '--';
+        document.getElementById('tide-high').textContent = '--';
+        document.getElementById('tide-low').textContent = '--';
+    }
 }
   
     

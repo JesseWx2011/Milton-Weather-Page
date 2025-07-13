@@ -3,8 +3,8 @@ const CAMERA_CONFIG = {
     sources: [
         {
             id: 'camera1',
-            name: 'Gulf Breeze Pier Cam',
-            url: 'https://5ed7b8fd7bf40.streamlock.net:444/gulfbreezerecovery/gulfbreezerecoverybeachcam/playlist.m3u8',
+            name: 'I-10 and FL-87 Intersection',
+            url: 'https://dim-se2.divas.cloud:8200/chan-6574/xflow.m3u8?token=87d540781330654b1dab13658827f1411b4d99bbc787aed115b3ec0e436e4fec',
             type: 'video'
         },
         {

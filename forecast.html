@@ -405,28 +405,9 @@
                 nwsOfficeLink.textContent = `https://www.weather.gov/${nwsOffice.toLowerCase()}`;
             }
 
-            // Check if first period is "Tonight"
-            const firstPeriod = data.properties.periods[0];
-            const startsWithTonight = firstPeriod.name === "Tonight";
-
             // Separate daytime and nighttime forecasts
             let daytimeForecasts = data.properties.periods.filter(period => period.isDaytime);
             let nighttimeForecasts = data.properties.periods.filter(period => !period.isDaytime);
-
-            // If starts with "Tonight", add an empty column to daytime
-            if (startsWithTonight) {
-                const emptyDaytimeItem = document.createElement('li');
-                emptyDaytimeItem.className = 'forecast-tombstone';
-                emptyDaytimeItem.innerHTML = `
-                    <div>
-                        <p class="txt-ctr-caps">Today</p>
-                        <p><img src="${firstPeriod.icon}" alt="No forecast" class="forecast-icon"></p>
-                        <p class="point-forecast-icons-high">High: --</p>
-                        <p>No forecast available</p>
-                    </div>
-                `;
-                daytimeForecasts.unshift(emptyDaytimeItem);
-            }
 
             // Append daytime forecasts
             daytimeForecasts.forEach(period => {
@@ -464,9 +445,9 @@
                 const coordinates = locationCoordinates[selectedLocation];
                 if (coordinates) {
                     const [city, state] = selectedLocation.split(',');
-                    const coordinatesCell = document.querySelector('tr:nth-last-child(2) td');
-                    if (coordinatesCell) {
-                        coordinatesCell.innerHTML = `${city}, ${state}<br>${coordinates.lat.toFixed(2)}°N ${coordinates.lon.toFixed(2)}°W (Elev. 66 ft)<br>`;
+                    const coordinatesElement = document.getElementById('coordinates');
+                    if (coordinatesElement) {
+                        coordinatesElement.innerHTML = `${city}, ${state}<br>${coordinates.lat.toFixed(2)}°N ${coordinates.lon.toFixed(2)}°W (Elev. 66 ft)`;
                     }
                 }
             }
