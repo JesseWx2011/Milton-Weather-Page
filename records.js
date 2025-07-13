@@ -13,29 +13,77 @@ async function fetchRecords() {
     }
 }
 
-// Format date to 12-hour format
+// Format date to 12-hour format with iOS compatibility
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-        month: 'numeric',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/Chicago'
-    });
+    let date;
+    
+    // Handle different date string formats for iOS compatibility
+    if (typeof dateString === 'string') {
+        // Try parsing as ISO string first
+        if (dateString.includes('T') && dateString.includes('Z')) {
+            date = new Date(dateString);
+        } else if (dateString.includes('T')) {
+            // Add timezone if missing
+            date = new Date(dateString + 'Z');
+        } else {
+            // Handle date-only strings by adding time
+            date = new Date(dateString + 'T12:00:00Z');
+        }
+    } else {
+        date = new Date(dateString);
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+        console.warn('Invalid date string:', dateString);
+        return 'Invalid Date';
+    }
+    
+    try {
+        return date.toLocaleString('en-US', {
+            month: 'numeric',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: 'America/Chicago'
+        });
+    } catch (error) {
+        console.warn('Error formatting date:', error);
+        // Fallback to basic formatting
+        return date.toLocaleDateString('en-US') + ' ' + date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        });
+    }
 }
 
 // Display records on the page
 function displayRecords(data) {
-    // Update station info with explicit time to avoid timezone issues
-    const startDate = new Date(data.stationInfo.startDate + 'T12:00:00Z');
-    document.querySelector('.station-info .start-date').textContent = startDate.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    // Update station info with iOS-compatible date parsing
+    let startDate;
+    try {
+        if (data.stationInfo.startDate.includes('T')) {
+            startDate = new Date(data.stationInfo.startDate);
+        } else {
+            startDate = new Date(data.stationInfo.startDate + 'T12:00:00Z');
+        }
+        
+        if (!isNaN(startDate.getTime())) {
+            document.querySelector('.station-info .start-date').textContent = startDate.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        } else {
+            document.querySelector('.station-info .start-date').textContent = 'Unknown';
+        }
+    } catch (error) {
+        console.warn('Error parsing station start date:', error);
+        document.querySelector('.station-info .start-date').textContent = 'Unknown';
+    }
 
     // Update temperature records
     document.getElementById('highest-temp').textContent = `${data.records.temperature.high.value}°F`;
@@ -85,16 +133,28 @@ function displayRecords(data) {
         document.getElementById('highest-solar-date').textContent = formatDate(data.records.solar.high.date);
     }
 
-    // Update last update time
-    document.getElementById('last-update').textContent = `Last updated: ${new Date().toLocaleString('en-US', {
-        month: 'numeric',
-        day: 'numeric',
-        year: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true,
-        timeZone: 'America/Chicago'
-    })}`;
+    // Update last update time with iOS compatibility
+    try {
+        const now = new Date();
+        document.getElementById('last-update').textContent = `Last updated: ${now.toLocaleString('en-US', {
+            month: 'numeric',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true,
+            timeZone: 'America/Chicago'
+        })}`;
+    } catch (error) {
+        console.warn('Error formatting last update time:', error);
+        // Fallback to basic formatting
+        const now = new Date();
+        document.getElementById('last-update').textContent = `Last updated: ${now.toLocaleDateString('en-US')} ${now.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+        })}`;
+    }
 }
 
 // Initialize records when page loads

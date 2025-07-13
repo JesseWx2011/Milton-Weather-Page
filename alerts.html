@@ -382,11 +382,14 @@
                     }
                     
                     if (data && data.features && data.features.length > 0) {
-                        // Filter out test alerts
-                        const filteredAlerts = data.features.filter(alert => 
-                            !alert.properties.event.toLowerCase().includes('test') &&
-                            !alert.properties.description.toLowerCase().includes('test')
-                        );
+                        // Filter out test alerts and expired alerts
+                        const currentTime = new Date();
+                        const filteredAlerts = data.features.filter(alert => {
+                            const isNotTest = !alert.properties.event.toLowerCase().includes('test') &&
+                                            !alert.properties.description.toLowerCase().includes('test');
+                            const isNotExpired = new Date(alert.properties.expires) > currentTime;
+                            return isNotTest && isNotExpired;
+                        });
 
                         if (filteredAlerts.length > 0) {
                             hasAlerts = true;

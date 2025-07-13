@@ -204,7 +204,7 @@
                     disturbanceCard.appendChild(imageContainer);
                     
                     // Check for storm images
-                    checkStormImages(props.disturbance, imageContainer);
+                    checkStormImages(props.disturbance, imageContainer, location);
                     
                     disturbancesSection.appendChild(disturbanceCard);
                 });
@@ -217,56 +217,53 @@
             }
         }
 
-        async function checkStormImages(disturbanceNumber, container) {
-            const year = '2025';
-            const basin = 'EP';
-            const maxStorms = 30;
-            let foundValidImage = false;
-
-            // Try the current disturbance number first
-            const currentStormNumber = disturbanceNumber.padStart(2, '0');
-            const currentImageUrl = `https://cdn.star.nesdis.noaa.gov/FLOATER/data/${basin}${currentStormNumber}${year}/GEOCOLOR/2000x2000.jpg`;
+        async function checkStormImages(disturbanceNumber, container, location) {
+            // Determine basin based on location
+            let basin = 'EP'; // Default to East Pacific
+            let basinImageUrl = 'https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/eep/GEOCOLOR/3600x2160.jpg'; // Default to East Pacific
             
-            try {
-                const response = await fetch(currentImageUrl, { method: 'HEAD' });
-                if (response.ok) {
-                    container.innerHTML = `
-                        <img src="${currentImageUrl}" alt="Storm ${currentStormNumber} Imagery" class="storm-image">
-                        <p>Storm ${currentStormNumber} Imagery</p>
-                    `;
-                    foundValidImage = true;
-                }
-            } catch (error) {
-                console.log(`No image found for storm ${currentStormNumber}`);
+            // Debug: Log the location to see what we're working with
+            console.log('Location:', location);
+            
+            // Check if it's an Atlantic disturbance
+            if (location && (location.toLowerCase().includes('atlantic') || 
+                           location.toLowerCase().includes('caribbean') || 
+                           location.toLowerCase().includes('gulf') ||
+                           location.toLowerCase().includes('gulf of mexico') ||
+                           location.toLowerCase().includes('u.s.') ||
+                           location.toLowerCase().includes('united states') ||
+                           location.toLowerCase().includes('florida') ||
+                           location.toLowerCase().includes('texas') ||
+                           location.toLowerCase().includes('louisiana') ||
+                           location.toLowerCase().includes('mississippi') ||
+                           location.toLowerCase().includes('alabama') ||
+                           location.toLowerCase().includes('georgia') ||
+                           location.toLowerCase().includes('south carolina') ||
+                           location.toLowerCase().includes('north carolina') ||
+                           location.toLowerCase().includes('virginia') ||
+                           location.toLowerCase().includes('maryland') ||
+                           location.toLowerCase().includes('delaware') ||
+                           location.toLowerCase().includes('new jersey') ||
+                           location.toLowerCase().includes('new york') ||
+                           location.toLowerCase().includes('connecticut') ||
+                           location.toLowerCase().includes('rhode island') ||
+                           location.toLowerCase().includes('massachusetts') ||
+                           location.toLowerCase().includes('maine') ||
+                           location.toLowerCase().includes('new hampshire') ||
+                           location.toLowerCase().includes('vermont') ||
+                           location.toLowerCase().includes('al'))) {
+                basin = 'AL';
+                basinImageUrl = 'https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/taw/GEOCOLOR/3600x2160.jpg';
+                console.log('Detected Atlantic basin for location:', location);
+            } else {
+                console.log('Detected East Pacific basin for location:', location);
             }
 
-            // If no image found for current disturbance, check other storms
-            if (!foundValidImage) {
-                container.innerHTML = '<p class="image-loading">Checking for other storm imagery...</p>';
-                
-                for (let i = 1; i <= maxStorms; i++) {
-                    const stormNumber = i.toString().padStart(2, '0');
-                    const imageUrl = `https://cdn.star.nesdis.noaa.gov/FLOATER/data/${basin}${stormNumber}${year}/GEOCOLOR/2000x2000.jpg`;
-                    
-                    try {
-                        const response = await fetch(imageUrl, { method: 'HEAD' });
-                        if (response.ok) {
-                            container.innerHTML = `
-                                <img src="${imageUrl}" alt="Storm ${stormNumber} Imagery" class="storm-image">
-                                <p>Storm ${stormNumber} Imagery</p>
-                            `;
-                            foundValidImage = true;
-                            break;
-                        }
-                    } catch (error) {
-                        console.log(`No image found for storm ${stormNumber}`);
-                    }
-                }
-
-                if (!foundValidImage) {
-                    container.innerHTML = '<p class="image-error">No storm imagery available</p>';
-                }
-            }
+            // Show basin image
+            container.innerHTML = `
+                <img src="${basinImageUrl}" alt="${basin === 'AL' ? 'Atlantic' : 'East Pacific'} Basin Imagery" class="storm-image">
+                <p>${basin === 'AL' ? 'Atlantic' : 'East Pacific'} Basin Imagery</p>
+            `;
         }
 
         // Fetch data when page loads

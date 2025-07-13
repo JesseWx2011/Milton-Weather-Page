@@ -317,30 +317,30 @@
     <a href="index.html" class="back-button" title="Back to main dashboard">← Dashboard</a>
     
     <div class="container">
-        <header>
+    <header>
             <h1>Storm Prediction Center</h1>
             <p>Convective Outlooks & Interactive Weather Map</p>
-        </header>
+    </header>
 
         <div class="controls-section">
             <div class="controls-grid">
                 <div class="control-group">
                     <label for="outlook-select">Select Outlook Type:</label>
-                    <select id="outlook-select">
-                        <option value="day1">Day 1 Outlook</option>
-                        <option value="day2">Day 2 Outlook</option>
-                        <option value="day3">Day 3 Outlook</option>
-                        <option value="day4">Day 4 Outlook</option>
-                        <option value="day5">Day 5 Outlook</option>
-                        <option value="day6">Day 6 Outlook</option>
-                        <option value="day7">Day 7 Outlook</option>
-                        <option value="day8">Day 8 Outlook</option>
-                        <option value="day1tornado">Day 1 Tornado</option>
-                        <option value="day2tornado">Day 2 Tornado</option>
-                        <option value="day1wind">Day 1 Wind</option>
-                        <option value="day2wind">Day 2 Wind</option>
-                        <option value="day1hail">Day 1 Hail</option>
-                        <option value="day2hail">Day 2 Hail</option>
+        <select id="outlook-select">
+            <option value="day1">Day 1 Outlook</option>
+            <option value="day2">Day 2 Outlook</option>
+            <option value="day3">Day 3 Outlook</option>
+            <option value="day4">Day 4 Outlook</option>
+            <option value="day5">Day 5 Outlook</option>
+            <option value="day6">Day 6 Outlook</option>
+            <option value="day7">Day 7 Outlook</option>
+            <option value="day8">Day 8 Outlook</option>
+            <option value="day1tornado">Day 1 Tornado</option>
+            <option value="day2tornado">Day 2 Tornado</option>
+            <option value="day1wind">Day 1 Wind</option>
+            <option value="day2wind">Day 2 Wind</option>
+            <option value="day1hail">Day 1 Hail</option>
+            <option value="day2hail">Day 2 Hail</option>
                         <option value="day3probalistic">Day 3 Probabilistic Severe</option>
                     </select>
                 </div>
@@ -415,7 +415,7 @@
         <div class="content-grid">
             <div class="outlook-section">
                 <div class="section-title">SPC Convective Outlook</div>
-                <div id="outlook-display">
+        <div id="outlook-display">
                     <div class="loading">
                         <div class="spinner"></div>
                         Loading outlook...
@@ -429,13 +429,13 @@
             </div>
         </div>
 
-        <div class="weather-finder-link">
-            <a href="https://usaweatherfinder.com/">
-                <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
-            </a>
-        </div>
+    <div class="weather-finder-link">
+        <a href="https://usaweatherfinder.com/">
+            <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
+        </a>
     </div>
-
+    </div>
+    
     <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
     <script src="spc.js"></script>
 </body>

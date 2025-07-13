@@ -1,9 +1,30 @@
 // API Base URL
 const NWS_API_BASE_URL = 'https://api.weather.gov';
 
-// Milton, FL coordinates
-const LATITUDE = 30.6319;
-const LONGITUDE = -87.0372199;
+// City coordinates mapping
+const CITY_COORDINATES = {
+    'Milton,FL': { lat: 30.6319, lon: -87.0372199 },
+    'Pensacola,FL': { lat: 30.4213, lon: -87.2169 },
+    'HurlburtField,FL': { lat: 30.4278, lon: -86.6894 },
+    'Baker,FL': { lat: 30.7988, lon: -87.1558 },
+    'Crestview,FL': { lat: 30.7621, lon: -86.5705 },
+    'Navarre,FL': { lat: 30.4108, lon: -86.8647 },
+    'EglinAFB,FL': { lat: 30.4658, lon: -86.5614 },
+    'FortWaltonBeach,FL': { lat: 30.4057, lon: -86.6188 },
+    'Destin,FL': { lat: 30.3935, lon: -86.4958 },
+    'GulfBreeze,FL': { lat: 30.3571, lon: -87.1638 },
+    'Molino,FL': { lat: 30.7241, lon: -87.3141 },
+    'Century,FL': { lat: 30.9732, lon: -87.2639 },
+    'LaurelHill,FL': { lat: 30.9674, lon: -86.4611 },
+    'GulfShores,AL': { lat: 30.2460, lon: -87.7008 },
+    'PanamaCity,FL': { lat: 30.1595, lon: -85.6598 },
+    'Enterprise,AL': { lat: 31.3151, lon: -85.8550 },
+    'Tallahassee,FL': { lat: 30.4383, lon: -84.2807 }
+};
+
+// Default coordinates (Milton, FL)
+let currentLatitude = 30.6319;
+let currentLongitude = -87.0372199;
 
 // Weather code to icon mapping
 const weatherIconMap = {
@@ -146,8 +167,16 @@ function createDateHeader(dateString) {
 // Function to fetch and display hourly forecast
 async function fetchHourlyForecast(location) {
     try {
+        // Get coordinates for the selected location
+        const coordinates = CITY_COORDINATES[location];
+        if (!coordinates) {
+            throw new Error(`Coordinates not found for location: ${location}`);
+        }
+        currentLatitude = coordinates.lat;
+        currentLongitude = coordinates.lon;
+
         // First, get the grid endpoint for the location
-        const pointsResponse = await fetch(`${NWS_API_BASE_URL}/points/${LATITUDE},${LONGITUDE}`);
+        const pointsResponse = await fetch(`${NWS_API_BASE_URL}/points/${currentLatitude},${currentLongitude}`);
         if (!pointsResponse.ok) throw new Error('Failed to fetch points data');
         const pointsData = await pointsResponse.json();
         
@@ -163,20 +192,36 @@ async function fetchHourlyForecast(location) {
         forecastContainer.innerHTML = ''; // Clear existing content
         
         let currentDate = null;
+        let currentDateSection = null;
+        let currentHourlyContainer = null;
         
         // Add each hourly forecast period
         hourlyData.properties.periods.forEach(period => {
             const periodDate = new Date(period.startTime).toDateString();
             
-            // If this is a new date, add a date header
+            // If this is a new date, create a new date section
             if (currentDate !== periodDate) {
                 currentDate = periodDate;
+                
+                // Create date section container
+                currentDateSection = document.createElement('div');
+                currentDateSection.className = 'date-section';
+                
+                // Create date header
                 const dateHeader = createDateHeader(period.startTime);
-                forecastContainer.appendChild(dateHeader);
+                currentDateSection.appendChild(dateHeader);
+                
+                // Create hourly items container
+                currentHourlyContainer = document.createElement('div');
+                currentHourlyContainer.className = 'hourly-items-container';
+                currentDateSection.appendChild(currentHourlyContainer);
+                
+                // Add the date section to the main container
+                forecastContainer.appendChild(currentDateSection);
             }
             
             const hourlyItem = createHourlyItem(period);
-            forecastContainer.appendChild(hourlyItem);
+            currentHourlyContainer.appendChild(hourlyItem);
         });
         
     } catch (error) {

@@ -262,6 +262,51 @@ function showNotification() {
     }
 }
 
+// Function to check if temperature is close to city record
+function checkTemperatureRecord(currentTempF) {
+    const CITY_RECORD_TEMP = 108; // Milton, FL record high temperature
+    const MIN_TEMP_THRESHOLD = 104; // Only show alert if 104°F or hotter
+    
+    if (currentTempF >= MIN_TEMP_THRESHOLD) {
+        const degreeDifference = CITY_RECORD_TEMP - currentTempF;
+        
+        if (degreeDifference > 0) {
+            // Convert to Celsius for display
+            const degreeDifferenceC = ((degreeDifference * 5) / 9).toFixed(1);
+            
+            // Create and show the alert
+            const recordAlert = document.createElement('div');
+            recordAlert.className = 'record-alert';
+            recordAlert.innerHTML = `
+                <div class="record-alert-content">
+                    <div class="record-alert-title">🌡️ Temperature Record Alert</div>
+                    <div class="record-alert-message">Only ${degreeDifference.toFixed(1)}°F (${degreeDifferenceC}°C) away from breaking the city record for the hottest temperature ever recorded in Milton! This record was set on July 19th, 2010!</div>
+                </div>
+                <button class="record-alert-close" onclick="this.parentElement.remove()">×</button>
+            `;
+            
+            // Add to document
+            document.body.appendChild(recordAlert);
+            
+            // Force a reflow to ensure the transition works
+            recordAlert.offsetHeight;
+            
+            // Add the visible class to trigger the animation
+            recordAlert.classList.add('visible');
+            
+            // Remove after 10 seconds
+            setTimeout(() => {
+                recordAlert.classList.remove('visible');
+                setTimeout(() => {
+                    if (recordAlert.parentElement) {
+                        recordAlert.remove();
+                    }
+                }, 300); // Wait for fade out animation
+            }, 10000);
+        }
+    }
+}
+
 // Function to hide notification
 function hideNotification() {
     const notification = document.getElementById('outdated-notification');
@@ -305,13 +350,14 @@ function updateTemperatureDifference(currentTemp) {
     lastTemperature = currentTemp;
 }
 
-// Function to format time for sunrise/sunset
+// Function to format time for sunrise/sunset in Chicago timezone
 function formatSunTime(date) {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const formattedHours = hours % 12 || 12;
-    return `${formattedHours}:${minutes.toString().padStart(2, '0')} ${ampm}`;
+    return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'America/Chicago'
+    });
 }
 
 // Function to calculate day length
@@ -329,30 +375,84 @@ function updateSunTimes(sunrise, sunset) {
     const dayLengthElement = document.getElementById('day-length');
     
     if (sunriseTimeElement) {
-        sunriseTimeElement.textContent = new Date(sunrise).toLocaleString("en-US", {timeZone: 'America/Chicago', hour: 'numeric', minute:'2-digit'});
+        const sunriseTime = formatSunTime(new Date(sunrise));
+        sunriseTimeElement.textContent = sunriseTime;
+        sunriseTimeElement.setAttribute('data-time', new Date(sunrise).toISOString());
     }
     if (sunsetTimeElement) {
-        sunsetTimeElement.textContent = new Date(sunset).toLocaleString("en-US", {timeZone: 'America/Chicago', hour: 'numeric', minute:'2-digit'});
+        const sunsetTime = formatSunTime(new Date(sunset));
+        sunsetTimeElement.textContent = sunsetTime;
+        sunsetTimeElement.setAttribute('data-time', new Date(sunset).toISOString());
     }
     if (dayLengthElement) {
         dayLengthElement.textContent = `Day length: ${calculateDayLength(sunrise, sunset)}`;
     }
     
     // Update timeline bar position based on current time
+    console.log('=== TIMELINE CALCULATION START ===');
     const now = new Date();
-    const totalDayLength = sunset - sunrise;
-    const timeSinceSunrise = now - sunrise;
-    const progress = Math.min(Math.max(timeSinceSunrise / totalDayLength, 0), 1);
+    
+    // The sunrise and sunset times from the API are in UTC
+    // Do all calculations in UTC for accuracy, then convert display times to Chicago timezone
+    
+    // Convert sunrise and sunset to Date objects (they're already UTC from the API)
+    const sunriseUTC = new Date(sunrise);
+    const sunsetUTC = new Date(sunset);
+    
+    // Calculate the total day length in milliseconds (in UTC)
+    const totalDayLength = sunsetUTC.getTime() - sunriseUTC.getTime();
+    
+    // Calculate how much time has passed since sunrise (in UTC)
+    const timeSinceSunrise = now.getTime() - sunriseUTC.getTime();
+    
+    console.log('Raw calculation values (UTC):', {
+        now: now.toISOString(),
+        sunriseUTC: sunriseUTC.toISOString(),
+        sunsetUTC: sunsetUTC.toISOString(),
+        timeSinceSunrise: timeSinceSunrise,
+        totalDayLength: totalDayLength,
+        timeSinceSunriseHours: timeSinceSunrise / (1000 * 60 * 60),
+        totalDayLengthHours: totalDayLength / (1000 * 60 * 60)
+    });
+    
+    // Calculate progress (0 = sunrise, 1 = sunset)
+    let progress;
+    if (timeSinceSunrise < 0) {
+        // Before sunrise today
+        progress = 0;
+        console.log('Before sunrise - setting progress to 0');
+    } else if (timeSinceSunrise > totalDayLength) {
+        // After sunset today
+        progress = 1;
+        console.log('After sunset - setting progress to 1');
+    } else {
+        // During the day
+        progress = timeSinceSunrise / totalDayLength;
+        console.log('During day - calculated progress:', progress);
+    }
     
     const timelineBar = document.querySelector('.timeline-bar');
     if (timelineBar) {
         timelineBar.style.width = `${progress * 100}%`;
+        console.log('Timeline progress:', {
+            progress: progress,
+            width: `${progress * 100}%`,
+            timeSinceSunrise: timeSinceSunrise,
+            totalDayLength: totalDayLength,
+            sunrise: sunriseUTC.toISOString(),
+            sunset: sunsetUTC.toISOString(),
+            now: now.toISOString()
+        });
+        
+
+    } else {
+        console.error('Timeline bar element not found');
     }
     
-    // Check if it's past sunset
-    if (now > sunset) {
+    // Check if it's past sunset (using UTC times)
+    if (now > sunsetUTC) {
         // Calculate time until next sunrise
-        const nextSunrise = new Date(sunrise);
+        const nextSunrise = new Date(sunriseUTC);
         nextSunrise.setDate(nextSunrise.getDate() + 1); // Set to next day
         
         const timeUntilSunrise = nextSunrise - now;
@@ -550,9 +650,39 @@ async function updateWeather() {
         const forecastData = await fetchWithRetry(nwsData.properties.forecast);
         console.log('NWS Forecast API Response:', forecastData);
 
-        // Get current conditions from NWS
-        const currentConditions = await fetchWithRetry(`${NWS_API_BASE_URL}/stations/KPNS/observations/latest`);
-        console.log('NWS Current Conditions API Response:', currentConditions);
+        // Get current conditions from NWS with fallback stations
+        let currentConditions = null;
+        const stations = ['KNDZ', 'KNSE', 'KPNS'];
+        
+        for (const station of stations) {
+            try {
+                const response = await fetchWithRetry(`${NWS_API_BASE_URL}/stations/${station}/observations/latest`);
+                console.log(`NWS Current Conditions API Response for ${station}:`, response);
+                
+                if (response && response.properties) {
+                    // Check if the observation is recent (within 2 hours)
+                    const observationTime = new Date(response.properties.timestamp);
+                    const currentTime = new Date();
+                    const timeDifference = currentTime - observationTime;
+                    const twoHoursInMs = 2 * 60 * 60 * 1000;
+                    
+                    console.log(`${station} timestamp:`, response.properties.timestamp);
+                    console.log(`${station} observation time:`, observationTime);
+                    console.log(`${station} current time:`, currentTime);
+                    console.log(`${station} time difference (minutes):`, Math.round(timeDifference / 60000));
+                    
+                    if (timeDifference <= twoHoursInMs) {
+                        currentConditions = response;
+                        console.log(`Using ${station} for current conditions`);
+                        break;
+                    } else {
+                        console.log(`${station} data is too old (${Math.round(timeDifference / 60000)} minutes old)`);
+                    }
+                }
+            } catch (error) {
+                console.log(`Station ${station} is unavailable:`, error.message);
+            }
+        }
 
         // Get Ambient Weather data (including lightning data)
         const ambientData = await fetchWithRetry(`${AMBIENT_WEATHER_BASE_URL}/devices?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
@@ -579,6 +709,9 @@ async function updateWeather() {
             console.log('Current Data:', currentData);
 
             const currentTemp = currentData.tempf;
+            
+            // Check if temperature is close to city record
+            checkTemperatureRecord(currentTemp);
             
             // Update temperature difference
             updateTemperatureDifference(currentTemp);
@@ -730,11 +863,12 @@ async function updateWeather() {
             }
 
             // Add current weather condition from NWS
+            const weatherIcon = document.getElementById('weather-icon');
+            
             if (currentConditions && currentConditions.properties) {
-                const weatherIcon = document.getElementById('weather-icon');
                 const condition = currentConditions.properties.textDescription || (isDaytime() ? "Sunny" : "Clear");
-
                 const weatherIconSrc = currentConditions.properties.icon;
+                
                 if (!weatherIconSrc) {
                     weatherIcon.innerHTML = ` 
                         <img src="./NA.jpg">
@@ -742,10 +876,16 @@ async function updateWeather() {
                     `;
                 } else {
                     weatherIcon.innerHTML = ` 
-                    <img src="${currentConditions.properties.icon}">
-                    <p class="condition-text">${condition}</p>
-                `;
+                        <img src="${currentConditions.properties.icon}">
+                        <p class="condition-text">${condition}</p>
+                    `;
                 }
+            } else {
+                // No current conditions available from any station
+                weatherIcon.innerHTML = ` 
+                    <img src="./NA.jpg">
+                    <p class="condition-text">N/A</p>
+                `;
             }
 
             // Call the new function to fetch graph data and create graphs
@@ -2158,12 +2298,13 @@ function getNextSeason() {
     };
 }
 
-// Format time (always use 12-hour format)
+// Format time (always use 12-hour format in Chicago timezone)
 function formatTime(date) {
     return date.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
-        hour12: true
+        hour12: true,
+        timeZone: 'America/Chicago'
     });
 }
 
@@ -2182,30 +2323,17 @@ function updateLastUpdateTime(timestamp) {
     }
 }
 
-// Update sun times display
-function updateSunTimes(sunrise, sunset) {
-    const sunriseTime = document.getElementById('sunrise-time');
-    const sunsetTime = document.getElementById('sunset-time');
-    const dayLength = document.getElementById('day-length');
-    
-    if (sunriseTime && sunsetTime && sunrise && sunset) {
-        const sunriseDate = new Date(sunrise);
-        const sunsetDate = new Date(sunset);
-        
-        sunriseTime.textContent = formatTime(sunriseDate);
-        sunsetTime.textContent = formatTime(sunsetDate);
-        
-        if (dayLength) {
-            const length = calculateDayLength(sunrise, sunset);
-            dayLength.textContent = `Day length: ${length}`;
-        }
-    }
-}
+
 
 // Update the time format for all time displays
 function updateAllTimeDisplays() {
     const timeElements = document.querySelectorAll('[data-time]');
     timeElements.forEach(element => {
+        // Skip sunrise/sunset elements as they have their own timezone handling
+        if (element.id === 'sunrise-time' || element.id === 'sunset-time') {
+            return;
+        }
+        
         const timestamp = element.getAttribute('data-time');
         if (timestamp) {
             const date = new Date(timestamp);
