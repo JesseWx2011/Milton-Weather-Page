@@ -7,6 +7,8 @@
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12"></script>
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
     <link rel="icon" type="image/png" sizes="512x512" href="Favicon.png">
     <title>Milton Weather Dashboard</title>
     <meta name="description" content="A Personal Weather Station in Milton, Florida, including weather alerts, forecasts, and current conditions.">
@@ -45,12 +47,17 @@
             padding: 0;
             box-sizing: border-box;
             font-family: Verdana, sans-serif;
+            font-weight: bold;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
         }
 
         body {
             background-color: #f0f2f5;
             color: #333;
             line-height: 1.6;
+            font-weight: normal;
         }
 
         .container {
@@ -119,8 +126,8 @@
         }
 
         .weather-icon-container img {
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
         }
 
         .weather-icon-container p {
@@ -718,9 +725,11 @@
 
         .unit-label {
             font-family: 'Verdana', sans-serif;
-            font-weight: bold;
+            font-weight: bold !important;
             color: #333;
             font-size: 0.8rem;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .unit-btn {
@@ -730,12 +739,14 @@
             background: transparent;
             color: #333;
             font-family: 'Verdana', sans-serif;
-            font-weight: bold;
+            font-weight: bold !important;
             font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .unit-btn:hover {
@@ -1415,8 +1426,8 @@
             }
 
             .weather-icon-container img {
-                width: 60px;
-                height: 60px;
+                width: 80px;
+                height: 80px;
             }
 
             .temp-container {
@@ -1483,6 +1494,23 @@
                 width: 100%;
                 margin-left: 0;
                 margin-top: 15px;
+            }
+
+            .radar-map-container {
+                height: 250px;
+            }
+
+            .radar-controls {
+                padding: 0.2rem 0.4rem;
+            }
+
+            .radar-btn {
+                padding: 0.2rem 0.5rem;
+                font-size: 0.7rem;
+            }
+
+            .radar-label {
+                font-size: 0.7rem;
             }
 
             .temp-value {
@@ -1771,6 +1799,191 @@
         .dev-only {
             display: inline-block !important;
         }
+
+        /* Radar Map Styles */
+        .radar-map-container {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .radar-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+            justify-content: center;
+        }
+
+        .radar-label {
+            font-family: 'Verdana', sans-serif;
+            font-weight: bold !important;
+            color: #333;
+            font-size: 0.8rem;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .radar-btn {
+            padding: 0.25rem 0.75rem;
+            border: 1px solid #2196F3;
+            border-radius: 15px;
+            background: transparent;
+            color: #333;
+            font-family: 'Verdana', sans-serif;
+            font-weight: bold !important;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .radar-btn:hover {
+            background: rgba(33, 150, 243, 0.1);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .radar-btn.active {
+            background: #2196F3;
+            color: #fff;
+            box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+        }
+
+        .radar-btn:not(.active) {
+            opacity: 0.7;
+        }
+
+        .radar-btn:not(.active):hover {
+            opacity: 1;
+        }
+
+        .mapboxgl-map {
+            border-radius: 5px;
+        }
+
+        /* Font rendering fixes for all zoom levels */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: bold;
+        }
+
+        .weather-card {
+            font-weight: normal;
+        }
+
+        .detail-item {
+            font-weight: normal;
+        }
+
+        .forecast-day {
+            font-weight: normal;
+        }
+
+        .credits {
+            font-weight: normal;
+        }
+
+        .bible-verse {
+            font-weight: normal;
+        }
+
+        .notification {
+            font-weight: normal;
+        }
+
+        .record-alert {
+            font-weight: normal;
+        }
+
+        .modal-content {
+            font-weight: normal;
+        }
+
+        .station-card {
+            font-weight: normal;
+        }
+
+        .comparison-item {
+            font-weight: normal;
+        }
+
+        .sun-times {
+            font-weight: normal;
+        }
+
+        .seasonal-countdown {
+            font-weight: normal;
+        }
+
+        .camera-info {
+            font-weight: normal;
+        }
+
+        .camera-placeholder {
+            font-weight: normal;
+        }
+
+        .alert-item {
+            font-weight: normal;
+        }
+
+        .weather-details {
+            font-weight: normal;
+        }
+
+        .main-temp {
+            font-weight: normal;
+        }
+
+        .temp-value {
+            font-weight: bold;
+        }
+
+        .temp-feel {
+            font-weight: normal;
+        }
+
+        .title-temp {
+            font-weight: normal;
+        }
+
+        .condition-text {
+            font-weight: normal;
+        }
+
+        .day-length {
+            font-weight: normal;
+        }
+
+        .time-labels {
+            font-weight: normal;
+        }
+
+        .sunset-message {
+            font-weight: normal;
+        }
+
+        .next-season-text {
+            font-weight: normal;
+        }
+
+        .countdown-label {
+            font-weight: normal;
+        }
+
+        .countdown-value {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -1809,7 +2022,7 @@
                         <a href="spc.html" class="menu-item">SPC Outlooks</a>
                         <a href="alerts.html" class="menu-item">Weather Alerts</a>
                         <a href="hurricanes.html" class="menu-item">NHC Outlooks</a>
-                        <a href="cyclone-peek/index.html" class="menu-item">Cyclone Peek (Hurricane Tracker)</a>
+                        <a href="cyclone-peek/" class="menu-item">Cyclone Peek (Hurricane Tracker)</a>
                     </div>
                 </div>
                 <div class="menu-category">
@@ -2082,7 +2295,12 @@
                 <!-- Weather Radar Card -->
                 <div class="weather-card radar-card" style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
                     <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Weather Radar</h3>
-                    <img src="https://radar.weather.gov/ridge/standard/KMOB_loop.gif" alt="Weather Radar" style="width: 100%; height: auto; border-radius: 5px;" />
+                    <div id="radar-map" class="radar-map-container"></div>
+                    <div class="radar-controls">
+                        <span class="radar-label">Radar:</span>
+                        <button id="nexrad-radar-btn" class="radar-btn active">NEXRAD Radar</button>
+                        <button id="nexrad-composite-btn" class="radar-btn">NEXRAD Composite</button>
+                    </div>
                 </div>
 
                 <!-- Weather Alert Map Card -->

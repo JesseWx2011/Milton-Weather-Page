@@ -1058,7 +1058,11 @@ function getLast12HoursLabels() {
     for (let i = 11; i >= 0; i--) {
         const time = new Date(now);
         time.setHours(now.getHours() - i);
-        labels.push(time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        labels.push(time.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            timeZone: 'America/Chicago'
+        }));
     }
     
     return labels;
@@ -1195,8 +1199,12 @@ async function getHistoricalData(metric) {
                 }
             }
 
-            // Format the label
-            const label = targetTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // Format the label in CDT
+            const label = targetTime.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                timeZone: 'America/Chicago'
+            });
             labels.push(label);
         }
 
@@ -2800,5 +2808,142 @@ async function updateTideData() {
         document.getElementById('tide-low').textContent = '--';
     }
 }
+
+// Radar Map Functionality
+let radarMap = null;
+let currentRadarLayer = 'nexrad';
+
+function initializeRadarMap() {
+    if (typeof mapboxgl === 'undefined') {
+        console.warn('Mapbox GL JS not loaded');
+        return;
+    }
+
+    mapboxgl.accessToken = 'pk.eyJ1Ijoid2VhdGhlciIsImEiOiJjbHAxbHNjdncwaDhvMmptcno1ZTdqNDJ0In0.iywE3NefjboFg11a11ON0Q';
+    
+    const mapContainer = document.getElementById('radar-map');
+    if (!mapContainer) {
+        console.warn('Radar map container not found');
+        return;
+    }
+    
+    radarMap = new mapboxgl.Map({
+        container: 'radar-map',
+        style: 'mapbox://styles/mapbox/outdoors-v12',
+        center: [-87.0394, 30.6324], // Milton, FL coordinates
+        zoom: 8,
+        attributionControl: false,
+        logoPosition: 'bottom-right'
+    });
+
+    // Add NEXRAD Radar layer
+    radarMap.on('load', function() {
+        // Add NEXRAD Radar layer
+        radarMap.addSource('nexrad-radar', {
+            type: 'raster',
+            tiles: [
+                'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::MOB-N0B-0/{z}/{x}/{y}.png',
+            ],
+            tileSize: 256,
+            maxzoom: 10
+        });
+
+        radarMap.addLayer({
+            id: 'nexrad-radar-layer',
+            type: 'raster',
+            source: 'nexrad-radar',
+            paint: {
+                'raster-opacity': 0.8
+            }
+        }, 'road-minor'); // Insert before road layers
+
+        // Add error handling for the radar source
+        radarMap.on('error', function(e) {
+            console.error('Mapbox error:', e);
+        });
+
+        radarMap.on('sourcedata', function(e) {
+            if (e.sourceId === 'nexrad-radar' && e.isSourceLoaded) {
+                console.log('NEXRAD Radar source loaded successfully');
+            }
+        });
+
+        // Add NEXRAD Composite layer (initially hidden)
+        radarMap.addSource('nexrad-composite', {
+            type: 'raster',
+            tiles: [
+                'https://maps.aerisapi.com/wgE96YE3scTQLKjnqiMsv_SVG2gQFV8y9DjKR0BRY9wPoSLvrMrIqF9Lq2IYaY/radar/{z}/{x}/{y}/current.png'
+            ],
+            tileSize: 256
+        });
+
+        radarMap.addLayer({
+            id: 'nexrad-composite-layer',
+            type: 'raster',
+            source: 'nexrad-composite',
+            paint: {
+                'raster-opacity': 1
+            }
+        }, 'road-minor'); // Insert before road layers
+
+        // Hide composite layer initially
+        radarMap.setLayoutProperty('nexrad-composite-layer', 'visibility', 'none');
+
+        // Ensure NEXRAD Radar layer is visible
+        radarMap.setLayoutProperty('nexrad-radar-layer', 'visibility', 'visible');
+    });
+}
+
+// Radar control button handlers
+function switchRadarLayer(layerType) {
+    if (!radarMap) return;
+
+    const nexradBtn = document.getElementById('nexrad-radar-btn');
+    const compositeBtn = document.getElementById('nexrad-composite-btn');
+
+    if (!nexradBtn || !compositeBtn) return;
+
+    if (layerType === 'nexrad') {
+        radarMap.setLayoutProperty('nexrad-radar-layer', 'visibility', 'visible');
+        radarMap.setLayoutProperty('nexrad-composite-layer', 'visibility', 'none');
+        nexradBtn.classList.add('active');
+        compositeBtn.classList.remove('active');
+        currentRadarLayer = 'nexrad';
+    } else if (layerType === 'composite') {
+        radarMap.setLayoutProperty('nexrad-radar-layer', 'visibility', 'none');
+        radarMap.setLayoutProperty('nexrad-composite-layer', 'visibility', 'visible');
+        nexradBtn.classList.remove('active');
+        compositeBtn.classList.add('active');
+        currentRadarLayer = 'composite';
+    }
+}
+
+// Initialize radar map and event listeners
+function initializeRadarControls() {
+    // Initialize radar map
+    initializeRadarMap();
+
+    // Add event listeners for radar control buttons
+    const nexradBtn = document.getElementById('nexrad-radar-btn');
+    const compositeBtn = document.getElementById('nexrad-composite-btn');
+
+    if (nexradBtn) {
+        nexradBtn.addEventListener('click', function() {
+            switchRadarLayer('nexrad');
+        });
+    }
+
+    if (compositeBtn) {
+        compositeBtn.addEventListener('click', function() {
+            switchRadarLayer('composite');
+        });
+    }
+}
+
+// Initialize radar functionality when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize radar controls
+    initializeRadarControls();
+});
   
     
