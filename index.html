@@ -1984,9 +1984,105 @@
         .countdown-value {
             font-weight: bold;
         }
+
+        /* Stylish notification for custom alerts (rainbow, power outage) */
+        #custom-alerts-container {
+            position: fixed;
+            top: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10001;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            width: 95vw;
+            max-width: 420px;
+            pointer-events: none;
+        }
+        .custom-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 18px;
+            padding: 22px 28px 22px 20px;
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.18), 0 1.5px 8px rgba(0,0,0,0.10);
+            color: #fff;
+            font-size: 1.13em;
+            font-weight: 600;
+            pointer-events: auto;
+            margin: 0 auto;
+            position: relative;
+            background: rgba(30, 30, 40, 0.65);
+            backdrop-filter: blur(8px) saturate(1.2);
+            border-left: 7px solid #fff;
+            transition: box-shadow 0.2s, transform 0.2s;
+            animation: fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) both;
+        }
+        .custom-alert.rainbow {
+            border-left: 7px solid #ff5e62;
+            background: linear-gradient(120deg, rgba(255,94,98,0.85) 0%, rgba(249,212,35,0.85) 40%, rgba(67,206,162,0.85) 80%, rgba(25,118,210,0.85) 100%);
+            color: #fff;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        }
+        .custom-alert.poweroutage {
+            border-left: 7px solid #ffeb3b;
+            background: linear-gradient(120deg, rgba(34,34,34,0.92) 0%, rgba(255,235,59,0.85) 100%);
+            color: #222;
+            text-shadow: 0 2px 8px rgba(255,255,255,0.10);
+        }
+        .custom-alert .alert-icon {
+            font-size: 2.2em;
+            margin-right: 10px;
+            flex-shrink: 0;
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+        }
+        .custom-alert .close-btn {
+            background: rgba(255,255,255,0.18);
+            border: none;
+            color: inherit;
+            font-size: 1.5em;
+            cursor: pointer;
+            margin-left: 18px;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            transition: background 0.2s, opacity 0.2s, transform 0.2s;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            pointer-events: auto;
+        }
+        .custom-alert .close-btn:hover {
+            background: rgba(255,255,255,0.35);
+            opacity: 1;
+            transform: scale(1.1);
+        }
+        @keyframes fadeInUp {
+            0% { opacity: 0; transform: translateY(30px) scale(0.98);}
+            100% { opacity: 1; transform: translateY(0) scale(1);}
+        }
+        .fade-in {
+            opacity: 1;
+            animation: fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) both, fadeInEase 0.4s ease-in-out;
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+        }
+        .fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out;
+        }
+        @keyframes fadeInEase {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
+    <div id="custom-alerts-container"></div>
     <div class="container">
         <div class="header">
             <div class="location-container">

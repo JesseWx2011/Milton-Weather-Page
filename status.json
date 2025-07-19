@@ -1,0 +1,13 @@
+{
+    "rainbow": {
+      "active": false,
+      "message": "",
+      "timestamp": "Sat Jul 19 2025 11:38:00 GMT-0500"
+    },
+    "powerOutage": {
+      "active": true,
+      "message": "Power Outage Observed at 11:38 AM CDT, power is back up.",
+      "timestamp": "Sat Jul 19 2025 14:23:00 GMT-0500"
+    }
+  }
+  

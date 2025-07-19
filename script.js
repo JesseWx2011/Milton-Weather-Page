@@ -2946,4 +2946,121 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeRadarControls();
 });
   
+// ---- Custom Alerts from status.json ----
+
+async function fetchStatusAlerts() {
+    try {
+        const response = await fetch('status.json', { cache: "no-store" });
+        if (!response.ok) return;
+        const status = await response.json();
+        showCustomAlerts(status);
+    } catch (e) {
+        // Optionally handle error
+    }
+}
+
+function showCustomAlerts(status) {
+    let container = document.getElementById('custom-alerts-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.id = 'custom-alerts-container';
+        document.body.appendChild(container);
+    }
+    container.innerHTML = '';
+
+    const now = new Date();
+    const maxAgeMs = 6 * 60 * 60 * 1000; // 6 hours in ms
+
+    // Rainbow Alert
+    if (status.rainbow && status.rainbow.active && status.rainbow.timestamp) {
+        const rainbowTime = new Date(status.rainbow.timestamp);
+        if (now - rainbowTime <= maxAgeMs) {
+            container.appendChild(createCustomAlert(
+                'rainbow',
+                '🌈',
+                status.rainbow.message || 'Rainbow Alert!',
+                status.rainbow.timestamp
+            ));
+        }
+    }
+
+    // Power Outage Alert
+    if (status.powerOutage && status.powerOutage.active && status.powerOutage.timestamp) {
+        const outageTime = new Date(status.powerOutage.timestamp);
+        if (now - outageTime <= maxAgeMs) {
+            const lightningImg = document.createElement('img');
+            lightningImg.src = "https://bmcdn.nl/assets/weather-icons/v3.0/fill/svg/lightning-bolt.svg";
+            lightningImg.alt = "Lightning Bolt";
+            lightningImg.style.height = "1.5em";
+            lightningImg.style.verticalAlign = "middle";
+
+            container.appendChild(createCustomAlert(
+                'poweroutage',
+                lightningImg,
+                status.powerOutage.message || 'Power Outage Alert!',
+                status.powerOutage.timestamp
+            ));
+        }
+    }
+}
+
+function createCustomAlert(type, icon, message, timestamp) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `custom-alert ${type} fade-in`;
+
+    const iconSpan = document.createElement('span');
+    iconSpan.className = 'alert-icon';
+    if (typeof icon === 'string') {
+        iconSpan.textContent = icon;
+    } else if (icon instanceof HTMLElement) {
+        iconSpan.appendChild(icon);
+    }
+
+    const msgSpan = document.createElement('span');
+    msgSpan.textContent = message;
+
+    const timeSpan = document.createElement('span');
+    timeSpan.style.fontSize = '0.85em';
+    timeSpan.style.marginLeft = '10px';
+    timeSpan.style.opacity = '0.7';
+    timeSpan.textContent = timestamp ? `(${formatTimeDifference(timestamp)})` : '';
+
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'close-btn';
+    closeBtn.innerHTML = '&times;';
+    closeBtn.onclick = () => {
+        alertDiv.classList.remove('fade-in');
+        alertDiv.classList.add('fade-out');
+        setTimeout(() => alertDiv.remove(), 400);
+    };
+
+    alertDiv.appendChild(iconSpan);
+    alertDiv.appendChild(msgSpan);
+    if (timestamp) alertDiv.appendChild(timeSpan);
+    alertDiv.appendChild(closeBtn);
+
+    return alertDiv;
+}
+
+// Utility: format time difference (e.g., "5 minutes ago")
+function formatTimeDifference(timestamp) {
+    const now = new Date();
+    const then = new Date(timestamp);
+    const diffMs = now - then;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'just now';
+    if (diffMin < 60) return `${diffMin} min ago`;
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return `${diffHr} hr ago`;
+    return then.toLocaleString();
+}
+
+// Call on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', fetchStatusAlerts);
+} else {
+    fetchStatusAlerts();
+}
+// Optionally, poll every 5 minutes:
+setInterval(fetchStatusAlerts, 5 * 60 * 1000);
     
