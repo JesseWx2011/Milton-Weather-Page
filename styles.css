@@ -277,3 +277,87 @@ input:checked + .slider:before {
     0% { opacity: 0; transform: translateY(30px) scale(0.98);}
     100% { opacity: 1; transform: translateY(0) scale(1);}
 }
+
+body {
+    font-size: 16px;
+}
+.container, .cards-container, .weather-grid, .row {
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 8px;
+    box-sizing: border-box;
+}
+.weather-card, .weather-card.current-conditions, .weather-card.radar-card, .weather-card.moon-phases, .weather-card.alert-map, .weather-card.cameras-section, .weather-card.sun-times, .weather-card.rip-current {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 16px 0;
+    padding: 12px;
+    box-sizing: border-box;
+}
+.weather-grid, .forecast, .cameras-grid, .row {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.forecast-day, .camera-feed {
+    width: 100%;
+    max-width: 100%;
+}
+.menu-button, .notification-button, .reload-button, .compare-button, .close-graph, .modal-close {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 18px;
+}
+.unit-btn {
+    min-width: 44px;
+    min-height: 44px;
+    font-size: 16px;
+}
+@media (max-width: 600px) {
+    body {
+        font-size: 16px;
+    }
+    .container, .cards-container, .weather-grid, .row {
+        padding: 0 4px;
+    }
+    .weather-card {
+        padding: 8px;
+    }
+    .main-temp {
+        font-size: 2em;
+    }
+    .weather-icon-container img {
+        width: 60px;
+        height: 60px;
+    }
+    .forecast-title, h1, h2, h3 {
+        font-size: 1.1em;
+    }
+    .current-conditions {
+        cursor: pointer;
+        min-height: 88px;
+        padding: 16px 8px 32px 8px;
+        border-radius: 12px;
+        position: relative;
+        transition: box-shadow 0.2s, background 0.2s;
+        outline: none;
+    }
+    .current-conditions:active, .current-conditions:focus {
+        box-shadow: 0 0 0 4px #2196F333, 0 2px 8px rgba(0,0,0,0.08);
+        background: #e3f2fd;
+    }
+    .current-conditions::after {
+        content: 'Tap for more details';
+        position: absolute;
+        bottom: 10px;
+        right: 15px;
+        font-size: 0.9em;
+        color: #666;
+        background: rgba(255,255,255,0.8);
+        padding: 6px 14px;
+        border-radius: 16px;
+        pointer-events: none;
+        z-index: 2;
+    }
+}

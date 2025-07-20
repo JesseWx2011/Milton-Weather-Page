@@ -8,16 +8,11 @@ const AMBIENT_WEATHER_BASE_URL = 'https://api.ambientweather.net/v1';
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
-            console.log('Attempting to register service worker...');
             const registration = await navigator.serviceWorker.register('/service-worker.js');
-            console.log('Service Worker registered successfully with scope:', registration.scope);
             
             // Check if notifications are supported
             if ('Notification' in window) {
-                console.log('Notifications are supported');
-                console.log('Current notification permission:', Notification.permission);
             } else {
-                console.log('Notifications are not supported');
             }
         } catch (error) {
             console.error('Service Worker registration failed:', error);
@@ -389,7 +384,6 @@ function updateSunTimes(sunrise, sunset) {
     }
     
     // Update timeline bar position based on current time
-    console.log('=== TIMELINE CALCULATION START ===');
     const now = new Date();
     
     // The sunrise and sunset times from the API are in UTC
@@ -405,44 +399,23 @@ function updateSunTimes(sunrise, sunset) {
     // Calculate how much time has passed since sunrise (in UTC)
     const timeSinceSunrise = now.getTime() - sunriseUTC.getTime();
     
-    console.log('Raw calculation values (UTC):', {
-        now: now.toISOString(),
-        sunriseUTC: sunriseUTC.toISOString(),
-        sunsetUTC: sunsetUTC.toISOString(),
-        timeSinceSunrise: timeSinceSunrise,
-        totalDayLength: totalDayLength,
-        timeSinceSunriseHours: timeSinceSunrise / (1000 * 60 * 60),
-        totalDayLengthHours: totalDayLength / (1000 * 60 * 60)
-    });
     
     // Calculate progress (0 = sunrise, 1 = sunset)
     let progress;
     if (timeSinceSunrise < 0) {
         // Before sunrise today
         progress = 0;
-        console.log('Before sunrise - setting progress to 0');
     } else if (timeSinceSunrise > totalDayLength) {
         // After sunset today
         progress = 1;
-        console.log('After sunset - setting progress to 1');
     } else {
         // During the day
         progress = timeSinceSunrise / totalDayLength;
-        console.log('During day - calculated progress:', progress);
     }
     
     const timelineBar = document.querySelector('.timeline-bar');
     if (timelineBar) {
         timelineBar.style.width = `${progress * 100}%`;
-        console.log('Timeline progress:', {
-            progress: progress,
-            width: `${progress * 100}%`,
-            timeSinceSunrise: timeSinceSunrise,
-            totalDayLength: totalDayLength,
-            sunrise: sunriseUTC.toISOString(),
-            sunset: sunsetUTC.toISOString(),
-            now: now.toISOString()
-        });
         
 
     } else {
@@ -497,7 +470,6 @@ async function fetchWithRetry(url, options = {}, retries = 5, initialDelay = 100
                 } else {
                     delay = Math.min(delay * 2, 30000); // Exponential backoff with max 30s
                 }
-                console.log(`Rate limited. Waiting ${delay/1000} seconds before retry...`);
                 await new Promise(res => setTimeout(res, delay));
                 continue;
             }
@@ -644,11 +616,9 @@ async function updateWeather() {
     try {
         // Get NWS forecast data
         const nwsData = await fetchWithRetry(`${NWS_API_BASE_URL}/points/30.6319,-87.0372199`);
-        console.log('NWS Points API Response:', nwsData);
         
         // Get forecast data
         const forecastData = await fetchWithRetry(nwsData.properties.forecast);
-        console.log('NWS Forecast API Response:', forecastData);
 
         // Get current conditions from NWS with fallback stations
         let currentConditions = null;
@@ -657,7 +627,6 @@ async function updateWeather() {
         for (const station of stations) {
             try {
                 const response = await fetchWithRetry(`${NWS_API_BASE_URL}/stations/${station}/observations/latest`);
-                console.log(`NWS Current Conditions API Response for ${station}:`, response);
                 
                 if (response && response.properties) {
                     // Check if the observation is recent (within 2 hours)
@@ -666,31 +635,22 @@ async function updateWeather() {
                     const timeDifference = currentTime - observationTime;
                     const twoHoursInMs = 2 * 60 * 60 * 1000;
                     
-                    console.log(`${station} timestamp:`, response.properties.timestamp);
-                    console.log(`${station} observation time:`, observationTime);
-                    console.log(`${station} current time:`, currentTime);
-                    console.log(`${station} time difference (minutes):`, Math.round(timeDifference / 60000));
                     
                     if (timeDifference <= twoHoursInMs) {
                         currentConditions = response;
-                        console.log(`Using ${station} for current conditions`);
                         break;
                     } else {
-                        console.log(`${station} data is too old (${Math.round(timeDifference / 60000)} minutes old)`);
                     }
                 }
             } catch (error) {
-                console.log(`Station ${station} is unavailable:`, error.message);
             }
         }
 
         // Get Ambient Weather data (including lightning data)
         const ambientData = await fetchWithRetry(`${AMBIENT_WEATHER_BASE_URL}/devices?applicationKey=${AMBIENT_WEATHER_APPLICATION_KEY}&apiKey=${AMBIENT_WEATHER_API_KEY}`);
-        console.log('Ambient Weather API Response:', ambientData);
 
         // Get sunrise/sunset data
         const sunData = await fetchWithRetry(`https://api.sunrise-sunset.org/json?lat=30.6319&lng=-87.0372199&formatted=0`);
-        console.log('Sunrise/Sunset API Response:', sunData);
         
         if (sunData.status === 'OK') {
             const sunrise = new Date(sunData.results.sunrise);
@@ -706,7 +666,6 @@ async function updateWeather() {
         // Update current conditions and lightning data
         if (ambientData && ambientData.length > 0) {
             const currentData = ambientData[0].lastData;
-            console.log('Current Data:', currentData);
 
             const currentTemp = currentData.tempf;
             
@@ -764,7 +723,6 @@ async function updateWeather() {
                 dailySummaryData = await fetchWithRetry(
                     'https://api.weather.com/v2/pws/dailysummary/7day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909'
                 );
-                console.log('Wunderground History API Response:', dailySummaryData);
             } catch (error) {
                 console.error('Error fetching Wunderground History API data:', error);
                 dailySummaryData = null;
@@ -895,8 +853,6 @@ async function updateWeather() {
             const lastUpdateElement = document.getElementById('last-update');
             if (lastUpdateElement && currentData.date) {
                 // Debug logs for timezone handling
-                console.log("Raw API date:", currentData.date);
-                console.log("User's timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
                 
                 const stationTime = new Date(currentData.date);
                 const stationTimeZone = currentData.tz || 'America/Chicago';
@@ -910,7 +866,6 @@ async function updateWeather() {
                     hour12: true
                 });
                 const formattedLastUpdateTime = formatter.format(stationTime);
-                console.log("Station time (", stationTimeZone, "):", formattedLastUpdateTime);
                 lastUpdateElement.textContent = `Last updated: ${formattedLastUpdateTime}`;
             }
 
@@ -1491,7 +1446,7 @@ window.addEventListener('resize', positionGraphs);
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    console.log("DOM Content Loaded");
+
     
     // Initialize lastUpdateTime
     lastUpdateTime = new Date();
@@ -1744,7 +1699,6 @@ async function loadNearbyStations() {
             
             if (stations.length === 0 && retryCount < maxRetries) {
                 retryCount++;
-                console.log(`No stations found. Retry attempt ${retryCount} of ${maxRetries}`);
                 await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
                 return attemptLoad();
             }
@@ -1796,7 +1750,6 @@ async function loadNearbyStations() {
             console.error('Error loading nearby stations:', error);
             if (retryCount < maxRetries) {
                 retryCount++;
-                console.log(`Error occurred. Retry attempt ${retryCount} of ${maxRetries}`);
                 await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
                 return attemptLoad();
             }
@@ -2453,18 +2406,15 @@ async function setupPushNotifications() {
     try {
         // Check if service workers are supported
         if (!('serviceWorker' in navigator)) {
-            console.log('Service workers are not supported');
             return;
         }
 
         // Register service worker
         const registration = await navigator.serviceWorker.register('/service-worker.js');
-        console.log('Service Worker registered');
 
         // Request notification permission
         const permission = await Notification.requestPermission();
         if (permission !== 'granted') {
-            console.log('Notification permission denied');
             return;
         }
 
@@ -2474,7 +2424,6 @@ async function setupPushNotifications() {
             notificationButton.classList.add('enabled');
         }
 
-        console.log('Notification setup complete');
     } catch (error) {
         console.error('Error setting up notifications:', error);
     }
@@ -2486,13 +2435,11 @@ notificationSound.load();
 
 // Function to show test notification
 function showTestNotification() {
-    console.log('Test notification button clicked');
     
     // Play notification sound
     notificationSound.currentTime = 0; // Reset the audio to start
     notificationSound.volume = 1.0;
     notificationSound.play().catch(error => {
-        console.log('Could not play notification sound:', error);
     });
     
     // Create notification element
@@ -2514,24 +2461,20 @@ function showTestNotification() {
     
     // Add the visible class to trigger the animation
     notification.classList.add('visible');
-    console.log('Added notification to page');
 
     // Remove after 5 seconds
     setTimeout(() => {
         notification.classList.remove('visible');
         setTimeout(() => {
             notification.remove();
-            console.log('Notification removed');
         }, 300); // Wait for fade out animation
     }, 5000);
 }
 
 // Add event listener for test notification button
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Setting up test notification button');
     const testNotificationBtn = document.getElementById('test-notification');
     if (testNotificationBtn) {
-        console.log('Test notification button found, adding click listener');
         testNotificationBtn.addEventListener('click', showTestNotification);
     } else {
         console.error('Test notification button not found in DOM');
@@ -2554,7 +2497,6 @@ window.toggleDevMode = toggleDevMode;
 
 // Function to show test notification
 async function showTestNotification() {
-    console.log('Test notification button clicked');
     
     try {
         // Check if service worker is supported
@@ -2571,7 +2513,6 @@ async function showTestNotification() {
 
         // Check if we have permission
         if (Notification.permission !== 'granted') {
-            console.log('Requesting notification permission...');
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
                 console.error('Notification permission denied');
@@ -2581,7 +2522,6 @@ async function showTestNotification() {
 
         // Register service worker if not already registered
         const registration = await navigator.serviceWorker.register('/service-worker.js');
-        console.log('Service Worker registered:', registration);
 
         // Show the notification through the service worker
         await registration.showNotification('Weather Alert', {
@@ -2602,10 +2542,8 @@ async function showTestNotification() {
 
 // Add event listener for test notification button
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM Content Loaded - Setting up test notification button');
     const testNotificationBtn = document.getElementById('test-notification');
     if (testNotificationBtn) {
-        console.log('Test notification button found, adding click listener');
         testNotificationBtn.addEventListener('click', showTestNotification);
     } else {
         console.error('Test notification button not found in DOM');
@@ -2864,7 +2802,6 @@ function initializeRadarMap() {
 
         radarMap.on('sourcedata', function(e) {
             if (e.sourceId === 'nexrad-radar' && e.isSourceLoaded) {
-                console.log('NEXRAD Radar source loaded successfully');
             }
         });
 

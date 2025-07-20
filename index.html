@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Weather Dashboard</title>
     <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
@@ -2189,7 +2189,7 @@
             <!-- Weather alerts will be displayed here -->
         </div>
 
-        <div class="weather-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="weather-grid">
             <div class="weather-card current-conditions">
                 <div class="main-temp">
                     <div class="weather-icon-container">
@@ -2205,7 +2205,8 @@
                             </div>
                             <span id="high-temp" class="temp-hover" style="font-size: 0.8em; color: red; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">--°F</span>
                             <span id="low-temp" class="temp-hover-low" style="font-size: 0.8em; color: blue; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">--°F</span>
-                        </div>                    </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="weather-details">
                     <div class="detail-item" data-metric="temp">
@@ -2316,7 +2317,7 @@
         </div>
 
         <!-- Weather Cameras Section -->
-        <div class="weather-card cameras-section" style="margin-bottom: 50px;">
+        <div class="weather-card cameras-section">
             <h3>Weather Cameras</h3>
             <div class="cameras-grid" id="cameras-grid">
                 <!-- Camera feeds will be dynamically inserted here -->
@@ -2327,7 +2328,7 @@
         </div>
 
         <!-- Sunrise/Sunset Card -->
-        <div class="weather-card sun-times" style="margin-top: 100px; padding: 30px; max-width: 1276px; margin-left: auto; margin-right: auto;">
+        <div class="weather-card sun-times">
             <h3>Sunrise & Sunset Times</h3>
             <div class="sun-timeline">
                 <div class="timeline-container">
@@ -2564,16 +2565,6 @@
         <div class="graph-container">
             <canvas id="solarChart"></canvas>
         </div>
-    </div>
-
-    <!-- Mobile Alert -->
-    <div id="mobile-alert" class="mobile-alert" style="display: none;">
-        <p>This website is best viewed on a desktop or tablet device.</p>
-        <div>
-            <input type="checkbox" id="dont-show-again">
-            <label for="dont-show-again">Don't show this message again</label>
-        </div>
-        <button id="close-alert">Close</button>
     </div>
 
     <script>
