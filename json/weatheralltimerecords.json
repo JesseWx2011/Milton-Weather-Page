@@ -6,9 +6,8 @@
     "records": {
         "temperature": {
             "high": {
-                "date": "2024-08-13 15:14:00 CDT",
-                "value": 100.4
-            },
+                "date": "2025-07-23 13:36:00 CDT",
+                "value": 100.6
             "low": {
                 "date": "2025-01-22 6:40:00 CST",
                 "value": 14.2
