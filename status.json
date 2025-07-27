@@ -6,8 +6,8 @@
     },
     "powerOutage": {
       "active": true,
-      "message": "Power Outage Observed at 11:38 AM CDT, power is back up.",
-      "timestamp": "Sat Jul 19 2025 14:23:00 GMT-0500"
+      "message": "Power Outage occurred at 2:58 AM CDT, power is restored.",
+      "timestamp": "Sat Jul 27 2025 07:49:00 GMT-0500"
     }
   }
   
