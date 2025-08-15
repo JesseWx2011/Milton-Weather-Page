@@ -6,10 +6,11 @@
     },
     "powerOutage": {
       "active": true,
-      "message": "Power outage in the area, power as of now is currently not restored.",
-      "timestamp": "Mon Aug 04 2025 14:00:35 GMT-0500"
+      "message": "Power flickers are ongoing due to a nearby thunderstorm.",
+      "timestamp": "Mon Aug 15 2025 17:35:35 GMT-0500"
     }
   }
   
+
 
 
