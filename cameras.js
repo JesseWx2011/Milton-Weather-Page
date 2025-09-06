@@ -3,8 +3,8 @@ const CAMERA_CONFIG = {
     sources: [
         {
             id: 'camera1',
-            name: 'I-10 and FL-87 Intersection',
-            url: 'https://dim-se2.divas.cloud:8200/chan-6574/xflow.m3u8?token=87d540781330654b1dab13658827f1411b4d99bbc787aed115b3ec0e436e4fec',
+            name: 'Gulf Breeze',
+            url: 'https://5ed7b8fd7bf40.streamlock.net:444/gulfbreezerecovery/gulfbreezerecoverybeachcam/playlist.m3u8',
             type: 'video'
         },
         {
@@ -30,7 +30,7 @@ class CameraManager {
         modal.innerHTML = `
             <div class="camera-modal-content">
                 <button class="camera-modal-close">&times;</button>
-                <video id="modal-video" class="video-js vjs-default-skin" controls>
+                <video id="modal-video" class="video-js vjs-default-skin" controls loop>
                     <p class="vjs-no-js">Please enable JavaScript to view this video.</p>
                 </video>
                 <div class="camera-info"></div>
@@ -85,6 +85,7 @@ class CameraManager {
                 playbackRates: [0.5, 1, 1.5, 2],
                 autoplay: true,
                 muted: true,
+                loop: true,
                 html5: {
                     hls: {
                         overrideNative: true

@@ -361,3 +361,187 @@ body {
         z-index: 2;
     }
 }
+
+.dark-mode-toggle {
+    position: absolute;
+    top: 20px;
+    right: 180px; /* Adjust this value to position it next to the unit toggle */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.dark-mode-label {
+    font-family: 'Verdana', sans-serif;
+    font-weight: bold !important;
+    color: #333;
+    font-size: 0.8rem;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+[data-theme='dark'] body {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+[data-theme='dark'] .weather-card {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+[data-theme='dark'] .weather-card:hover {
+    box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+}
+
+[data-theme='dark'] .forecast-day {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+[data-theme='dark'] .detail-item {
+    border-bottom: 1px solid #333;
+}
+
+[data-theme='dark'] .detail-item:hover {
+    background-color: #333;
+}
+
+[data-theme='dark'] .header {
+    color: #ffffff;
+}
+
+[data-theme='dark'] .credits {
+    color: #aaa;
+}
+
+[data-theme='dark'] .bible-verse {
+    color: #aaa;
+}
+
+[data-theme='dark'] .sun-times {
+    background: linear-gradient(to bottom, #1e1e1e, #2c2c2c);
+}
+
+[data-theme='dark'] .sun-times h3 {
+    color: #ffffff;
+}
+
+[data-theme='dark'] .time-labels {
+    color: #aaa;
+}
+
+[data-theme='dark'] .day-length {
+    color: #aaa;
+}
+
+[data-theme='dark'] .unit-toggle {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .unit-label {
+    color: #ffffff;
+}
+
+[data-theme='dark'] .unit-btn {
+    color: #ffffff;
+    border: 1px solid #2196F3;
+}
+
+[data-theme='dark'] .unit-btn.active {
+    background: #2196F3;
+    color: #ffffff;
+}
+
+[data-theme='dark'] .dark-mode-toggle {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .dark-mode-label {
+    color: #ffffff;
+}
+
+[data-theme='dark'] .menu-button {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+[data-theme='dark'] .menu-popup {
+    background: #1e1e1e;
+    color: #ffffff;
+}
+
+[data-theme='dark'] .menu-item {
+    color: #ffffff;
+}
+
+[data-theme='dark'] .menu-item:hover {
+    background-color: #333;
+}
+
+[data-theme='dark'] .weather-graph {
+    background: #1e1e1e;
+    border: 1px solid #333;
+}
+
+[data-theme='dark'] .graph-header {
+    border-bottom: 1px solid #333;
+}
+
+[data-theme='dark'] .graph-title {
+    color: #ffffff;
+}
+
+[data-theme='dark'] .close-graph {
+    color: #aaa;
+}
+
+[data-theme='dark'] .close-graph:hover {
+    color: #ffffff;
+}
+
+[data-theme='dark'] .modal-content {
+    background-color: #1e1e1e;
+    color: #ffffff;
+}
+
+[data-theme='dark'] .modal-header {
+    border-bottom: 1px solid #333;
+}
+
+[data-theme='dark'] .modal-close {
+    color: #aaa;
+}
+
+[data-theme='dark'] .modal-close:hover {
+    color: #ffffff;
+}
+
+[data-theme='dark'] .station-card {
+    background: #2c2c2c;
+}
+
+[data-theme='dark'] .station-name {
+    color: #ffffff;
+}
+
+[data-theme='dark'] .station-distance {
+    color: #aaa;
+}
+
+[data-theme='dark'] .comparison-item {
+    background: #1e1e1e;
+}
+
+[data-theme='dark'] .comparison-label {
+    color: #aaa;
+}
+
+[data-theme='dark'] .comparison-value {
+    color: #ffffff;
+}

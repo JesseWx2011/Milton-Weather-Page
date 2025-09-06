@@ -42,6 +42,138 @@
 <link rel="apple-touch-icon" href="/Favicon.png">
 
     <style>
+        /* --- Dark Mode Styles --- */
+        /* Transitions enabled only while toggling to avoid unwanted load animations */
+        body.dark-mode-transition,
+        body.dark-mode-transition .weather-card,
+        body.dark-mode-transition .forecast-day,
+        body.dark-mode-transition .weather-graph,
+        body.dark-mode-transition .modal-content,
+        body.dark-mode-transition .station-card,
+        body.dark-mode-transition .comparison-item,
+        body.dark-mode-transition .camera-modal-content {
+            transition: background-color 350ms ease, color 350ms ease, box-shadow 350ms ease, border-color 350ms ease;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body.dark-mode-transition,
+            body.dark-mode-transition .weather-card,
+            body.dark-mode-transition .forecast-day,
+            body.dark-mode-transition .weather-graph,
+            body.dark-mode-transition .modal-content,
+            body.dark-mode-transition .station-card,
+            body.dark-mode-transition .comparison-item,
+            body.dark-mode-transition .camera-modal-content {
+                transition: none !important;
+            }
+        }
+        body.dark-mode {
+            background-color: #181a1b !important;
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .weather-card,
+        body.dark-mode .forecast-day,
+        body.dark-mode .weather-graph,
+        body.dark-mode .modal-content,
+        body.dark-mode .station-card,
+        body.dark-mode .comparison-item,
+        body.dark-mode .camera-modal-content {
+            background: #23272a !important;
+            color: #e0e0e0 !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        body.dark-mode .weather-card:hover,
+        body.dark-mode .forecast-day:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+        }
+        body.dark-mode .detail-item {
+            border-bottom: 1px solid #333 !important;
+        }
+        body.dark-mode .detail-item:hover,
+        body.dark-mode .detail-item.active {
+            background-color: #23272a !important;
+        }
+        body.dark-mode .alerts {
+            background: #2d2d2d !important;
+            border: 1px solid #444 !important;
+            color: #ffeeba !important;
+        }
+        body.dark-mode .notification {
+            background: #23272a !important;
+            color: #fff !important;
+            border: 1px solid #444 !important;
+        }
+        body.dark-mode .menu-item {
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .unit-btn {
+            color: white;
+        }
+        body.dark-mode .unit-label {
+            color: white;
+        }
+        body.dark-mode .unit-toggle {
+            display: flex;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: transparent !important;
+            color: #ffffff !important;
+        }
+        .dark-mode-toggle {
+            position: absolute;
+            top: 0.7%;
+            left: 5%;
+            background: transparent !important;
+            color: #000000 !important;
+        }
+        body.dark-mode .dark-mode-toggle {
+            position: absolute;
+            top: 0.7%;
+            left: 5%;
+            background: transparent !important;
+            color: #e0e0e0 !important;
+        }
+        body.dark-mode .graph-header {
+            border-bottom: 1px solid #444 !important;
+        }
+        body.dark-mode .close-graph {
+            color: #bbb !important;
+        }
+        body.dark-mode .close-graph:hover {
+            color: #fff !important;
+        }
+        body.dark-mode .temp-hover:hover {
+            color: #ff7043 !important;
+        }
+        body.dark-mode .temp-hover-low:hover {
+            color: #42a5f5 !important;
+        }
+        body.dark-mode .weather-graph {
+            border: 1px solid #444 !important;
+        }
+        body.dark-mode .slider.round {
+            background: #444 !important;
+        }
+        body.dark-mode .slider.round:before {
+            background: #e0e0e0 !important;
+        }
+        body.dark-mode .modal {
+            background-color: rgba(0,0,0,0.7) !important;
+        }
+        body.dark-mode .custom-alert {
+            background: rgba(30,30,40,0.95) !important;
+            color: #fff !important;
+            border-left: 7px solid #fff !important;
+        }
+        body.dark-mode .custom-alert.rainbow {
+            background: linear-gradient(120deg, rgba(255,94,98,0.95) 0%, rgba(249,212,35,0.95) 40%, rgba(67,206,162,0.95) 80%, rgba(25,118,210,0.95) 100%) !important;
+            color: #fff !important;
+        }
+        body.dark-mode .custom-alert.poweroutage {
+            background: linear-gradient(120deg, rgba(34,34,34,1) 0%, rgba(255,235,59,0.95) 100%) !important;
+            color: #222 !important;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -128,6 +260,7 @@
         .weather-icon-container img {
             width: 100px;
             height: 100px;
+            border-radius: 10px;
         }
 
         .weather-icon-container p {
@@ -2079,6 +2212,14 @@
             0% { opacity: 0; }
             100% { opacity: 1; }
         }
+        .google_translate {
+                position: absolute;
+                top: 2%;
+                right: 2%;
+        }
+        .goog-te-gadget-icon {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -2153,6 +2294,7 @@
                         <a href="about.html" class="menu-item">About</a>
                         <a href="dedicated-users.html" class="menu-item">Dedicated Users</a>
                         <a href="timeline.html" class="menu-item">Website Timeline</a>
+                        <a href="cbox.html" class="menu-item">The Chat Room</a>
                     </div>
                 </div>
                 <a href="maps.html" class="menu-item">Weather Maps</a>
@@ -2169,6 +2311,15 @@
                 <button id="imperial-btn" class="unit-btn active">Imperial</button>
                 <button id="metric-btn" class="unit-btn">Metric</button>
             </div>
+            <div id="google_translate_element" class="google_translate"></div>
+
+            <div class="dark-mode-toggle">
+                <span class="dark-mode-label">Dark Mode (BETA):</span>
+                <label class="switch">
+                    <input type="checkbox" id="dark-mode-toggle">
+                    <span class="slider round"></span>
+                </label>
+            </div> 
             <button id="compare-stations" class="compare-button">Compare Nearby Stations</button>
             <p id="loading-message">Loading...</p>
         </div>
@@ -2358,7 +2509,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Cards Container -->
         <div style="width: 1276px; margin: 30px auto;">
             <!-- Row 1 -->
@@ -2489,6 +2639,31 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js"></script>
     <script src="cameras.js"></script>
+    <!-- Dark Mode Script -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const allToggles = document.querySelectorAll('#dark-mode-toggle');
+        // Load preference
+        const darkModePref = localStorage.getItem('darkMode') === 'true';
+        if (darkModePref) {
+            document.body.classList.add('dark-mode');
+            allToggles.forEach(t => t.checked = true);
+        }
+        allToggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                if (toggle.checked) {
+                    document.body.classList.add('dark-mode');
+                    localStorage.setItem('darkMode', 'true');
+                    allToggles.forEach(t => t.checked = true);
+                } else {
+                    document.body.classList.remove('dark-mode');
+                    localStorage.setItem('darkMode', 'false');
+                    allToggles.forEach(t => t.checked = false);
+                }
+            });
+        });
+    });
+    </script>
     <script src="last-modified.js"></script>
 
     <!-- Weather metric graphs -->
@@ -2566,7 +2741,18 @@
             <canvas id="solarChart"></canvas>
         </div>
     </div>
-
+    <script type="text/javascript">
+  function googleTranslateElementInit() {
+    new google.translate.TranslateElement(
+      {
+        pageLanguage: 'en',
+        includedLanguages: 'en,es,en-GB,fr,la,de,pt', 
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+      },
+      'google_translate_element'
+    );
+  }</script>
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const menuCategories = document.querySelectorAll('.menu-category-header');
