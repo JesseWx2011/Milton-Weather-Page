@@ -6,8 +6,9 @@
     "records": {
         "temperature": {
             "high": {
-                "date": "2025-07-23 13:36:00 CDT",
+                "date": "2025-07-23 14:15:00 CDT",
                 "value": 100.6
+            },
             "low": {
                 "date": "2025-01-22 6:40:00 CST",
                 "value": 14.2
@@ -15,8 +16,8 @@
         },
         "feelsLike": {
             "high": {
-                "date": "2025-06-07 13:45:00 CDT",
-                "value": 111.5
+                "date": "2025-07-23 14:35:00 CDT",
+                "value": 122.9
             },
             "low": {
                 "date": "2025-01-22 7:05:00 CST",
@@ -63,6 +64,19 @@
             "high": {
                 "date": "2025-05-11 12:41:00 CDT",
                 "value": 1044
+            }
+        },
+        "dewPoint": {
+            "high": {
+                "date": "2025-06-19 15:11:00 CDT",
+                "value": 82.2
+            }
+        },
+        "rainfallRate": {
+            "high": {
+                "date": "2025-05-03 18:15:00 CDT",
+                "value": 8.31,
+                "units": "in/hr"
             }
         }
     }
