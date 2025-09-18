@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Aurora Webcams</title>
+    <style>
+        :root {
+            --glow-color-green: #00ff00;
+            --bg-color: #000;
+            --text-color: #fff;
+            --card-bg: rgba(20, 20, 40, 0.8);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .starfield {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: -1;
+        }
+
+        .starfield div {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle linear infinite;
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px var(--glow-color-green), 0 0 20px var(--glow-color-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 10px #0f0, 0 0 20px #0f0; }
+            50% { text-shadow: 0 0 20px #0f0, 0 0 40px #0f0; }
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: -55%;
+            text-decoration: none;
+            color: var(--text-color);
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(0, 255, 0, 0.1);
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .back-button:hover {
+            background: rgba(0, 255, 0, 0.2);
+            transform: translateY(-2px);
+        }
+
+        main {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 2px solid var(--glow-color-green);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 0 15px var(--glow-color-green), 0 0 30px var(--glow-color-green);
+            flex: 1 1 300px;
+            min-width: 280px;
+        }
+
+        .card h2 {
+            margin-top: 0;
+            text-shadow: 0 0 5px var(--glow-color-green);
+        }
+
+        .webcam-img {
+            width: 500px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="starfield"></div>
+
+    <header>
+        <a href="../index.html" class="back-button" title="Back to main dashboard">← Return to Weather Dashboard</a>
+        <h1>Real-time Aurora Webcams</h1>
+    </header>
+
+<main>
+    <div class="card">
+        <h2>Select Aurora Webcam</h2>
+<select id="webcam-select">
+    <optgroup label="Finland">
+        <option value="https://www.sgo.fi/Data/RealTime/Kuvat/UCL.jpg">Sodankylä, Lappland</option>
+        <option value="https://www.ursa.fi/yhd/tampereenursa/ys-images/north-snapshot.jpg">Tampere, Pirkanmaa</option>
+        <option value="https://aurorasnow.fmi.fi/public_service/images/latest_SIR.jpg">Nyrölä, Central Finland</option>
+    </optgroup>
+    <optgroup label="Norway">
+        <option value="https://www.yr.no/webcams/1/2000/mehamn/1.jpg">Mehamn</option>
+        <option value="https://www.yr.no/webcams/1/2000/gamvik/1.jpg">Gamvik</option>
+        <option value="https://kamera.atlas.vegvesen.no/api/images/1901001_1?&t=1758131793680">Arnøya</option>
+    </optgroup>
+        <optgroup label="Greenland (Denmark)">
+            <option value="https://metcam.navcanada.ca/dawc_images/wxcam/CYTE/CYTE_N-full-e.jpeg">Kinngait, Mittimatalik</option>
+</optgroup>
+        <optgroup label="Kyrgyzstan">
+    <option value="https://images-webcams.windy.com/29/1698484029/current/full/1698484029.jpg">Balykchy</option>
+</select>
+        <div style="margin-top: 1rem;">
+            <img id="webcam-img" class="webcam-img" src="https://www.sgo.fi/Data/RealTime/Kuvat/UCL.jpg" alt="Aurora Webcam">
+        </div>
+    </div>
+</main>
+
+    <script>
+        function createStars() {
+            const starfield = document.querySelector('.starfield');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                const size = Math.random() * 2 + 1;
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                star.style.animationDelay = `${Math.random() * 3}s`;
+                starfield.appendChild(star);
+            }
+        }
+
+        function refreshWebcams() {
+            const images = document.querySelectorAll('.webcam-img');
+            images.forEach(img => {
+                const src = img.src.split('?')[0];
+                img.src = src + '?t=' + new Date().getTime();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            createStars();
+            setInterval(refreshWebcams, 30000);
+        });
+        function refreshWebcam() {
+    const img = document.getElementById('webcam-img');
+    const src = img.src.split('?')[0];
+    img.src = src + '?t=' + new Date().getTime();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    createStars();
+    setInterval(refreshWebcam, 30000);
+
+    const select = document.getElementById('webcam-select');
+    const img = document.getElementById('webcam-img');
+    select.addEventListener('change', () => {
+        img.src = select.value + '?t=' + new Date().getTime();
+        img.alt = select.options[select.selectedIndex].text;
+    });
+});
+    </script>
+
+        <div class="weather-finder-link" style="margin-top: 20px;">
+        <a href="https://usaweatherfinder.com/">
+            <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
+        </a>
+    </div>
+</body>
+</html>
