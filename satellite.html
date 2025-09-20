@@ -1,9 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Satellite Imagery</title>
+    <meta name="description" content="Satellite Imagery from All Across the Atlantic and the Pacific.">
+    <meta name="keywords" content="satellite, imagery, GOES, GOES-18, GOES-19, weather, forecast, mesoscale, regional, continental, tropical, oceanic">
+    <meta name="author" content="Wx-Forecast-Page">
+    <meta property="og:title" content="Satellite Imagery">
+    <meta property="og:description" content="Satellite Imagery from All Across the Atlantic and the Pacific.">
+    <meta property="og:image" content="Favicon.png">
+    <meta property="og:url" content="https://jessewx2011.github.io/Milton-Weather-Page/satellite.html">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/png" sizes="512x512" href="Favicon.png">
     <style>
         * {
@@ -20,21 +29,67 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 75%;
             margin: 0 auto;
             padding: 20px;
+            text-align: center;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                max-width: 95%;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            padding: 15px;
+            transition: transform 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            color: #444;
         }
 
         .satellite-image {
-            width: 500px;
+            width: 50%;
             height: auto;
-            margin-top: 20px;
+            border-radius: 8px;
             cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .satellite-image:hover {
+            transform: scale(1.02);
+        }
+
+        .timestamp {
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #666;
         }
 
         .back-button {
@@ -43,7 +98,6 @@
             left: 20px;
             text-decoration: none;
             color: #3498db;
-            display: inline-block;
             padding: 8px 16px;
             border-radius: 4px;
             background: rgba(52, 152, 219, 0.1);
@@ -57,20 +111,15 @@
             color: #2980b9;
         }
 
-        /* Modal styles */
         .modal {
             display: none;
             position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
             justify-content: center;
             align-items: center;
-            cursor: pointer;
             transition: opacity 0.3s ease;
+            z-index: 1000;
         }
 
         .modal.show {
@@ -79,14 +128,21 @@
         }
 
         .modal img {
-            max-width: 90%;
-            max-height: 90%;
-            transform: scale(0);
-            animation: pop-in 0.85s forwards, ease;
+            max-width: 95%;
+            max-height: 95%;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            animation: fadeZoom 0.5s ease;
         }
 
-        @keyframes pop-in {
+        @keyframes fadeZoom {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
             to {
+                opacity: 1;
                 transform: scale(1);
             }
         }
@@ -100,124 +156,867 @@
             cursor: pointer;
         }
 
-        /* Warning modal styles */
-        .warning-modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            background-color: red; /* Red background */
-            color: white; /* White text */
-            padding: 20px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .warning-modal.show {
-            display: block;
-        }
-
-        .warning-content {
-            margin: 10px 0;
-        }
-
-        .event-button {
-            color: white;
-            display: inline-block;
+        select.channel-select {
+            margin-top: 10px;
+            padding: 4px 8px;
+            font-size: 0.9rem;
             border-radius: 4px;
-            padding: 8px 16px;
-            background: rgba(52, 152, 219, 0.1);
-            transition: all 0.3s;
-            font-size: 14px;
-            cursor: pointer;
+            border: 1px solid #ccc;
         }
 
-        .event-button:hover {
-            background: rgba(52, 152, 219, 0.2);
-            color: #2980b9;
+        .category-header {
+            grid-column: 1 / -1;
+            text-align: left;
+            font-size: 1.5rem;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
         }
     </style>
 </head>
+
 <body>
+    <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+
     <div class="container">
-        <div class="header">
-            <h1>Satellite Imagery</h1>
-            <h2>Southeast USA</h2>
-            <img class="satellite-image" src="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/smv/GEOCOLOR/2400x2400.jpg" alt="Satellite Imagery">
-            <p>Most recent satellite image of the Southeast USA.</p>
-            <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+        <h1>Satellite Imagery</h1>
+        <div class="grid">
+
+            <h2 class="category-header">Mesoscale</h2>
+            <!-- Mesoscale 1 -->
+            <div class="card">
+                <h2>GOES-19 Mesoscale 1</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/MESO/M1/GEOCOLOR/1000x1000.jpg"
+                    alt="Mesoscale 1">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Mesoscale 2 -->
+            <div class="card">
+                <h2>GOES-19 Mesoscale 2</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/MESO/M2/GEOCOLOR/1000x1000.jpg"
+                    alt="Mesoscale 2">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <h2 class="category-header">Regional Sectors</h2>
+            <!-- Southeast USA -->
+            <div class="card">
+                <h2>Southeast USA</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/smv/GEOCOLOR/2400x2400.jpg"
+                    alt="Southeast USA">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Northeast USA -->
+            <div class="card">
+                <h2>Northeast USA</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/ne/GEOCOLOR/2400x2400.jpg"
+                    alt="Northeast USA">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Pacific Southwest -->
+            <div class="card">
+                <h2>Pacific Southwest</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/psw/GEOCOLOR/2400x2400.jpg"
+                    alt="Pacific Southwest">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Pacific Northwest -->
+            <div class="card">
+                <h2>Pacific Northwest</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/pnw/GEOCOLOR/2400x2400.jpg"
+                    alt="Pacific Northwest">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Northern Rockies -->
+            <div class="card">
+                <h2>Northern Rockies</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/nr/GEOCOLOR/2400x2400.jpg"
+                    alt="Northern Rockies">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Upper Mississippi Valley -->
+            <div class="card">
+                <h2>Upper Mississippi Valley</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/umv/GEOCOLOR/2400x2400.jpg"
+                    alt="Upper Mississippi Valley">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Central Great Lakes -->
+            <div class="card">
+                <h2>Central Great Lakes</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/cgl/GEOCOLOR/2400x2400.jpg"
+                    alt="Central Great Lakes">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Southern Rockies -->
+            <div class="card">
+                <h2>Southern Rockies</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/sr/GEOCOLOR/2400x2400.jpg"
+                    alt="Southern Rockies">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Southern Plains -->
+            <div class="card">
+                <h2>Southern Plains</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/sp/GEOCOLOR/2400x2400.jpg"
+                    alt="Southern Plains">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- US East Coast -->
+            <div class="card">
+                <h2>US East Coast</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/eus/GEOCOLOR/2000x2000.jpg"
+                    alt="US East Coast">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Central Alaska -->
+            <div class="card">
+                <h2>Central Alaska</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/cak/GEOCOLOR/2400x2400.jpg"
+                    alt="Central Alaska">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Southeastern Alaska -->
+            <div class="card">
+                <h2>Southeastern Alaska</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/sea/GEOCOLOR/2400x2400.jpg"
+                    alt="Southeastern Alaska">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <h2 class="category-header">Continental</h2>
+            <!-- CONUS -->
+            <div class="card">
+                <h2>CONUS</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/CONUS/GEOCOLOR/2500x1500.jpg"
+                    alt="CONUS">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Canada -->
+            <div class="card">
+                <h2>Canada</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/can/GEOCOLOR/2250x1125.jpg"
+                    alt="Canada">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Alaska -->
+            <div class="card">
+                <h2>Alaska</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/ak/GEOCOLOR/2000x2000.jpg"
+                    alt="Alaska">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Mexico -->
+            <div class="card">
+                <h2>Mexico</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/mex/GEOCOLOR/2000x2000.jpg"
+                    alt="Mexico">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Central America -->
+            <div class="card">
+                <h2>Central America</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/cam/GEOCOLOR/2000x2000.jpg"
+                    alt="Central America">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Northern South America -->
+            <div class="card">
+                <h2>Northern South America</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/nsa/GEOCOLOR/1800x1080.jpg"
+                    alt="Northern South America">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Southern South America -->
+            <div class="card">
+                <h2>Southern South America</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/ssa/GEOCOLOR/1800x1080.jpg"
+                    alt="Southern South America">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <h2 class="category-header">Tropical/Oceanic</h2>
+            <!-- Hawaii -->
+            <div class="card">
+                <h2>Hawaii</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/hi/GEOCOLOR/2400x2400.jpg"
+                    alt="Hawaii">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Puerto Rico -->
+            <div class="card">
+                <h2>Puerto Rico</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/pr/GEOCOLOR/600x600.jpg"
+                    alt="Puerto Rico">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Carribean -->
+            <div class="card">
+                <h2>Carribean</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/car/GEOCOLOR/500x500.jpg"
+                    alt="Carribean">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Gulf of Mexico/America -->
+            <div class="card">
+                <h2>Gulf of Mexico/America</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/ga/GEOCOLOR/2000x2000.jpg"
+                    alt="Gulf of Mexico/America">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
+            <!-- Atlantic Ocean -->
+            <div class="card">
+                <h2>Atlantic Ocean</h2>
+                <img class="satellite-image"
+                    data-base="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/taw/GEOCOLOR/1800x1080.jpg"
+                    alt="Atlantic Ocean">
+                <p class="timestamp">Loading...</p>
+                <select class="channel-select">
+                    <option value="GEOCOLOR" selected>GeoColor</option>
+                    <option value="01">Channel 1</option>
+                    <option value="02">Channel 2</option>
+                    <option value="03">Channel 3</option>
+                    <option value="04">Channel 4</option>
+                    <option value="05">Channel 5</option>
+                    <option value="06">Channel 6</option>
+                    <option value="07">Channel 7</option>
+                    <option value="08">Channel 8</option>
+                    <option value="09">Channel 9</option>
+                    <option value="10">Channel 10</option>
+                    <option value="11">Channel 11</option>
+                    <option value="12">Channel 12</option>
+                    <option value="13">Channel 13</option>
+                    <option value="14">Channel 14</option>
+                    <option value="15">Channel 15</option>
+                    <option value="16">Channel 16</option>
+                </select>
+            </div>
+
         </div>
     </div>
-    <div class="modal">
-        <img class="modal-img" src="" alt="Satellite Imagery">
-        <span class="close-button">&times;</span>
+
+    <!-- Modal -->
+    <div class="modal" role="dialog" aria-modal="true">
+        <img class="modal-img" src="" alt="Expanded Satellite Imagery">
+        <span class="close-button" aria-label="Close">&times;</span>
     </div>
-    <div class="weather-finder-link" align="center">
-        <a href="https://usaweatherfinder.com/">
-            <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
-        </a>
-    </div>
-</body>
-</html>
-<script>
-    // Start Generation Here
-    document.addEventListener('DOMContentLoaded', function() {
-        const satelliteImage = document.querySelector('.satellite-image');
-        const modal = document.querySelector('.modal');
-        const modalImg = document.querySelector('.modal-img');
-        const closeButton = document.querySelector('.close-button');
 
-        // Check for device compatibility
-        const isOldDevice = () => {
-            const userAgent = navigator.userAgent;
-            const isIOS = /iPhone|iPad|iPod/.test(userAgent) && !/OS [1-12]_\d/.test(userAgent);
-            const isWindows = /Windows/.test(userAgent) && /(?:Windows 8\.1|Windows NT 6\.3)/.test(userAgent);
-            const isMac = /Macintosh/.test(userAgent) && /Mac OS X 10\.(\d{1,2})/.test(userAgent) && parseInt(RegExp.$1) < 11;
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.querySelector('.modal');
+            const modalImg = document.querySelector('.modal-img');
+            const closeButton = document.querySelector('.close-button');
+            const imageCards = document.querySelectorAll('.card');
 
-            return isIOS || isWindows || isMac;
-        };
+            const lastModifiedMap = new Map();
 
-        satelliteImage.addEventListener('click', function() {
-            if (isOldDevice() && !localStorage.getItem('dontShowWarning')) {
-                const warningModal = document.createElement('div');
-                warningModal.classList.add('warning-modal');
-                warningModal.innerHTML = `
-                    <div class="warning-content">
-                        <p>Warning, high data usage ahead, proceed with caution.</p>
-                        <label>
-                            <input type="checkbox" id="dont-show-again"> Don't show me this alert again
-                        </label>
-                        <button id="close-warning" class="event-button">Close</button>
-                    </div>
-                `;
-                document.body.appendChild(warningModal);
-                warningModal.classList.add('show');
-
-                document.getElementById('close-warning').addEventListener('click', function() {
-                    if (document.getElementById('dont-show-again').checked) {
-                        localStorage.setItem('dontShowWarning', 'true');
-                    }
-                    warningModal.classList.remove('show');
-                    document.body.removeChild(warningModal);
-                });
-            } else {
-                showImage();
+            async function fetchLastModified(url) {
+                try {
+                    const resp = await fetch(url, { method: 'HEAD' });
+                    const lm = resp.headers.get('last-modified');
+                    return lm ? new Date(lm) : null;
+                } catch {
+                    return null;
+                }
             }
+
+            function formatFreshness(lastModified) {
+                const now = Date.now();
+                const diffSec = Math.floor((now - lastModified.getTime()) / 1000);
+                const mins = Math.floor(diffSec / 60);
+                const secs = diffSec % 60;
+                if (diffSec < 5) return { text: "Updated just now", color: "green" };
+                if (diffSec < 1800) return { text: `Updated ${mins}m ${secs}s ago`, color: "green" };
+                if (diffSec < 3600) return { text: `Updated ${mins}m ${secs}s ago`, color: "orange" };
+                return { text: "Outdated! (over 1 hour old)", color: "red" };
+            }
+
+            async function refreshImages() {
+                for (const card of imageCards) {
+                    const img = card.querySelector('.satellite-image');
+                    const ts = card.querySelector('.timestamp');
+                    const baseUrl = img.dataset.base;
+                    const lastModified = await fetchLastModified(baseUrl);
+                    if (lastModified) {
+                        lastModifiedMap.set(img, lastModified);
+                        img.src = baseUrl + "?t=" + Date.now();
+                        const { text, color } = formatFreshness(lastModified);
+                        ts.textContent = text;
+                        ts.style.color = color;
+                    } else {
+                        ts.textContent = "Unable to fetch timestamp";
+                        ts.style.color = "gray";
+                    }
+                }
+            }
+
+            // Update freshness every 2 seconds
+            setInterval(() => {
+                for (const card of imageCards) {
+                    const img = card.querySelector('.satellite-image');
+                    const ts = card.querySelector('.timestamp');
+                    const lastModified = lastModifiedMap.get(img);
+                    if (lastModified) {
+                        const { text, color } = formatFreshness(lastModified);
+                        ts.textContent = text;
+                        ts.style.color = color;
+                    }
+                }
+            }, 2000);
+
+            // Channel select change
+            document.querySelectorAll('.card').forEach(card => {
+                const img = card.querySelector('.satellite-image');
+                const select = card.querySelector('.channel-select');
+                select.addEventListener('change', async () => {
+                    const baseParts = img.dataset.base.split('/');       // split URL into parts
+                    baseParts[baseParts.length - 2] = select.value;       // replace the channel folder
+                    const newUrl = baseParts.join('/')
+                    img.src = newUrl;
+
+                    const lm = await fetchLastModified(newUrl);
+                    if (lm) lastModifiedMap.set(img, lm);
+                });
+            });
+
+            // Modal logic
+            document.querySelectorAll('.satellite-image').forEach(img => {
+                img.addEventListener('click', () => { modalImg.src = img.src; modal.classList.add('show'); });
+            });
+            closeButton.addEventListener('click', () => modal.classList.remove('show'));
+            modal.addEventListener('click', () => modal.classList.remove('show'));
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('show'); });
+
+            // Initial load + 10-min refresh
+            refreshImages();
+            setInterval(refreshImages, 600000);
         });
 
-        function showImage() {
-            modalImg.src = satelliteImage.src;
-            modal.classList.add('show');
-        }
+            
+    </script>
+</body>
 
-        closeButton.addEventListener('click', function() {
-            modal.classList.remove('show');
-        });
-
-        modal.addEventListener('click', function() {
-            modal.classList.remove('show');
-        });
-    });
-</script>
+</html>
