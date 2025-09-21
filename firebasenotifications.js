@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-app.js";
 import { getFirestore, collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.3.0/firebase-firestore.js";
 
-// Your Firebase config
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCQs_Cu6bIuZk1AXd5CzWz-c4VkOcwn5WQ",
   authDomain: "notifications-fbe00.firebaseapp.com",
@@ -13,6 +13,7 @@ const firebaseConfig = {
   measurementId: "G-RG2B8N173S"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -21,28 +22,71 @@ const banner = document.getElementById("notification-banner");
 const text = document.getElementById("notification-text");
 const dismissBtn = document.getElementById("dismiss-btn");
 
+// Dismiss button
 dismissBtn.addEventListener("click", () => {
-  banner.style.display = "none";
+  banner.remove();
 });
 
-// Listen for notifications in Firestore
+// Firestore query
 const notificationsQuery = query(
-  collection(db, "notifications"), // your collection name
-  orderBy("timestamp", "desc")     // newest first
+  collection(db, "notifications"),
+  orderBy("timestamp", "desc")
 );
 
+const THREE_HOURS = 3 * 60 * 60 * 1000; // 3 hours in milliseconds
+
 onSnapshot(notificationsQuery, (snapshot) => {
+  const now = Date.now(); // current time
+
   snapshot.docChanges().forEach((change) => {
     if (change.type === "added") {
       const data = change.doc.data();
-      // Show notification banner
-      text.textContent = `${data.title}: ${data.message}`;
-      banner.style.display = "block";
 
-      // Optional: auto-hide after 8 seconds
-      setTimeout(() => {
-        banner.style.display = "none";
-      }, 8000);
+      // Check timestamp (skip old notifications)
+      if (data.timestamp) {
+        const notificationTime = data.timestamp.toMillis
+          ? data.timestamp.toMillis() // Firestore Timestamp
+          : new Date(data.timestamp).getTime(); // plain Date
+        if (now - notificationTime > THREE_HOURS) {
+          return; // skip old notifications
+        }
+      }
+
+      // Show notification
+      const title = data.title || "No title";
+      const description = data.description || "No description";
+      text.textContent = `${title}: ${description}`;
+
+      banner.className = "";
+      banner.classList.add("visible");
+
+      // Determine type dynamically
+      let typeClass = "regular";
+      const lowerTitle = title.toLowerCase();
+      const lowerDesc = description.toLowerCase();
+      if (lowerTitle.includes("tornado") || lowerDesc.includes("tornado")) typeClass = "tornado";
+      else if (lowerTitle.includes("evacuate") || lowerDesc.includes("evacuate")) typeClass = "evacuate";
+      else if (lowerTitle.includes("power") || lowerDesc.includes("power")) typeClass = "power-out";
+      else if (lowerTitle.includes("severe") || lowerDesc.includes("severe")) typeClass = "severe";
+      else if (lowerTitle.includes("rainbow") || lowerDesc.includes("rainbow")) typeClass = "rainbow";
+
+      banner.classList.add(typeClass);
+const timestampEl = document.getElementById("notification-timestamp");
+
+// Inside your onSnapshot logic, after setting text:
+let notifTime;
+if (data.timestamp.toMillis) {
+  // Firestore Timestamp
+  notifTime = new Date(data.timestamp.toMillis());
+} else {
+  notifTime = new Date(data.timestamp); // fallback
+}
+
+const localTime = notifTime.toLocaleTimeString('en-US', { hour12: true, timeZoneName: 'short' });
+const utcTime = notifTime.toUTCString().split(' ')[4]; // just hh:mm:ss UTC
+
+timestampEl.textContent = `Last Updated: ${localTime} (${utcTime} UTC)`;
+
     }
   });
 });
