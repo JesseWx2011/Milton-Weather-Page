@@ -90,3 +90,4 @@ timestampEl.textContent = `Last Updated: ${localTime} (${utcTime} UTC)`;
     }
   });
 });
+ 
