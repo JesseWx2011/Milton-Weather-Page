@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather Models</title>
+<meta name="description" content="Weather Models with various parameters such as temperature, humidity, wind shear, dew point, CAPE, CIN, lifted index, weather forecasting">
+<meta name="og:title" content="Weather Models">
+<meta name="og:description" content="Weather Models with various parameters such as temperature, humidity, wind shear, dew point, CAPE, CIN, lifted index, weather forecasting">
+<meta name="og:type" content="website">
+<meta name="og:url" content="https://jessewx2011.github.io/Milton-Weather-Page/weather-models">
+<meta name="date" content="2025-09-23" scheme="YYYY-MM-DD">
+<meta name="author" content="Jesse Hasty">
+<meta name="keywords" content="weather models, temperature, humidity, wind shear, dew point, CAPE, CIN, lifted index, weather forecasting">
+
+<style>
+body { font-family: Arial, sans-serif; margin: 0; padding: 20px; color: #222; background-color: #f5f5f5; }
+.container { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 200px 1fr; gap: 20px; }
+h1 { margin-bottom: 24px; color: #333; text-align: center; grid-column: 1 / -1; }
+.left-sidebar { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); height: fit-content; }
+.main-content { display: flex; flex-direction: column; gap: 20px; }
+.slider-controls { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%; }
+label { display: block; margin-top: 12px; font-weight: 600; color: #444; }
+input[type="range"], select { width: 100%; padding: 6px 8px; margin-top: 4px; border-radius: 4px; border: 1px solid #ddd; }
+.layer-buttons { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.layer-button { padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: white; cursor: pointer; font-size: 0.95rem; transition: all 0.2s ease; }
+.layer-button:hover { background: #f0f0f0; }
+.layer-button.active { background: #007bff; color: white; border-color: #0056b3; }
+#fh-label { margin-top: 8px; font-size: 0.95rem; color: #666; }
+#model-image { width: 100%; max-width: 100%; height: auto; display: block; margin: 0 auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); background: white; }
+.small { display: none; font-size: 0.9rem; color: #666; }
+.error { color: #dc3545; font-weight: 600; padding: 8px; background: #ffe6e6; border-radius: 4px; margin-top: 8px; }
+#status { margin-top: 8px; padding: 8px; background: #e8f4ff; border-radius: 4px; }
+#run-info { text-align: center; margin-top: 12px; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Weather Models</h1>
+<div class="left-sidebar">
+<label for="model-select">Weather Model</label>
+<select id="model-select">
+    <option value="gfs" selected>GFS</option>
+    <option value="hrrr">HRRR</option>
+</select>
+
+<label for="region-select">Region</label>
+<select id="region-select">
+    <option value="conus" selected>CONUS</option>
+    <option value="us_se">Southeast</option>
+    <option value="us_ne">Northeast</option>
+    <option value="us_ma">Mid-Atlantic</option>
+    <option value="us_sc">South Central</option>
+    <option value="us_nc">North Central</option>
+    <option value="us_c">Central</option>
+    <option value="us_fc">Four Corners</option>
+    <option value="us_nr">Northern Rockies</option>
+    <option value="us_nw">Northwest</option>
+    <option value="us_sw">Southwest</option>
+</select>
+
+<label>Layer</label>
+<div class="layer-buttons" id="layer-buttons-container" role="group" aria-label="Select model variable"></div>
+
+<div id="status" class="small" role="status" aria-live="polite">Loading hours…</div>
+<div id="error" class="error" style="display:none"></div>
+</div>
+
+<div class="main-content">
+<div class="slider-controls">
+<label for="fh-slider">Forecast Hour</label>
+<input id="fh-slider" type="range" min="3" max="384" step="3" value="3" />
+<div id="fh-label" class="small">fh: 003</div>
+</div>
+
+<img id="model-image" alt="Model image" src="" />
+<p class="small" id="run-info"></p>
+</div>
+</div>
+
+<script>
+(function() {
+const fhSlider = document.getElementById('fh-slider');
+const fhLabel = document.getElementById('fh-label');
+const statusEl = document.getElementById('status');
+const errorEl = document.getElementById('error');
+const imageEl = document.getElementById('model-image');
+const runInfo = document.getElementById('run-info');
+const layerContainer = document.getElementById('layer-buttons-container');
+const modelSelect = document.getElementById('model-select');
+const regionSelect = document.getElementById('region-select');
+
+let availableMaxFH = 384;
+let runTimes = [];
+let currentRunRH = null;
+let currentModel = 'gfs';
+let currentRegion = regionSelect.value;
+
+// Layer mapping
+const layerFiles = {
+    "temp-run": "sfct-imp",
+    "rh": "sfcrh",
+    "dew": "sfctd-imp",
+    "ref": "refcmp",
+    "anom": "sfct_anom-imp",
+    "snow10": "sn10_acc-imp",
+    "snow": "snod-imp",
+    "feels": "sfctapp-imp",
+    "500h_change": "500h_change_012h"
+};
+
+const layerNames = {
+    "temp-run": "Temperature",
+    "rh": "Humidity",
+    "dew": "Dew Point",
+    "ref": "Composite Reflectivity",
+    "anom": "Temperature Anomaly",
+    "snow10": "10:1 Ratio Snowfall",
+    "snow": "Snow Depth",
+    "feels": "Feels Like Temperature",
+    "500h_change": "500mb Height Change (12hr)"
+};
+
+const models = {
+    gfs: {
+        statusUrl: 'https://www.pivotalweather.com/status_model.php?m=gfs',
+        host: 'https://m1o.pivotalweather.com/maps/models/gfs',
+        supportedLayers: ["temp-run","rh","dew","ref","anom","snow10","snow","feels","500h_change"]
+    },
+    hrrr: {
+        statusUrl: 'https://www.pivotalweather.com/status_model.php?m=hrrr',
+        host: 'https://m2o.pivotalweather.com/maps/models/hrrr',
+        supportedLayers: ["temp-run","rh","dew","ref","snow","feels"]
+    }
+};
+
+// Create layer buttons
+Object.keys(layerFiles).forEach((key, index) => {
+    const btn = document.createElement('button');
+    btn.classList.add('layer-button');
+    if (index === 0) btn.classList.add('active');
+    btn.dataset.layer = key;
+    btn.textContent = layerNames[key] || key;
+    btn.addEventListener('click', () => {
+        layerContainer.querySelectorAll('.layer-button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateImage();
+    });
+    layerContainer.appendChild(btn);
+});
+
+function padFH(n) { return String(n).padStart(3,'0'); }
+
+function buildImageUrls(layer, fh) {
+    if (!currentRunRH) return [];
+    const paddedFH = padFH(fh);
+    const fileBase = layerFiles[layer] || "sfct-imp";
+    const host = models[currentModel].host;
+
+    return [
+        `${host}/${currentRunRH}/${paddedFH}/${fileBase}.${currentRegion}.png`,
+        `${host}/${currentRunRH}/fh${paddedFH}/${fileBase}.${currentRegion}.png`,
+        `${host}/${currentRunRH}/${fileBase}.${currentRegion}.png`
+    ];
+}
+
+// Preload images for selected layer
+function preloadLayerImages(layer) {
+    const maxFH = Number(fhSlider.max);
+    for (let fh = 3; fh <= maxFH; fh += 3) {
+        buildImageUrls(layer, fh).forEach(url => {
+            const img = new Image();
+            img.src = url;
+        });
+    }
+}
+
+async function fetchStatus() {
+    statusEl.textContent = 'Fetching model availability…';
+    errorEl.style.display = 'none';
+    try {
+        const ts = Math.floor(Date.now()/1000);
+        const res = await fetch(`${models[currentModel].statusUrl}&_=${ts}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Status fetch failed: ' + res.status);
+        const json = await res.json();
+        if (!Array.isArray(json) || json.length === 0) throw new Error('Unexpected status payload');
+
+        // Normalize 'rh'
+        json.forEach(entry => {
+            if (!entry.rh && entry.hr) entry.rh = entry.hr;
+            if (entry.rh && typeof entry.rh==='string') {
+                const m = entry.rh.match(/(\d{10})/);
+                if (m) entry.rh = m[1];
+            }
+        });
+
+        runTimes = json;
+
+        // Pick newest run
+        currentRunRH = runTimes.reduce((max, entry) => (entry.rh > max ? entry.rh : max), runTimes[0].rh);
+
+        availableMaxFH = Math.max(...json.map(e=>Number(e.fh||0)), availableMaxFH);
+        availableMaxFH = Math.max(3, Math.floor(availableMaxFH/3)*3);
+
+        fhSlider.min = 3;
+        fhSlider.max = availableMaxFH;
+        fhSlider.step = 3;
+        fhSlider.value = 3;
+
+        statusEl.textContent = `Model run provides fh up to ${availableMaxFH}. Found ${json.length} run timestamps.`;
+        updateFHLabel();
+        updateImage();
+        renderRunInfo();
+    } catch(err) {
+        statusEl.textContent = '';
+        errorEl.style.display = 'block';
+        errorEl.textContent = 'Error loading model status: ' + (err.message || err);
+        console.error(err);
+    }
+}
+
+function updateFHLabel() {
+    const fh = Number(fhSlider.value);
+    fhLabel.textContent = `fh: ${padFH(fh)} (${fh}h)`;
+}
+
+function renderRunInfo() {
+    if (!Array.isArray(runTimes) || runTimes.length===0) { runInfo.textContent=''; return; }
+    const runs = runTimes.slice(0,6).map(r => r.rh || `run fh ${r.fh}`);
+    runInfo.textContent = 'Sample run timestamps: ' + runs.join(' | ');
+}
+
+function trySetImage(layer, fh) {
+    const urls = buildImageUrls(layer, fh);
+    let tried = 0;
+    imageEl.alt = `Loading ${layer} fh ${padFH(fh)}…`;
+    imageEl.src = '';
+    imageEl.style.opacity='0.6';
+    return new Promise(resolve => {
+        function attempt() {
+            if (tried >= urls.length) {
+                imageEl.style.opacity='1';
+                imageEl.alt='Image not available';
+                statusEl.textContent='';
+                errorEl.style.display='block';
+                errorEl.textContent='No available image format responded for this layer/fh.';
+                resolve(false);
+                return;
+            }
+            const url = urls[tried++];
+            const onLoad = ()=>{ imageEl.removeEventListener('load',onLoad); imageEl.removeEventListener('error',onError); imageEl.style.opacity='1'; statusEl.textContent=`Showing ${layer} at fh ${padFH(fh)}`; errorEl.style.display='none'; resolve(true); };
+            const onError = ()=>{ imageEl.removeEventListener('load',onLoad); imageEl.removeEventListener('error',onError); setTimeout(attempt,120); };
+            imageEl.addEventListener('load',onLoad);
+            imageEl.addEventListener('error',onError);
+            imageEl.src = url;
+        }
+        attempt();
+    });
+}
+
+async function updateImage() {
+    const activeButton = layerContainer.querySelector('.layer-button.active');
+    if(!activeButton) return;
+    const layer = activeButton.dataset.layer;
+    const fh = Number(fhSlider.value);
+    updateFHLabel();
+    statusEl.textContent='Loading image…';
+    await trySetImage(layer, fh);
+    preloadLayerImages(layer); // preload remaining images
+}
+
+// Update layer visibility based on selected model
+function updateLayerButtons() {
+    layerContainer.querySelectorAll('.layer-button').forEach(btn => {
+        if (models[currentModel].supportedLayers.includes(btn.dataset.layer)) {
+            btn.style.display = 'block';
+        } else {
+            btn.style.display = 'none';
+            btn.classList.remove('active');
+        }
+    });
+    const firstVisible = layerContainer.querySelector('.layer-button[style*="block"]');
+    if(firstVisible) firstVisible.classList.add('active');
+}
+
+// Event listeners
+fhSlider.addEventListener('input',()=>updateFHLabel());
+fhSlider.addEventListener('change',()=>updateImage());
+modelSelect.addEventListener('change', () => {
+    currentModel = modelSelect.value;
+    updateLayerButtons();
+    fetchStatus();
+});
+regionSelect.addEventListener('change', () => {
+    currentRegion = regionSelect.value;
+    updateImage();
+});
+
+// Initialize
+updateLayerButtons();
+fetchStatus();
+setInterval(fetchStatus, 5*60*1000);
+
+})();
+</script>
+<script src="../cors-proxy.js"></script>
+</body>
+</html>
