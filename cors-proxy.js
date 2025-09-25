@@ -53,9 +53,10 @@ app.options('/proxy/traffic-camera', (req, res) => {
 });
 
 /*
-  New: Image proxy for weather-models to avoid CORS errors when the browser
+  Image proxy for weather-models to avoid CORS errors when the browser
   attempts to load images from pivotalweather hosts. Keeps camera proxies above.
   Usage: /proxy/image?url=<encoded-image-url>
+  Usage (compat): /raw?url=<encoded-image-url>   <-- mimics api.allorigins.win/raw?url=...
   Only allows requests to configured trusted hosts to avoid open proxy.
 */
 
@@ -71,6 +72,7 @@ function isAllowedHost(hostname) {
     return ALLOWED_HOSTS.some(h => hostname === h || hostname.endsWith('.' + h));
 }
 
+// Existing image proxy used by weather-models
 app.get('/proxy/image', (req, res) => {
     const raw = req.query.url;
     if (!raw) return res.status(400).json({ error: 'url query parameter is required' });
@@ -134,6 +136,73 @@ app.get('/proxy/image', (req, res) => {
 
 // OPTIONS preflight for image proxy
 app.options('/proxy/image', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    res.status(200).end();
+});
+
+/*
+  Compat endpoint: provide a lightweight replacement for api.allorigins.win/raw
+  so existing client code that uses ".../raw?url=..." can be pointed to this server.
+  Usage: /raw?url=<encoded-image-url>
+*/
+app.get('/raw', (req, res) => {
+    const raw = req.query.url;
+    if (!raw) return res.status(400).json({ error: 'url query parameter is required' });
+
+    let parsed;
+    try {
+        parsed = new URL(raw);
+    } catch (err) {
+        return res.status(400).json({ error: 'Invalid URL' });
+    }
+
+    if (!isAllowedHost(parsed.hostname)) {
+        return res.status(403).json({ error: 'Host not allowed' });
+    }
+
+    const client = parsed.protocol === 'http:' ? http : https;
+
+    const headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Referer': req.get('Origin') || req.get('Referer') || 'https://jessewx2011.github.io',
+        'Accept': '*/*'
+    };
+
+    const requestOptions = {
+        headers,
+        timeout: 15000
+    };
+
+    const proxiedReq = client.get(parsed.toString(), requestOptions, (targetRes) => {
+        // Always set permissive CORS headers for the response to the browser
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+        // Forward content type
+        if (targetRes.headers['content-type']) {
+            res.setHeader('Content-Type', targetRes.headers['content-type']);
+        }
+        res.statusCode = targetRes.statusCode || 200;
+        targetRes.pipe(res);
+    });
+
+    proxiedReq.on('timeout', () => {
+        proxiedReq.destroy(new Error('Request timed out'));
+    });
+
+    proxiedReq.on('error', (err) => {
+        console.error('/raw proxy error for', raw, err && err.message);
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+        res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+        res.status(502).json({ error: 'Failed to fetch remote resource', details: (err && err.message) || 'unknown' });
+    });
+});
+
+// OPTIONS preflight for raw endpoint
+app.options('/raw', (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');

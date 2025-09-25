@@ -1,10 +1,10 @@
-// Weather Camera Configuration
+// Weather Camera Configuration (initial, Camera 1 URL will be replaced after token fetch)
 const CAMERA_CONFIG = {
     sources: [
         {
             id: 'camera1',
-            name: 'Gulf Breeze',
-            url: 'https://5ed7b8fd7bf40.streamlock.net:444/gulfbreezerecovery/gulfbreezerecoverybeachcam/playlist.m3u8',
+            name: 'I-10 Rest Area',
+            url: '', // will be set dynamically
             type: 'video'
         },
         {
@@ -53,7 +53,6 @@ class CameraManager {
 
     async initialize() {
         this.grid.innerHTML = '';
-
         for (const source of CAMERA_CONFIG.sources) {
             await this.addCamera(source);
         }
@@ -62,7 +61,7 @@ class CameraManager {
     async addCamera(source) {
         const cameraElement = document.createElement('div');
         cameraElement.className = 'camera-feed';
-        
+
         if (source.type === 'video') {
             const video = document.createElement('video-js');
             video.className = 'video-js vjs-default-skin';
@@ -93,7 +92,6 @@ class CameraManager {
                 }
             });
 
-            // Handle errors
             player.on('error', function() {
                 console.error('Error loading video stream:', source.name);
                 cameraElement.innerHTML = `
@@ -103,7 +101,6 @@ class CameraManager {
                 `;
             });
 
-            // Store player instance for cleanup
             this.cameras.set(source.id, {
                 element: cameraElement,
                 source: source,
@@ -123,18 +120,16 @@ class CameraManager {
 
         this.grid.appendChild(cameraElement);
 
-        // Add click handler for fullscreen
         cameraElement.addEventListener('click', () => this.showModal(source));
     }
 
     showModal(source) {
         const camera = this.cameras.get(source.id);
         if (!camera) return;
-        
+
         const info = this.modal.querySelector('.camera-info');
         info.textContent = source.name;
-        
-        // Create a new video.js instance for the modal
+
         const modalPlayer = videojs(this.modalVideo, {
             fluid: true,
             aspectRatio: '16:9',
@@ -146,7 +141,6 @@ class CameraManager {
             }
         });
 
-        // Set the source
         modalPlayer.src({
             src: source.url,
             type: 'application/x-mpegURL'
@@ -165,8 +159,35 @@ class CameraManager {
     }
 }
 
-// Initialize camera manager when the page loads
+// Fetch token, then set Camera 1 URL and initialize cameras
 document.addEventListener('DOMContentLoaded', () => {
-    const cameraManager = new CameraManager();
-    cameraManager.initialize();
-}); 
+    fetch("https://divas.cloud/VDS-API/SecureTokenUri/GetSecureTokenUriBySourceId", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            token: "A5CBCF70-80ED-4225-8C23-DDE840829225",
+            sourceId: "479",
+            systemSourceId: "District 3-CHP"
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Token response:", data);
+
+        // Expecting ?token=xxxx string from API
+        const tokenString = data?.token ? `?token=${data.token}` : "";
+        CAMERA_CONFIG.sources[0].url = `https://dis-se2.divas.cloud:8200/chan-7318_h/xflow.m3u8${tokenString}`;
+
+        // Initialize CameraManager with updated URL
+        const cameraManager = new CameraManager();
+        cameraManager.initialize();
+    })
+    .catch(err => {
+        console.error("Error fetching token:", err);
+        // Still init cameras (without secure URL) if request fails
+        const cameraManager = new CameraManager();
+        cameraManager.initialize();
+    });
+});

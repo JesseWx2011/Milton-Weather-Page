@@ -824,20 +824,74 @@ async function updateWeather() {
             const weatherIcon = document.getElementById('weather-icon');
             
             if (currentConditions && currentConditions.properties) {
-                const condition = currentConditions.properties.textDescription || (isDaytime() ? "Sunny" : "Clear");
-                const weatherIconSrc = currentConditions.properties.icon;
-                
-                if (!weatherIconSrc) {
-                    weatherIcon.innerHTML = ` 
-                        <img src="./NA.jpg">
-                        <p class="condition-text">${condition}</p>
-                    `;
-                } else {
-                    weatherIcon.innerHTML = ` 
-                        <img src="${currentConditions.properties.icon}">
-                        <p class="condition-text">${condition}</p>
-                    `;
-                }
+                const baseCondition = typeof currentConditions.properties.textDescription === 'string'
+                    ? currentConditions.properties.textDescription
+                    : (isDaytime() ? "Sunny" : "Clear");
+                const nwsIconUrl = currentConditions.properties.icon || '';
+
+                // Try to extract the short icon code (e.g. "bkn" from ".../land/day/bkn?size=medium")
+// Try to extract the short icon code (e.g. "bkn" from ".../land/day/bkn?size=medium")
+let iconCode = null;
+try {
+    const lastSegment = nwsIconUrl.split('/').pop() || '';
+    iconCode = lastSegment.split('?')[0].split('.')[0] || null;
+
+    // Exception remapping
+    if (iconCode === "rain") {
+        iconCode = "ra";
+    }
+} catch (e) {
+    iconCode = null;
+}
+
+                // Local icon path (expects files like ./alert-images/bkn.png, sct.png, few.png, etc.)
+                const localIconPath = iconCode ? `https://forecast.weather.gov/images/wtf/large/${iconCode}.png` : null;
+
+                // Build descriptors based on Ambient Weather observed values (currentData is from Ambient)
+                const descriptors = [];
+
+                // Dew point -> "Humid" if dew point (°F) > 73
+                try {
+                    const dewF = currentData && (currentData.dewPoint ?? currentData.dewpoint ?? currentData.dewPointF ?? null);
+                    if (dewF !== null && !isNaN(dewF) && Number(dewF) > 73) descriptors.push('Humid');
+                } catch (e) { /* ignore */ }
+
+                // Wind -> Breezy / Windy! / Extreme Wind! (use mph)
+                try {
+                    const windMph = currentData && (currentData.windspeedmph ?? currentData.windspeed ?? currentData.windSpeed ?? 0);
+                    if (!isNaN(windMph)) {
+                        if (windMph >= 60) descriptors.push('Extreme Wind!');
+                        else if (windMph >= 40) descriptors.push('Windy!');
+                        else if (windMph > 20) descriptors.push('Breezy');
+                    }
+                } catch (e) { /* ignore */ }
+
+                // Temperature change -> Noticeably/Dramatically Cooler when it has dropped
+                try {
+                    const tempChangeEl = document.getElementById('temp-change');
+                    if (tempChangeEl) {
+                        const m = (tempChangeEl.textContent || '').match(/([+-]?\d+(?:\.\d+)?)/);
+                        if (m) {
+                            const change = parseFloat(m[1]);
+                            if (!isNaN(change) && change < 0) {
+                                if (change <= -3) descriptors.push('Dramatically Cooler');
+                                else if (change <= -1) descriptors.push('Noticeably Cooler.');
+                            }
+                        }
+                    }
+                } catch (e) { /* ignore */ }
+
+                const suffix = descriptors.length ? ' — ' + descriptors.join(', ') : '';
+
+                // Render icon: prefer local ./alert-images/<code>.png, fallback to NWS icon URL, then NA.jpg
+                const imgSrc = localIconPath || nwsIconUrl || './NA.jpg';
+                const fallbackSrc = nwsIconUrl || './NA.jpg';
+
+                // Use onerror on the <img> to fall back if local file is missing
+                weatherIcon.innerHTML = `
+                    <img src="${imgSrc}" alt="${baseCondition}" onerror="this.onerror=null;this.src='${fallbackSrc}'">
+                    <p class="condition-text">${baseCondition}${suffix}</p>
+                `;
             } else {
                 // No current conditions available from any station
                 weatherIcon.innerHTML = ` 
@@ -847,8 +901,7 @@ async function updateWeather() {
             }
 
             // Call the new function to fetch graph data and create graphs
-            fetchAndCreateGraphs();
-
+ 
             // Update last update time using the timestamp from Ambient Weather API
             const lastUpdateElement = document.getElementById('last-update');
             if (lastUpdateElement && currentData.date) {
@@ -1026,31 +1079,100 @@ function getLast12HoursLabels() {
 // Function to get historical data for a metric
 async function getHistoricalData(metric) {
     try {
+        // Primary 1-day observations
         const response = await fetch('https://api.weather.com/v2/pws/observations/all/1day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909');
         const data = await response.json();
-        
+
         if (!data.observations || !Array.isArray(data.observations)) {
-            console.error('Invalid data format from API');
+            console.error('Invalid data format from primary API');
             return { values: [], labels: [] };
         }
 
-        // Sort observations by time
-        const sortedObservations = data.observations
+        // Sort primary observations by UTC time
+        let sortedObservations = data.observations
+            .slice()
             .sort((a, b) => new Date(a.obsTimeUtc) - new Date(b.obsTimeUtc));
 
-        // Get the most recent observation time
+        // Determine most recent observation time
         const mostRecentTime = new Date(sortedObservations[sortedObservations.length - 1].obsTimeUtc);
-        const twelveHoursAgo = new Date(mostRecentTime.getTime() - (12 * 60 * 60 * 1000));
 
-        // Filter observations within the window
+        // If local midnight for the day of the most recent observation was less than 12 hours ago,
+        // we need to supplement with the previous day's hourly history (which can include missing early-hour points).
+        const ms12h = 12 * 60 * 60 * 1000;
+        const midnight = new Date(mostRecentTime);
+        midnight.setHours(0, 0, 0, 0);
+
+        if ((mostRecentTime.getTime() - midnight.getTime()) < ms12h) {
+            try {
+                // Build previous day date in YYYYMMDD (handles month/year boundaries via Date)
+                const prevDay = new Date(mostRecentTime.getTime() - 24 * 60 * 60 * 1000);
+                const yyyy = prevDay.getFullYear();
+                const mm = String(prevDay.getMonth() + 1).padStart(2, '0');
+                const dd = String(prevDay.getDate()).padStart(2, '0');
+                const dateStr = `${yyyy}${mm}${dd}`;
+
+                const historyUrl = `https://api.weather.com/v2/pws/history/hourly?stationId=KFLMILTO379&format=json&units=e&date=${dateStr}&apiKey=55edd55b4c554296add55b4c5592964a`;
+
+                // Use fetchWithRetry if available for better resilience, otherwise fallback to fetch()
+                let hourlyData;
+                if (typeof fetchWithRetry === 'function') {
+                    hourlyData = await fetchWithRetry(historyUrl).catch(err => {
+                        console.warn('Hourly history fetch failed:', err);
+                        return null;
+                    });
+                } else {
+                    const hr = await fetch(historyUrl).catch(err => {
+                        console.warn('Hourly history fetch failed:', err);
+                        return null;
+                    });
+                    hourlyData = hr ? await hr.json().catch(() => null) : null;
+                }
+
+                if (hourlyData && (hourlyData.observations || hourlyData.observation || hourlyData.obs)) {
+                    // Normalise array
+                    const hourlyObs = hourlyData.observations || hourlyData.observation || hourlyData.obs || [];
+
+                    // Defensive mapping: ensure each observation has obsTimeUtc (some endpoints use different names)
+                    const normalizedHourly = hourlyObs.map(o => {
+                        // Try common fields used elsewhere; fallback to time or timestamp
+                        if (!o.obsTimeUtc) {
+                            if (o.obsTimeUtcLocal) o.obsTimeUtc = o.obsTimeUtcLocal;
+                            else if (o.time) o.obsTimeUtc = o.time;
+                            else if (o.timestamp) o.obsTimeUtc = o.timestamp;
+                        }
+                        return o;
+                    }).filter(o => o && o.obsTimeUtc);
+
+                    // Merge previous day's hourly observations with primary day's observations
+                    // Use Map keyed by obsTimeUtc to dedupe overlapping timestamps
+                    const map = new Map();
+                    normalizedHourly.forEach(o => map.set(new Date(o.obsTimeUtc).toISOString(), o));
+                    sortedObservations.forEach(o => map.set(new Date(o.obsTimeUtc).toISOString(), o));
+
+                    sortedObservations = Array.from(map.values()).sort((a, b) => new Date(a.obsTimeUtc) - new Date(b.obsTimeUtc));
+                } else {
+                    console.warn('No hourly history data available for previous day:', dateStr);
+                }
+            } catch (err) {
+                console.warn('Error fetching/merging previous day hourly history:', err);
+            }
+        }
+
+        const mostRecent = new Date(sortedObservations[sortedObservations.length - 1].obsTimeUtc);
+        const twelveHoursAgo = new Date(mostRecent.getTime() - (12 * 60 * 60 * 1000));
+
+        // Filter observations within the 12-hour window (defensive parsing)
         const relevantObservations = sortedObservations.filter(obs => {
-            const obsTime = new Date(obs.obsTimeUtc);
-            return obsTime >= twelveHoursAgo && obsTime <= mostRecentTime;
+            try {
+                const obsTime = new Date(obs.obsTimeUtc);
+                return obsTime >= twelveHoursAgo && obsTime <= mostRecent;
+            } catch (e) {
+                return false;
+            }
         });
 
-        // If we don't have enough observations, return empty arrays
         if (relevantObservations.length < 2) {
-            console.warn('Not enough observations in the time window');
+            console.warn('Not enough observations in the 12-hour window after attempting to merge previous day data');
             return { values: [], labels: [] };
         }
 
@@ -1059,17 +1181,15 @@ async function getHistoricalData(metric) {
         let lastValidValue = null;
 
         for (let i = 0; i < 12; i++) {
-            // Calculate timestamp relative to the most recent observation
-            const targetTime = new Date(mostRecentTime.getTime() - ((11 - i) * 60 * 60 * 1000));
+            const targetTime = new Date(mostRecent.getTime() - ((11 - i) * 60 * 60 * 1000));
 
-            // Find the two closest observations
             let beforeObs = null;
             let afterObs = null;
-            
+
             for (let j = 0; j < relevantObservations.length - 1; j++) {
                 const currentTime = new Date(relevantObservations[j].obsTimeUtc);
                 const nextTime = new Date(relevantObservations[j + 1].obsTimeUtc);
-                
+
                 if (currentTime <= targetTime && nextTime >= targetTime) {
                     beforeObs = relevantObservations[j];
                     afterObs = relevantObservations[j + 1];
@@ -1079,15 +1199,13 @@ async function getHistoricalData(metric) {
 
             let value;
             if (beforeObs && afterObs) {
-                // Interpolate between two observations
                 const beforeTime = new Date(beforeObs.obsTimeUtc);
                 const afterTime = new Date(afterObs.obsTimeUtc);
                 const ratio = (targetTime - beforeTime) / (afterTime - beforeTime);
-                
+
                 const beforeValue = getValueFromObservation(beforeObs, metric, useMetric);
                 const afterValue = getValueFromObservation(afterObs, metric, useMetric);
-                
-                // For pressure, only interpolate if both values are valid
+
                 if (metric === 'pressure') {
                     if (beforeValue !== null && afterValue !== null) {
                         value = beforeValue + (afterValue - beforeValue) * ratio;
@@ -1099,7 +1217,10 @@ async function getHistoricalData(metric) {
                         value = lastValidValue;
                     }
                 } else {
-                    value = beforeValue + (afterValue - beforeValue) * ratio;
+                    // Guard against null/undefined values when interpolating
+                    const b = (beforeValue === null || beforeValue === undefined) ? 0 : beforeValue;
+                    const a = (afterValue === null || afterValue === undefined) ? b : afterValue;
+                    value = b + (a - b) * ratio;
                 }
             } else if (beforeObs) {
                 value = getValueFromObservation(beforeObs, metric, useMetric);
@@ -1109,7 +1230,7 @@ async function getHistoricalData(metric) {
                 value = lastValidValue;
             }
 
-            // Validate the value based on metric type
+            // Validation (same as before)
             let isValid = false;
             if (typeof value === 'number' && !isNaN(value)) {
                 switch (metric) {
@@ -1154,9 +1275,8 @@ async function getHistoricalData(metric) {
                 }
             }
 
-            // Format the label in CDT
-            const label = targetTime.toLocaleTimeString('en-US', { 
-                hour: '2-digit', 
+            const label = targetTime.toLocaleTimeString('en-US', {
+                hour: '2-digit',
                 minute: '2-digit',
                 timeZone: 'America/Chicago'
             });
@@ -2748,141 +2868,45 @@ async function updateTideData() {
 }
 
 // Radar Map Functionality
-let radarMap = null;
-let currentRadarLayer = 'nexrad';
+// Function to switch radar images in the card
+function switchRadarImage(radarId) {
+    const radarImage = document.getElementById('radar-image');
+    const kmobBtn = document.getElementById('kmob-radar-btn');
+    const kevxBtn = document.getElementById('kevx-radar-btn');
 
-function initializeRadarMap() {
-    if (typeof mapboxgl === 'undefined') {
-        console.warn('Mapbox GL JS not loaded');
-        return;
-    }
+    if (!radarImage || !kmobBtn || !kevxBtn) return;
 
-    mapboxgl.accessToken = 'pk.eyJ1Ijoid2VhdGhlciIsImEiOiJjbHAxbHNjdncwaDhvMmptcno1ZTdqNDJ0In0.iywE3NefjboFg11a11ON0Q';
-    
-    const mapContainer = document.getElementById('radar-map');
-    if (!mapContainer) {
-        console.warn('Radar map container not found');
-        return;
-    }
-    
-    radarMap = new mapboxgl.Map({
-        container: 'radar-map',
-        style: 'mapbox://styles/mapbox/outdoors-v12',
-        center: [-87.0394, 30.6324], // Milton, FL coordinates
-        zoom: 8,
-        attributionControl: false,
-        logoPosition: 'bottom-right'
-    });
+    // Reset active states
+    kmobBtn.classList.remove('active');
+    kevxBtn.classList.remove('active');
 
-    // Add NEXRAD Radar layer
-    radarMap.on('load', function() {
-        // Add NEXRAD Radar layer
-        radarMap.addSource('nexrad-radar', {
-            type: 'raster',
-            tiles: [
-                'https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/ridge::MOB-N0B-0/{z}/{x}/{y}.png',
-            ],
-            tileSize: 256,
-            maxzoom: 10
-        });
-
-        radarMap.addLayer({
-            id: 'nexrad-radar-layer',
-            type: 'raster',
-            source: 'nexrad-radar',
-            paint: {
-                'raster-opacity': 0.8
-            }
-        }, 'road-minor'); // Insert before road layers
-
-        // Add error handling for the radar source
-        radarMap.on('error', function(e) {
-            console.error('Mapbox error:', e);
-        });
-
-        radarMap.on('sourcedata', function(e) {
-            if (e.sourceId === 'nexrad-radar' && e.isSourceLoaded) {
-            }
-        });
-
-        // Add NEXRAD Composite layer (initially hidden)
-        radarMap.addSource('nexrad-composite', {
-            type: 'raster',
-            tiles: [
-                'https://maps.aerisapi.com/wgE96YE3scTQLKjnqiMsv_SVG2gQFV8y9DjKR0BRY9wPoSLvrMrIqF9Lq2IYaY/radar/{z}/{x}/{y}/current.png'
-            ],
-            tileSize: 256
-        });
-
-        radarMap.addLayer({
-            id: 'nexrad-composite-layer',
-            type: 'raster',
-            source: 'nexrad-composite',
-            paint: {
-                'raster-opacity': 1
-            }
-        }, 'road-minor'); // Insert before road layers
-
-        // Hide composite layer initially
-        radarMap.setLayoutProperty('nexrad-composite-layer', 'visibility', 'none');
-
-        // Ensure NEXRAD Radar layer is visible
-        radarMap.setLayoutProperty('nexrad-radar-layer', 'visibility', 'visible');
-    });
-}
-
-// Radar control button handlers
-function switchRadarLayer(layerType) {
-    if (!radarMap) return;
-
-    const nexradBtn = document.getElementById('nexrad-radar-btn');
-    const compositeBtn = document.getElementById('nexrad-composite-btn');
-
-    if (!nexradBtn || !compositeBtn) return;
-
-    if (layerType === 'nexrad') {
-        radarMap.setLayoutProperty('nexrad-radar-layer', 'visibility', 'visible');
-        radarMap.setLayoutProperty('nexrad-composite-layer', 'visibility', 'none');
-        nexradBtn.classList.add('active');
-        compositeBtn.classList.remove('active');
-        currentRadarLayer = 'nexrad';
-    } else if (layerType === 'composite') {
-        radarMap.setLayoutProperty('nexrad-radar-layer', 'visibility', 'none');
-        radarMap.setLayoutProperty('nexrad-composite-layer', 'visibility', 'visible');
-        nexradBtn.classList.remove('active');
-        compositeBtn.classList.add('active');
-        currentRadarLayer = 'composite';
+    if (radarId === 'kmob') {
+        radarImage.src = "https://radar.weather.gov/ridge/standard/KMOB_loop.gif";
+        kmobBtn.classList.add('active');
+    } else if (radarId === 'kevx') {
+        radarImage.src = "https://radar.weather.gov/ridge/standard/KEVX_loop.gif";
+        kevxBtn.classList.add('active');
     }
 }
 
-// Initialize radar map and event listeners
-function initializeRadarControls() {
-    // Initialize radar map
-    initializeRadarMap();
-
-    // Add event listeners for radar control buttons
-    const nexradBtn = document.getElementById('nexrad-radar-btn');
-    const compositeBtn = document.getElementById('nexrad-composite-btn');
-
-    if (nexradBtn) {
-        nexradBtn.addEventListener('click', function() {
-            switchRadarLayer('nexrad');
-        });
-    }
-
-    if (compositeBtn) {
-        compositeBtn.addEventListener('click', function() {
-            switchRadarLayer('composite');
-        });
-    }
-}
-
-// Initialize radar functionality when DOM is loaded
+// Set up event listeners when the DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize radar controls
-    initializeRadarControls();
+    const kmobBtn = document.getElementById('kmob-radar-btn');
+    const kevxBtn = document.getElementById('kevx-radar-btn');
+
+    if (kmobBtn) {
+        kmobBtn.addEventListener('click', function() {
+            switchRadarImage('kmob');
+        });
+    }
+
+    if (kevxBtn) {
+        kevxBtn.addEventListener('click', function() {
+            switchRadarImage('kevx');
+        });
+    }
 });
-  
+
 // ---- Custom Alerts from status.json ----
 
 async function fetchStatusAlerts() {
@@ -3000,4 +3024,3 @@ if (document.readyState === 'loading') {
 }
 // Optionally, poll every 5 minutes:
 setInterval(fetchStatusAlerts, 5 * 60 * 1000);
-    

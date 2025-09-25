@@ -328,8 +328,14 @@ body {
         font-size: 2em;
     }
     .weather-icon-container img {
-        width: 60px;
-        height: 60px;
+    display: flex;
+    width: 128px;
+    height: auto;
+    border-radius: 10px;
+    justify-content: center;
+    margin: auto;
+    align-items: center;
+    margin-bottom: 30px;
     }
     .forecast-title, h1, h2, h3 {
         font-size: 1.1em;
