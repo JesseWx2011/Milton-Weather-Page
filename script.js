@@ -2881,7 +2881,7 @@ function switchRadarImage(radarId) {
     kevxBtn.classList.remove('active');
 
     if (radarId === 'kmob') {
-        radarImage.src = "https://radar.weather.gov/ridge/standard/KMOB_loop.gif";
+        radarImage.src = "https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/KMOB_radar.png";
         kmobBtn.classList.add('active');
     } else if (radarId === 'kevx') {
         radarImage.src = "https://radar.weather.gov/ridge/standard/KEVX_loop.gif";
