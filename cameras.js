@@ -1,11 +1,11 @@
-// Weather Camera Configuration (initial, Camera 1 URL will be replaced after token fetch)
+// Weather Camera Configuration
 const CAMERA_CONFIG = {
     sources: [
         {
-            id: 'camera1',
-            name: 'I-10 Rest Area',
-            url: '', // will be set dynamically
-            type: 'video'
+            id: 'fl511_6573',
+            name: 'Escambia County',
+            url: 'https://streaming.myescambia.com:8081',
+            type: 'image' // Treat as an image
         },
         {
             id: 'camera2',
@@ -30,30 +30,31 @@ class CameraManager {
         modal.innerHTML = `
             <div class="camera-modal-content">
                 <button class="camera-modal-close">&times;</button>
-                <video id="modal-video" class="video-js vjs-default-skin" controls loop>
+                <video id="modal-video" class="video-js vjs-default-skin" controls loop style="display:none;">
                     <p class="vjs-no-js">Please enable JavaScript to view this video.</p>
                 </video>
+                <img id="modal-img" style="width:100%; display:none;" />
                 <div class="camera-info"></div>
             </div>
         `;
         document.body.appendChild(modal);
 
-        const closeBtn = modal.querySelector('.camera-modal-close');
-        closeBtn.addEventListener('click', () => this.hideModal());
+        modal.querySelector('.camera-modal-close')
+            .addEventListener('click', () => this.hideModal());
 
         modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                this.hideModal();
-            }
+            if (e.target === modal) this.hideModal();
         });
 
         this.modal = modal;
         this.modalVideo = modal.querySelector('#modal-video');
+        this.modalImg = modal.querySelector('#modal-img');
     }
 
     async initialize() {
         this.grid.innerHTML = '';
         for (const source of CAMERA_CONFIG.sources) {
+            console.log("Initializing camera:", source.name, source.url);
             await this.addCamera(source);
         }
     }
@@ -75,9 +76,11 @@ class CameraManager {
             sourceElement.setAttribute('src', source.url);
             sourceElement.setAttribute('type', 'application/x-mpegURL');
             video.appendChild(sourceElement);
-            cameraElement.appendChild(video);
 
-            // Initialize video.js player
+            cameraElement.appendChild(video);
+            this.grid.appendChild(cameraElement);
+
+            console.log("Creating Video.js player for:", source.name);
             const player = videojs(video, {
                 fluid: true,
                 aspectRatio: '16:9',
@@ -85,14 +88,10 @@ class CameraManager {
                 autoplay: true,
                 muted: true,
                 loop: true,
-                html5: {
-                    hls: {
-                        overrideNative: true
-                    }
-                }
+                html5: { hls: { overrideNative: true } }
             });
 
-            player.on('error', function() {
+            player.on('error', () => {
                 console.error('Error loading video stream:', source.name);
                 cameraElement.innerHTML = `
                     <div class="camera-placeholder">
@@ -101,24 +100,23 @@ class CameraManager {
                 `;
             });
 
-            this.cameras.set(source.id, {
-                element: cameraElement,
-                source: source,
-                player: player
-            });
-        } else {
+            this.cameras.set(source.id, { element: cameraElement, source, player });
+
+        } else { // Image type
             const img = document.createElement('img');
             img.src = source.url;
             img.alt = source.name;
+            img.style.width = '100%';
             cameraElement.appendChild(img);
+            this.cameras.set(source.id, { element: cameraElement, source });
+
+            this.grid.appendChild(cameraElement);
         }
 
         const cameraInfo = document.createElement('div');
         cameraInfo.className = 'camera-info';
         cameraInfo.textContent = source.name;
         cameraElement.appendChild(cameraInfo);
-
-        this.grid.appendChild(cameraElement);
 
         cameraElement.addEventListener('click', () => this.showModal(source));
     }
@@ -127,27 +125,37 @@ class CameraManager {
         const camera = this.cameras.get(source.id);
         if (!camera) return;
 
+        console.log("Showing modal for:", source.name, source.url);
+
         const info = this.modal.querySelector('.camera-info');
         info.textContent = source.name;
 
-        const modalPlayer = videojs(this.modalVideo, {
-            fluid: true,
-            aspectRatio: '16:9',
-            playbackRates: [0.5, 1, 1.5, 2],
-            html5: {
-                hls: {
-                    overrideNative: true
-                }
-            }
-        });
+        if (source.type === 'video') {
+            this.modalVideo.style.display = 'block';
+            this.modalImg.style.display = 'none';
 
-        modalPlayer.src({
-            src: source.url,
-            type: 'application/x-mpegURL'
-        });
+            if (this.modalPlayer) {
+                this.modalPlayer.dispose();
+                this.modalPlayer = null;
+            }
+
+            const modalPlayer = videojs(this.modalVideo, {
+                fluid: true,
+                aspectRatio: '16:9',
+                playbackRates: [0.5, 1, 1.5, 2],
+                html5: { hls: { overrideNative: true } }
+            });
+
+            modalPlayer.src({ src: source.url, type: 'application/x-mpegURL' });
+            this.modalPlayer = modalPlayer;
+
+        } else { // Image modal
+            this.modalVideo.style.display = 'none';
+            this.modalImg.style.display = 'block';
+            this.modalImg.src = source.url;
+        }
 
         this.modal.classList.add('visible');
-        this.modalPlayer = modalPlayer;
     }
 
     hideModal() {
@@ -159,35 +167,9 @@ class CameraManager {
     }
 }
 
-// Fetch token, then set Camera 1 URL and initialize cameras
+// Initialize cameras
 document.addEventListener('DOMContentLoaded', () => {
-    fetch("https://divas.cloud/VDS-API/SecureTokenUri/GetSecureTokenUriBySourceId", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            token: "A5CBCF70-80ED-4225-8C23-DDE840829225",
-            sourceId: "479",
-            systemSourceId: "District 3-CHP"
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        console.log("Token response:", data);
-
-        // Expecting ?token=xxxx string from API
-        const tokenString = data?.token ? `?token=${data.token}` : "";
-        CAMERA_CONFIG.sources[0].url = `https://dis-se2.divas.cloud:8200/chan-7318_h/xflow.m3u8${tokenString}`;
-
-        // Initialize CameraManager with updated URL
-        const cameraManager = new CameraManager();
-        cameraManager.initialize();
-    })
-    .catch(err => {
-        console.error("Error fetching token:", err);
-        // Still init cameras (without secure URL) if request fails
-        const cameraManager = new CameraManager();
-        cameraManager.initialize();
-    });
+    console.log("DOM loaded, initializing cameras...");
+    const cameraManager = new CameraManager();
+    cameraManager.initialize();
 });
