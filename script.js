@@ -50,6 +50,17 @@ const SEASON_DATES = {
     winter: { month: 11, day: 21 }  // December 21
 };
 
+// Function to format values, handling null or undefined
+function formatValue(value, unit = '', precision = 1) {
+    if (value === null || typeof value === 'undefined' || value === 'N/A' || isNaN(value)) {
+        return 'N/A';
+    }
+    if (typeof value === 'number') {
+        return `${value.toFixed(precision)}${unit}`;
+    }
+    return `${value}${unit}`;
+}
+
 // Function to convert degrees to compass direction
 function degreesToCompass(degrees) {
     const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
@@ -689,11 +700,11 @@ async function updateWeather() {
             const feelsLikeElement = document.getElementById('feels-like');
             if (feelsLikeElement) {
                 const feelsLikeTemp = useMetric ? fahrenheitToCelsius(currentData.feelsLike) : currentData.feelsLike;
-                feelsLikeElement.textContent = `${feelsLikeTemp.toFixed(1)}${useMetric ? '°C' : '°F'}`;
+                feelsLikeElement.textContent = formatValue(feelsLikeTemp, useMetric ? '°C' : '°F');
             }
             const humidityElement = document.getElementById('humidity');
             if (humidityElement) {
-                humidityElement.textContent = `${currentData.humidity}%`;
+                humidityElement.textContent = formatValue(currentData.humidity, '%', 0);
             }
 
             // Update the pressure element
@@ -721,7 +732,7 @@ async function updateWeather() {
             let dailySummaryData;
             try {
                 dailySummaryData = await fetchWithRetry(
-                    'https://api.weather.com/v2/pws/dailysummary/7day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909'
+                    'https://api.weather.com/v2/pws/dailysummary/7day?stationId=KFLMILTO379&format=json&units=e&apiKey=6ae12de8a830419ca12de8a830319c40'
                 );
             } catch (error) {
                 console.error('Error fetching Wunderground History API data:', error);
@@ -1267,7 +1278,7 @@ async function getHistoricalData(metric) {
                 values.push(parseFloat(value.toFixed(3)));
                 lastValidValue = value;
             } else {
-                console.warn(`Invalid value for ${metric} at ${targetTime.toISOString()}:`, value);
+                console.warn(`Invalid value for ${metric}:`, value);
                 if (lastValidValue !== null) {
                     values.push(lastValidValue);
                 } else {
@@ -2881,10 +2892,10 @@ function switchRadarImage(radarId) {
     kevxBtn.classList.remove('active');
 
     if (radarId === 'kmob') {
-        radarImage.src = "https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/KMOB_radar.png";
+        radarImage.src = "https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/MOB.gif";
         kmobBtn.classList.add('active');
     } else if (radarId === 'kevx') {
-        radarImage.src = "https://radar.weather.gov/ridge/standard/KEVX_loop.gif";
+        radarImage.src = "https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/EVX.gif";
         kevxBtn.classList.add('active');
     }
 }
