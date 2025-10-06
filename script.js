@@ -1111,7 +1111,7 @@ async function getHistoricalData(metric) {
                 const dd = String(prevDay.getDate()).padStart(2, '0');
                 const dateStr = `${yyyy}${mm}${dd}`;
 
-                const historyUrl = `https://api.weather.com/v2/pws/history/hourly?stationId=KFLMILTO379&format=json&units=e&date=${dateStr}&apiKey=55edd55b4c554296add55b4c5592964a`;
+                const historyUrl = `https://api.weather.com/v2/pws/history/hourly?stationId=KFLMILTO379&format=json&units=e&date=${dateStr}&apiKey=6ae12de8a830419ca12de8a830319c40`;
 
                 // Use fetchWithRetry if available for better resilience, otherwise fallback to fetch()
                 let hourlyData;
