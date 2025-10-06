@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Trends</title>
+
+    <meta name="author" content="Jesse Hasty"/>
+    <meta name="description" content="Compare the weather now, to an hour, day, month, and even a year ago! Data is from your local weather station in Milton, Florida."/>
+
+    <meta name="date" content="2025-10-06"/>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1, h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+                .back-button {
+            position: fixed;
+            top: 35px;
+            left: 30px;
+            text-decoration: none;
+            color: #06314e;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(10, 130, 209, 0.373);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.626);
+            color: #06314e;
+        }
+
+
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background-color: #f7f7f7;
+            font-weight: 600;
+            color: #555;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #d9534f;
+            text-align: center;
+            padding: 10px;
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+            border-radius: 4px;
+            display: none; /* Hidden by default */
+        }
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+     <a href="../" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>        <h1>Weather Trends</h1>
+        <h3 style="text-align: center;">Weather Comparison for Now Compared to These Times:</h2>
+        <div id="loader" class="loader"></div>
+        <div id="error-message" class="error-message">Failed to load weather data. Please try again later.</div>
+        <table id="weather-table" style="display:none;">
+            <thead>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Now</th>
+                    <th>1 Hour Ago</th>
+                    <th>1 Day Ago</th>
+                    <th>1 Week Ago</th>
+                    <th>1 Month Ago</th>
+                    <th>1 Year Ago</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Temperature</td>
+                    <td id="temp-now"></td>
+                    <td id="temp-hour"></td>
+                    <td id="temp-day"></td>
+                    <td id="temp-week"></td>
+                    <td id="temp-month"></td>
+                    <td id="temp-year"></td>
+                </tr>
+                <tr>
+                    <td>Wind</td>
+                    <td id="wind-now"></td>
+                    <td id="wind-hour"></td>
+                    <td id="wind-day"></td>
+                    <td id="wind-week"></td>
+                    <td id="wind-month"></td>
+                    <td id="wind-year"></td>
+                </tr>
+                <tr>
+                    <td>Humidity</td>
+                    <td id="humidity-now"></td>
+                    <td id="humidity-hour"></td>
+                    <td id="humidity-day"></td>
+                    <td id="humidity-week"></td>
+                    <td id="humidity-month"></td>
+                    <td id="humidity-year"></td>
+                </tr>
+                <tr>
+                    <td>Barometric Pressure</td>
+                    <td id="pressure-now"></td>
+                    <td id="pressure-hour"></td>
+                    <td id="pressure-day"></td>
+                    <td id="pressure-week"></td>
+                    <td id="pressure-month"></td>
+                    <td id="pressure-year"></td>
+                </tr>
+                <tr>
+                    <td>Dew Point</td>
+                    <td id="dewpoint-now"></td>
+                    <td id="dewpoint-hour"></td>
+                    <td id="dewpoint-day"></td>
+                    <td id="dewpoint-week"></td>
+                    <td id="dewpoint-month"></td>
+                    <td id="dewpoint-year"></td>
+                </tr>
+                <tr>
+                    <td>UV</td>
+                    <td id="uv-now"></td>
+                    <td id="uv-hour"></td>
+                    <td id="uv-day"></td>
+                    <td id="uv-week"></td>
+                    <td id="uv-month"></td>
+                    <td id="uv-year"></td>
+                </tr>
+                <tr>
+                    <td>Solar Radiation</td>
+                    <td id="solar-now"></td>
+                    <td id="solar-hour"></td>
+                    <td id="solar-day"></td>
+                    <td id="solar-week"></td>
+                    <td id="solar-month"></td>
+                    <td id="solar-year"></td>
+                </tr>
+                <tr>
+                    <td>Rain</td>
+                    <td id="rain-now"></td>
+                    <td id="rain-hour"></td>
+                    <td id="rain-day"></td>
+                    <td id="rain-week"></td>
+                    <td id="rain-month"></td>
+                    <td id="rain-year"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+<script>
+    const apiKey = "6ae12de8a830419ca12de8a830319c40";
+    const stationId = "KFLMILTO379";
+
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}${month}${day}`;
+    }
+
+    async function getWeatherData(date, column) {
+        const dateString = formatDate(date);
+        const url = `https://api.weather.com/v2/pws/history/hourly?stationId=${stationId}&format=json&units=e&date=${dateString}&apiKey=${apiKey}`;
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            
+            const currentHour = new Date().getHours();
+            let observation = data.observations[data.observations.length - 1]; // Fallback to last observation
+
+            if (data.observations && data.observations.length > 0) {
+                let closestObservation = data.observations[0];
+                let minHourDiff = Infinity;
+
+                for (const obs of data.observations) {
+                    const obsHour = new Date(obs.obsTimeLocal).getHours();
+                    const hourDiff = Math.abs(obsHour - currentHour);
+
+                    if (hourDiff < minHourDiff) {
+                        minHourDiff = hourDiff;
+                        closestObservation = obs;
+                    }
+                }
+                observation = closestObservation;
+            }
+
+            document.getElementById(`temp-${column}`).textContent = observation.imperial.tempAvg  + "°F";
+            document.getElementById(`wind-${column}`).textContent = observation.imperial.windspeedAvg + " mph";
+            document.getElementById(`humidity-${column}`).textContent = observation.humidityAvg + "%";
+            document.getElementById(`pressure-${column}`).textContent = observation.imperial.pressureMax + " inHg";
+            document.getElementById(`dewpoint-${column}`).textContent = observation.imperial.dewptAvg + "°F";
+
+            let uvText = observation.uvHigh;
+            if (['day', 'week', 'month', 'year'].includes(column)) {
+                const time = new Date(observation.obsTimeLocal).toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit', timeZone: 'America/Chicago'});
+                uvText += ` `;
+            }
+            document.getElementById(`uv-${column}`).textContent = uvText;
+
+            document.getElementById(`solar-${column}`).textContent = observation.solarRadiationHigh + " w/m²";
+            document.getElementById(`rain-${column}`).textContent = observation.imperial.precipTotal + " in.";
+
+            return true;
+        } catch (error) {
+            console.error(`Failed to fetch weather data for ${column}:`, error);
+            return false;
+        }
+    }
+
+    async function loadAllData() {
+        const loader = document.getElementById('loader');
+        const table = document.getElementById('weather-table');
+        const errorMessage = document.getElementById('error-message');
+
+        const now = new Date();
+        const hourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+        const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        const yearAgo = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
+
+        const promises = [
+            getWeatherData(now, "now"),
+            getWeatherData(hourAgo, "hour"),
+            getWeatherData(dayAgo, "day"),
+            getWeatherData(weekAgo, "week"),
+            getWeatherData(monthAgo, "month"),
+            getWeatherData(yearAgo, "year")
+        ];
+
+        const results = await Promise.all(promises);
+
+        loader.style.display = 'none';
+
+        if (results.some(result => !result)) {
+            errorMessage.style.display = 'block';
+        } else {
+            table.style.display = 'table';
+        }
+    }
+
+    loadAllData();
+</script>
+</body>
+</html>
