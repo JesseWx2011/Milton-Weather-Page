@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recent Earthquakes</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+        <link rel="icon" href="../Favicon.png" type="image/x-icon">
+        <link rel="apple-touch-icon" href="../Favicon.png">
+
+    
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        .title {
+            text-align: center;
+            padding: 15px 0;
+            background-color: #3f51b5; /* Deep Indigo Header */
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+        }
+        
+        /* Main Layout - Flexbox for Responsiveness */
+        .container {
+            display: flex;
+            flex-direction: column; /* Stack vertically on small screens */
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+        .map-container, .earthquake-data {
+            margin: 10px;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        /* Map Specific Styles */
+        #earthquake-map {
+            height: 400px; /* Default height */
+            width: 100%;
+            border-radius: 4px;
+            margin-top: 15px;
+        }
+
+        /* List Specific Styles */
+        .earthquake-list-group {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            list-style: none;
+            padding: 0;
+            margin: 15px 0 0 0;
+        }
+        .earthquake-item {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        .earthquake-item:last-child {
+            border-bottom: none;
+        }
+        .earthquake-item:hover {
+            background-color: #e8eaf6; /* Light hover effect */
+        }
+
+        /* Earthquake Details Formatting */
+        .mag-badge {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: white;
+            background-color: #ff9800; /* Orange default */
+            border-radius: 4px;
+            padding: 5px 8px;
+            min-width: 40px;
+            text-align: center;
+            margin-right: 15px;
+        }
+        .details {
+            flex-grow: 1;
+        }
+        .location {
+            font-weight: 600;
+            color: #333;
+        }
+        .time-depth {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        /* Magnitude Color Coding */
+        .mag-1 { background-color: #4CAF50; } /* Green */
+        .mag-2 { background-color: #8BC34A; }
+        .mag-3 { background-color: #FFC107; } /* Yellow */
+        .mag-4 { background-color: #FF9800; } /* Orange */
+        .mag-5 { background-color: #FF5722; } /* Deep Orange */
+        .mag-6plus { background-color: #D32F2F; } /* Red */
+        
+        /* Responsive Breakpoint */
+        @media (min-width: 1024px) {
+            .container {
+                flex-direction: row; /* Side-by-side on large screens */
+                align-items: flex-start;
+            }
+            .map-container {
+                flex: 3; /* Map takes more space */
+            }
+            .earthquake-data {
+                flex: 2; /* Lists take less space */
+                max-height: 600px; /* Constrain height for better layout */
+                overflow-y: auto;
+            }
+            #earthquake-map {
+                height: 600px; /* Taller map on desktop */
+            }
+        }
+                .back-button {
+            position: fixed;
+            top: 35px;
+            left: 30px;
+            text-decoration: none;
+            color: #06314e;
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 4px;
+            background: rgba(10, 130, 209, 0.373);
+            transition: all 0.3s;
+            font-size: 14px;
+            z-index: 1000;
+        }
+        .back-button:hover {
+            background: rgba(52, 152, 219, 0.626);
+            color: #06314e;
+        }
+        .footer-text {
+            text-align: center;
+            font-style: italic;
+            color: rgb(112, 112, 112);
+            height: 30px;
+        }
+
+    </style>
+</head>
+<body>
+    <h1 class="title">Latest Earthquakes</h1>
+        <a href="../" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
+    <div class="container">
+        
+        <div class="map-container">
+            <h2>Worldwide Earthquakes (M2.5+, Past Day)</h2>
+            <div id="earthquake-map"></div>
+        </div>
+        
+        <div class="earthquake-data">
+            
+            <section>
+                <h3>Top 5 Most Recent</h3>
+                <ul class="earthquake-list-group" id="latest-five-list">
+                    <li class="earthquake-item">Loading data...</li>
+                </ul>
+            </section>
+            
+            <hr>
+            
+            <section>
+                <h3>Earthquakes Near Milton, FL (Past 2 Days)</h3>
+                <ul class="earthquake-list-group" id="milton-area-list">
+                    <li class="earthquake-item">Loading data...</li>
+                </ul>
+            </section>
+        </div>
+
+    </div>
+    <!-- Footer -->
+
+      <div class="footer-text">Courtesy of JesseLikesWeather</div>
+                <div align="center" class="weather-finder-link">
+            <a href="https://usaweatherfinder.com/">
+                <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
+            </a>
+        </div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+
+    <script>
+        // USGS Earthquake Feed URL (M2.5+ Earthquakes, Past Day)
+        const EARTHQUAKE_FEED_URL = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
+
+        // Geographic center and radius for filtering "Milton, FL" (approximate coordinates: 30.61° N, 87.05° W)
+        const MILTON_COORD = [30.61, -87.05];
+        const MILTON_RADIUS_KM = 300; // Filter earthquakes within 300km of Milton, FL
+
+        // 1. Initialize Global Map Variables
+        let map;
+        let earthquakeLayer;
+
+        // Helper function to get the color based on magnitude
+        function getColor(mag) {
+            if (mag >= 6.0) return '#D32F2F'; // 6+ (Red)
+            if (mag >= 5.0) return '#FF5722'; // 5+ (Deep Orange)
+            if (mag >= 4.0) return '#FF9800'; // 4+ (Orange)
+            if (mag >= 3.0) return '#FFC107'; // 3+ (Yellow)
+            if (mag >= 2.5) return '#8BC34A'; // 2.5+ (Light Green)
+            return '#4CAF50';
+        }
+
+        // Helper function to create the HTML for a list item
+        function createEarthquakeListItem(feature) {
+            const { mag, place, time, url } = feature.properties;
+            const [lng, lat, dep] = feature.geometry.coordinates;
+
+            const magnitude = mag.toFixed(1);
+            const depthKm = (dep / 1000).toFixed(0);
+            
+            // Determine the CSS class for coloring the magnitude badge
+            let magClass;
+            if (magnitude >= 6) magClass = 'mag-6plus';
+            else if (magnitude >= 5) magClass = 'mag-5';
+            else if (magnitude >= 4) magClass = 'mag-4';
+            else if (magnitude >= 3) magClass = 'mag-3';
+            else if (magnitude >= 2) magClass = 'mag-2';
+            else magClass = 'mag-1';
+            
+            const timeString = new Date(time).toLocaleString();
+
+            const listItem = document.createElement('li');
+            listItem.className = 'earthquake-item';
+            listItem.setAttribute('data-lat', lat);
+            listItem.setAttribute('data-lng', lng);
+            listItem.setAttribute('title', `Click to center map on ${place}`);
+            listItem.innerHTML = `
+                <span class="mag-badge ${magClass}">${magnitude}</span>
+                <div class="details">
+                    <div class="location"><a href="${url}" target="_blank" style="color: inherit; text-decoration: none;">${place}</a></div>
+                    <div class="time-depth">
+                        ${timeString} &bull; Depth: ${depthKm} km
+                    </div>
+                </div>
+            `;
+            
+            // Add event listener to center map on click
+            listItem.addEventListener('click', () => {
+                if (map) map.setView([lat, lng], 6); // Check if map is initialized before use
+            });
+
+            return listItem;
+        }
+
+        // Helper function to calculate distance between two points (Haversine formula, simple approx.)
+        function distance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of Earth in kilometers
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            return R * c; // Distance in km
+        }
+
+        // 2. Main Data Fetch and Processing
+        async function fetchEarthquakeData() {
+            // Retrieve elements now that the DOM is ready
+            const latestListElement = document.getElementById('latest-five-list');
+            const miltonListElement = document.getElementById('milton-area-list');
+
+            // This check should now always pass if the HTML IDs are correct
+            if (!latestListElement || !miltonListElement) {
+                console.error("DOM Error: One or more required list elements are missing or have incorrect IDs.");
+                return; 
+            }
+
+            try {
+                const response = await fetch(EARTHQUAKE_FEED_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                const earthquakes = data.features;
+
+                // Clear lists and map layer
+                latestListElement.innerHTML = '';
+                miltonListElement.innerHTML = '';
+                earthquakeLayer.clearLayers();
+                
+                const miltonEarthquakes = [];
+                
+                earthquakes.forEach(feature => {
+                    const { mag, place, time, url } = feature.properties;
+                    const [lng, lat, dep] = feature.geometry.coordinates;
+
+                    // A. Plot on Map
+const radius = Math.max(mag * 30000, 150000); // Calculate size
+const color = getColor(mag); // Calculate color
+                    
+                    const marker = L.circle([lat, lng], {
+                        stroke: true,
+                        weight: 1,
+                        color: color,
+                        fillColor: color,
+                        fillOpacity: 0.5,
+                        // Set the radius dynamically, adjusted for Leaflet's zoom level
+                        radius: radius / Math.pow(2, map.getZoom() - 1 * 6) // Make it slightly larger.
+                    }).addTo(earthquakeLayer);
+                    
+                    marker.bindPopup(`
+                        <b>M ${mag.toFixed(1)}</b> - ${place}<br>
+                        Time: ${new Date(time).toLocaleString()}<br>
+                        Depth: ${(dep / 1000).toFixed(0)} km<br>
+                        <a href="${url}" target="_blank">More Info (USGS)</a>
+                    `);
+
+                    // B. Filter for Milton, FL (Distance Check)
+                    const dist = distance(lat, lng, MILTON_COORD[0], MILTON_COORD[1]);
+                    if (dist <= MILTON_RADIUS_KM) {
+                        miltonEarthquakes.push(feature);
+                    }
+                });
+                
+                // C. Populate the Lists
+                
+                // 1. Latest 5
+                const latestFive = earthquakes.slice(0, 5); 
+                latestFive.forEach(feature => {
+                    latestListElement.appendChild(createEarthquakeListItem(feature));
+                });
+                
+                // 2. Milton Area List
+                if (miltonEarthquakes.length > 0) {
+                    miltonEarthquakes.forEach(feature => {
+                        miltonListElement.appendChild(createEarthquakeListItem(feature));
+                    });
+                } else {
+                    miltonListElement.innerHTML = `<li class="earthquake-item" style="justify-content: center; font-style: italic;">No M2.5+ earthquakes found within ${MILTON_RADIUS_KM} km of Milton, FL in the last 2 days.</li>`;
+                }
+
+                // D. Adjust Map Bounds to fit all data
+                if (earthquakes.length > 0) {
+                    map.fitBounds(earthquakeLayer.getBounds(), { padding: [50, 50] });
+                }
+
+            } catch (error) {
+                console.error('Error fetching earthquake data:', error);
+                // Display error messages safely
+                latestListElement.innerHTML = '<li style="color: black;">No earthquakes have occurred in the area within the last 48 hours.</li>';
+                miltonListElement.innerHTML = '<li style="color: black;">No earthquakes have occurred within the last 48 hours.</li>';
+            }
+        }
+
+        // 3. Initialization Function (Run when the entire page is loaded)
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Initialize the map now that the 'earthquake-map' div exists
+            map = L.map('earthquake-map').setView([30.628281,-87.0903837], 8); 
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            earthquakeLayer = L.layerGroup().addTo(map);
+            
+            // Fetch the data
+            fetchEarthquakeData();
+        });
+    </script>
+</body>
+</html>
