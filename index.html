@@ -8,8 +8,6 @@
         <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
         <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.12"></script>
-        <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-        <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
         <link rel="icon" type="image/png" sizes="512x512" href="Favicon.png">
         <title>Milton Weather Dashboard</title>
         <meta name="description"
@@ -17,7 +15,7 @@
         <meta name="author" content="Jesse Hasty">
         <meta name="keywords"
             content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl">
-        <meta name="date" content="2025-10-06">
+        <meta name="date" content="2025-10-13">
 
         <!--- Social Media Tags -->
 
@@ -1511,8 +1509,10 @@
 
             /* Seasonal Countdown Styles */
             .seasonal-countdown {
+                margin-top: 30px;
                 text-align: center;
-                margin: 30px 0;
+                margin: auto;
+                width: 50%;
                 padding: 20px;
                 background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
                 border-radius: 10px;
@@ -2124,7 +2124,10 @@
             }
 
             .seasonal-countdown {
+                margin: auto;
+                width: 50%;
                 font-weight: normal;
+                margin-top: 30px;
             }
 
             .camera-info {
@@ -2667,7 +2670,7 @@
                 <div id="google_translate_element" class="google_translate"></div>
 
                 <div class="dark-mode-toggle">
-                    <span class="dark-mode-label">Dark Mode (BETA):</span>
+                    <span class="dark-mode-label">Dark Mode</span>
                     <label class="switch">
                         <input type="checkbox" id="dark-mode-toggle">
                         <span class="slider round"></span>
@@ -2865,29 +2868,96 @@
                     <div class="weather-card rip-current"
                         style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
                         <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Rip Current Risk</h3>
-                        <img src="http://www.weather.gov/images//mob/graphicast/image9.png" alt="Rip Current Risk"
+                        <img src="http://www.weather.gov/images//mob/graphicast/image7.png" alt="Rip Current Risk"
                             style="width: 100%; height: auto; border-radius: 5px;" />
                         <p style="text-align: center; font-size: 0.8em; margin: 5px 0 0 0;">Graphic provided by National
                             Weather Service at Mobile, AL</p>
                     </div>
+<div class="weather-card moon-phases" style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+    <h3 style="margin: 0 0 10px 0; font-size: 1.1em;">Upcoming Moon Phases</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tbody class="moon-phases-table" id="moon-phases-table">
 
-                    <!-- Moon Phases Card -->
-                    <div class="weather-card moon-phases"
-                        style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
-                        <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Upcoming Moon Phases</h3>
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <thead>
-                                <tr>
-                                    <th style="text-align: left; border-bottom: 1px solid #ccc; padding: 3px;">Phase</th>
-                                    <th style="text-align: left; border-bottom: 1px solid #ccc; padding: 3px;">Date</th>
-                                </tr>
-                            </thead>
-                            <tbody class="moon-phases-table" style="height: fit-content;" id="moon-phases-table">
-                                <!-- Moon phases will be dynamically added here -->
-                            </tbody>
-                        </table>
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 8px 10px 8px 0; vertical-align: middle;">
+                    <img src="./images/moon/new-moon.png" alt="New Moon" style="width: 50px; height: 50px;">
+                </td>
+                <td style="vertical-align: middle; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>New Moon</strong><br>
+                            <span style="color: #555;">10/21/2025</span>
+                        </div>
+                        <div style="text-align: right; font-size: 0.9em; color: #555;">
+                            <span>Illumination: 1%</span><br>
+                            <span>Sunrise: 7:08 AM</span><br>
+                            <span>Sunset: 6:15 PM</span>
+                        </div>
                     </div>
-                </div>
+                </td>
+            </tr>
+
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 8px 10px 8px 0; vertical-align: middle;">
+                    <img src="./images/moon/first-quarter.png" alt="First Quarter" style="width: 50px; height: 50px;">
+                </td>
+                <td style="vertical-align: middle; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>First Quarter</strong><br>
+                            <span style="color: #555;">10/29/2025</span>
+                        </div>
+                        <div style="text-align: right; font-size: 0.9em; color: #555;">
+                            <span>Illumination: 50%</span><br>
+                            <span>Sunrise: 7:16 AM</span><br>
+                            <span>Sunset: 6:05 PM</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 8px 10px 8px 0; vertical-align: middle;">
+                    <img src="./images/moon/full-moon.png" alt="Full Moon" style="width: 50px; height: 50px;">
+                </td>
+                <td style="vertical-align: middle; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Full Moon</strong><br>
+                            <span style="color: #555;">11/05/2025</span>
+                        </div>
+                        <div style="text-align: right; font-size: 0.9em; color: #555;">
+                            <span>Illumination: 100%</span><br>
+                            <span>Sunrise: 7:24 AM</span><br>
+                            <span>Sunset: 5:57 PM</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+            <tr> <td style="padding: 8px 10px 8px 0; vertical-align: middle;">
+                    <img src="./images/moon/last-quarter.png" alt="Last Quarter" style="width: 50px; height: 50px;">
+                </td>
+                <td style="vertical-align: middle; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>Last Quarter</strong><br>
+                            <span style="color: #555;">11/11/2025</span>
+                        </div>
+                        <div style="text-align: right; font-size: 0.9em; color: #555;">
+                            <span>Illumination: 50%</span><br>
+                            <span>Sunrise: 7:31 AM</span><br>
+                            <span>Sunset: 5:51 PM</span>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+
+        </tbody>
+    </table>
+</div>               
+
+</div>
 
                 <!-- Row 2 -->
                 <div class="row" style="display: flex; justify-content: space-between;">
@@ -2922,6 +2992,18 @@
                                 href="https://www.wkrg.com/weather/maps/" target="_blank">WKRG-TV</a></p>
                     </div>
                 </div>
+            </div>
+
+                            <!-- Row 3 -->
+                <div class="row" style="display: flex; justify-content: space-between;">
+                    <!-- Weather Radar Card -->
+                    <div class="weather-card satellite-card"
+                        style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                        <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Latest Satellite Image</h3>
+                        <img id="radar-image" src="https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/smv/GEOCOLOR/20252861956_GOES19-ABI-smv-GEOCOLOR-1200x1200.jpg" style="width: 100%; height: auto; border-radius: 5px;">
+                                            </div>
+                    </div>
+
             </div>
 
             <!-- Credits Section -->
