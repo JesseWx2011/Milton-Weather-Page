@@ -2220,76 +2220,154 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Function to format date in mm/dd/yyyy
-function formatDateToMMDDYYYY(date) {
-    const month = String(date.getMonth() + 1).padStart(0, '0'); // Months are zero-based
-    const day = String(date.getDate()).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${month}/${day}/${year}`;
+// Helper function to format "HH:MM:SS" time to a readable string (e.g., "7:08 AM")
+/**
+ * Helper function to format a time string (e.g., "7:08:00") into AM/PM format (e.g., "7:08 AM").
+ * @param {string} timeString - The time string from the API (e.g., "HH:MM:SS").
+ * @returns {string} The formatted time string (e.g., "7:08 AM").
+ */
+function formatTime(timeString) {
+    // Only use the hour and minute parts
+    const [hour, minute] = timeString.split(':');
+    
+    // Create a temporary Date object to use its localization capabilities
+    const date = new Date();
+    date.setHours(parseInt(hour), parseInt(minute));
+    
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
-// Function to fetch moon phases from the local JSON file
-async function fetchMoonPhases() {
+/**
+ * Helper function to format a Date object as YYYY-MM-DD for the API URL.
+ * @param {Date} date - The date object to format.
+ * @returns {string} The formatted date string (e.g., "2025-12-14").
+ */
+function formatDateForApi(date) {
+    const y = date.getFullYear();
+    // Months are 0-indexed, so add 1 and pad with leading zero
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    // Pad day with leading zero
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+/**
+ * Helper function to determine the name and icon path based on the moonphase value.
+ * NOTE: The 'icon' variable is set to ONLY the filename; the path is constructed in the return.
+ * @param {number} phaseValue - The moon phase value (0.0 to 1.0).
+ * @returns {{name: string, path: string}} Object containing the moon phase name and image path.
+ */
+function getMoonPhaseInfo(phaseValue) {
+    let name = "Unknown";
+    let icon = "default.png";
+
+    if (phaseValue === 0) name = "New Moon", icon = "new-moon.png";
+    else if (phaseValue > 0 && phaseValue < 0.25) name = "Waxing Crescent", icon = "waxing-crescent.png";
+    else if (phaseValue === 0.25) name = "First Quarter", icon = "first-quarter.png";
+    else if (phaseValue > 0.25 && phaseValue < 0.5) name = "Waxing Gibbous", icon = "waxing-gibbous.png";
+    else if (phaseValue === 0.5) name = "Full Moon", icon = "full-moon.png";
+    else if (phaseValue > 0.5 && phaseValue < 0.75) name = "Waning Gibbous", icon = "waning-gibbous.png";
+    else if (phaseValue === 0.75) name = "Last Quarter", icon = "last-quarter.png";
+    else if (phaseValue > 0.75 && phaseValue < 1) name = "Waning Crescent", icon = "waning-crescent.png";
+    
+    return { name, path: `./images/moon/${icon}` };
+}
+
+// Main function to fetch data and update the HTML card
+async function updateAstroData() {
+    // ---===[ CONFIGURATION ]===---
+    const LOCATION = "milton, fl";
+    const API_KEY = "T6WJW9WL2ESHHL5LRZA4XHVT4"; // Your Visual Crossing API key
+    // ---------------------------
+    
+    // 1. Calculate the START and END dates
+    const today = new Date();
+    const startDateString = formatDateForApi(today);
+    
+    // Calculate the date one month from today, handling year rollover automatically.
+    const endDate = new Date(today); // Clone today's date
+    endDate.setMonth(today.getMonth() + 1);
+    const endDateString = formatDateForApi(endDate);
+    
+    // 2. Construct the API URL with the date range
+    // URL format: /LOCATION/START_DATE/END_DATE
+    const apiUrl = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${encodeURIComponent(LOCATION)}/${startDateString}/${endDateString}?unitGroup=us&key=${API_KEY}&contentType=json&elements=datetime,moonphase,sunrise,sunset`;
+    
+    const moonPhasesTable = document.getElementById('moon-phases-table');
+    
     try {
-        const response = await fetch('./json/2025moonphases.json');
+        const response = await fetch(apiUrl);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
 
-        const now = new Date();
-        const currentMonthIndex = (now.getMonth() + 1).toString().padStart(2, '0'); // Get the current month as a two-digit string
-        const currentYear = now.getFullYear();
-        const moonPhases = [];
+        moonPhasesTable.innerHTML = ''; // Clear existing content
+        
+        // 3. Filter for the next four MAJOR moon phases
+        const mainPhases = data.days.filter(day => {
+            const phase = day.moonphase;
+            // Check for New Moon (0), First Quarter (0.25), Full Moon (0.5), Last Quarter (0.75)
+            // Use a small tolerance (e.g., 0.02) to catch near-exact values, as API data might not be precisely 0.25.
+            return Math.abs(phase - 0) < 0.02 || 
+                   Math.abs(phase - 0.25) < 0.02 || 
+                   Math.abs(phase - 0.5) < 0.02 || 
+                   Math.abs(phase - 0.75) < 0.02;
+        });
+        
+        // Use only the next four main phases found
+        const nextFourPhases = mainPhases.slice(0, 4);
 
-        // Get the phases for the current month
-        const phases = data[currentMonthIndex]; // Access phases using the month number
-
-        if (phases) {
-            for (const [day, phase] of Object.entries(phases)) {
-                const phaseDate = new Date(currentYear, parseInt(currentMonthIndex) - 1, day); // Ensure monthIndex is correct
-                if (phaseDate >= now) { // Only include future phases
-                    moonPhases.push({ name: phase, date: formatDateToMMDDYYYY(phaseDate) });
-                }
-            }
+        if (nextFourPhases.length === 0) {
+             moonPhasesTable.innerHTML = `<tr><td colspan="2">No major moon phases found in the next month.</td></tr>`;
+             return; 
         }
 
-        // Get the next three months' phases
-        for (let i = 1; i <= 3; i++) {
-            const nextMonthIndex = (parseInt(currentMonthIndex) + i).toString().padStart(2, '0');
-            const nextPhases = data[nextMonthIndex]; // Access phases using the month number
+        // 4. Populate the HTML table
+        nextFourPhases.forEach((day, index) => {
+            const phaseInfo = getMoonPhaseInfo(day.moonphase);
+            
+            // Calculate illumination
+            let illumination = Math.round((1 - 2 * Math.abs(0.5 - day.moonphase)) * 100);
+            illumination = Math.max(0, Math.min(100, illumination)); // Constrain to 0-100
 
-            if (nextPhases) {
-                for (const [day, phase] of Object.entries(nextPhases)) {
-                    const phaseDate = new Date(currentYear, parseInt(nextMonthIndex) - 1, day); // Ensure monthIndex is correct
-                    moonPhases.push({ name: phase, date: formatDateToMMDDYYYY(phaseDate) });
-                }
-            }
-        }
+            // Format the date for display
+            const date = new Date(day.datetime + 'T00:00:00').toLocaleDateString();
 
-        return moonPhases.slice(0, 4); // Return the next four moon phases
+            // Apply border to all but the last row
+            const borderStyle = index < nextFourPhases.length - 1 ? 'border-bottom: 1px solid #eee;' : '';
+
+            const row = document.createElement('tr');
+            row.style = borderStyle;
+            row.innerHTML = `
+                <td style="padding: 8px 10px 8px 0; vertical-align: middle;">
+                    <img src="${phaseInfo.path}" alt="${phaseInfo.name}" style="width: 50px; height: 50px;">
+                </td>
+                <td style="vertical-align: middle; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${phaseInfo.name}</strong><br>
+                            <span style="color: #555;">${date}</span>
+                        </div>
+                        <div style="text-align: right; font-size: 0.9em; color: #555;">
+                            <span>Illumination: ${illumination}%</span><br>
+                            <span>Sunrise: ${formatTime(day.sunrise)}</span><br>
+                            <span>Sunset: ${formatTime(day.sunset)}</span>
+                        </div>
+                    </div>
+                </td>
+            `;
+            moonPhasesTable.appendChild(row);
+        });
+
     } catch (error) {
-        console.error('Error fetching moon phases:', error);
-        return []; // Return an empty array on error
+        console.error("Could not fetch weather data:", error);
+        moonPhasesTable.innerHTML = `<tr><td colspan="2">Could not load moon phase data.</td></tr>`;
     }
 }
 
-// Function to update the moon phases table
-async function updateMoonPhases() {
-    const moonPhases = await fetchMoonPhases();
-    const moonPhasesTable = document.getElementById('moon-phases-table');
-    
-    moonPhasesTable.innerHTML = ''; // Clear existing rows
-    
-    moonPhases.forEach(phase => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${phase.name}</td>
-            <td>${phase.date}</td>
-        `;
-        moonPhasesTable.appendChild(row);
-    });
-}
-
+// Call the function when the page loads
+document.addEventListener('DOMContentLoaded', updateAstroData);
 function getUVIndexLevel(uvIndex) {
     if (uvIndex === 0 || uvIndex === undefined || uvIndex === null) {
         return "None";
@@ -2397,7 +2475,7 @@ function getNextSeason() {
 
 // Format time (always use 12-hour format in Chicago timezone)
 function formatTime(date) {
-    return date.toLocaleTimeString('en-US', {
+    return date.toLocaleString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true,
