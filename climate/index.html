@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regional Climate Data - Florida & Alabama</title>
+    <meta name="date" content="2025-10-29"/>
+    <meta name="author" content="JesseLikesWeather"/>
+    <meta name="description" content="Climate data for multiple locations in the Florida Panhandle and Gulf Coast region"/>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1e40af;
+            --primary-light: #3b82f6;
+            --accent: #0284c7;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --surface-elevated: #ffffff;
+            --text: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --success: #059669;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(to bottom, #f1f5f9 0%, #e2e8f0 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            background: var(--surface-elevated);
+            padding: 2.5rem 2rem;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+        }
+
+        .header-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 1rem;
+            letter-spacing: -0.025em;
+        }
+
+        .location-selector-wrapper {
+            margin-top: 1.5rem;
+        }
+
+        .location-selector-label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .location-selector {
+            display: inline-block;
+            position: relative;
+        }
+
+        .location-select {
+            appearance: none;
+            padding: 0.875rem 3rem 0.875rem 1.25rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text);
+            background: var(--surface);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            min-width: 280px;
+        }
+
+        .location-select:hover {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow);
+        }
+
+        .location-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .location-selector::after {
+            content: '';
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 6px solid var(--text-secondary);
+            pointer-events: none;
+        }
+
+        .header h2 {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            font-weight: 400;
+            margin-top: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface-elevated);
+            padding: 1.75rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+            transform: translateX(-4px);
+            transition: transform 0.25s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--border-hover);
+        }
+
+        .stat-card:hover::before {
+            transform: translateX(0);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.813rem;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.025em;
+        }
+
+        .stat-unit {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .main-content {
+            background: var(--surface-elevated);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .content-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.025em;
+        }
+
+        .view-controls {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--surface);
+            padding: 0.25rem;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .view-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .view-btn:hover:not(.active) {
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+            background: var(--background);
+        }
+
+        thead {
+            background: var(--surface);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 1rem 0.875rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            border-bottom: 2px solid var(--border);
+            font-size: 0.813rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        td {
+            padding: 0.875rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+
+        tbody tr {
+            transition: background-color 0.15s ease;
+        }
+
+        tbody tr:hover {
+            background: var(--surface);
+        }
+
+        tbody tr:last-child {
+            font-weight: 600;
+            background: var(--surface);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+            color: var(--text);
+        }
+
+        .temp-high {
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .temp-low {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .temp-normal {
+            color: var(--success);
+            font-weight: 600;
+        }
+
+        .cards-view {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .cards-view.active {
+            display: grid;
+        }
+
+        .month-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            transition: all 0.25s ease;
+        }
+
+        .month-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+
+        .month-name {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .month-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.625rem;
+            font-size: 0.875rem;
+            padding: 0.375rem 0;
+        }
+
+        .month-detail-label {
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .month-detail-value {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .footer {
+            background: var(--surface-elevated);
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .source-citation {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .data-source {
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+            font-size: 0.875rem;
+            box-shadow: var(--shadow);
+        }
+
+        .back-link:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .back-link::before {
+            content: "←";
+            font-size: 1.125rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header {
+                padding: 1.5rem 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.75rem;
+            }
+
+            .location-select {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1.25rem;
+            }
+
+            .stat-value {
+                font-size: 1.5rem;
+            }
+
+            .main-content {
+                padding: 1.25rem;
+            }
+
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .view-controls {
+                width: 100%;
+            }
+
+            .view-btn {
+                flex: 1;
+                text-align: center;
+            }
+
+            table {
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 0.625rem 0.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1>Regional Climate Data</h1>
+                <div class="location-selector-wrapper">
+                    <label class="location-selector-label">Select Location</label>
+                    <div class="location-selector">
+                        <select id="location-select" class="location-select" onchange="updateLocation()">
+                            <option value="milton">Milton, FL</option>
+                            <option value="pensacola">Pensacola, FL</option>
+                            <option value="crestview">Crestview, FL</option>
+                            <option value="mobile">Mobile, AL</option>
+                            <option value="destin">Destin, FL</option>
+                        </select>
+                    </div>
+                </div>
+                <h2 id="date">Loading data...</h2>
+            </div>
+        </header>
+
+        <div class="stats-grid" id="stats-grid">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+
+        <main class="main-content">
+            <div class="content-header">
+                <h2 class="content-title">Climate Normals & Extremes</h2>
+                <div class="view-controls">
+                    <button class="view-btn active" onclick="switchView('table')">Table View</button>
+                    <button class="view-btn" onclick="switchView('cards')">Card View</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper" id="table-view">
+                <table id="climate-table">
+                    <!-- Table will be populated by JavaScript -->
+                </table>
+            </div>
+
+            <div class="cards-view" id="cards-view">
+                <!-- Cards will be generated by JavaScript -->
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p class="source-citation" id="source-citation">
+                    <!-- Source will be populated by JavaScript -->
+                </p>
+                <a href="../index.html" class="back-link">
+                    Back to Main Site
+                </a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const climateData = {
+            milton: {
+                name: "Milton, FL",
+                source: "NOAA/NWS, Milton Experimental Station",
+                period: "Climate Normals: 1991–2020 | Temperature Extremes: 1948–2008",
+                months: [
+                    {month: 'January', high: 84, meanMax: 75.2, dailyMax: 59.9, mean: 48.1, dailyMin: 36.0, meanMin: 21.3, low: 3, precip: 5.89, precipDays: 9.6},
+                    {month: 'February', high: 84, meanMax: 77.6, dailyMax: 64.4, mean: 52.0, dailyMin: 39.6, meanMin: 24.0, low: 11, precip: 4.66, precipDays: 7.7},
+                    {month: 'March', high: 88, meanMax: 83.6, dailyMax: 71.2, mean: 58.2, dailyMin: 45.3, meanMin: 30.3, low: 20, precip: 5.39, precipDays: 8.2},
+                    {month: 'April', high: 94, meanMax: 87.3, dailyMax: 77.0, mean: 64.3, dailyMin: 51.7, meanMin: 37.6, low: 30, precip: 5.55, precipDays: 6.4},
+                    {month: 'May', high: 99, meanMax: 92.5, dailyMax: 84.9, mean: 72.3, dailyMin: 59.6, meanMin: 49.6, low: 39, precip: 3.78, precipDays: 6.9},
+                    {month: 'June', high: 103, meanMax: 96.6, dailyMax: 89.8, mean: 78.4, dailyMin: 66.9, meanMin: 59.7, low: 50, precip: 7.48, precipDays: 11.0},
+                    {month: 'July', high: 104, meanMax: 97.9, dailyMax: 91.0, mean: 80.1, dailyMin: 69.1, meanMin: 66.3, low: 55, precip: 7.68, precipDays: 14.6},
+                    {month: 'August', high: 102, meanMax: 96.8, dailyMax: 90.8, mean: 79.7, dailyMin: 68.6, meanMin: 64.9, low: 57, precip: 6.89, precipDays: 13.2},
+                    {month: 'September', high: 102, meanMax: 95.0, dailyMax: 87.4, mean: 76.1, dailyMin: 64.7, meanMin: 54.6, low: 37, precip: 6.50, precipDays: 8.1},
+                    {month: 'October', high: 98, meanMax: 89.7, dailyMax: 79.6, mean: 66.9, dailyMin: 54.1, meanMin: 38.3, low: 28, precip: 4.40, precipDays: 6.9},
+                    {month: 'November', high: 88, meanMax: 83.5, dailyMax: 69.8, mean: 56.4, dailyMin: 43.0, meanMin: 30.8, low: 19, precip: 4.81, precipDays: 7.3},
+                    {month: 'December', high: 82, meanMax: 78.0, dailyMax: 62.7, mean: 50.7, dailyMin: 38.7, meanMin: 23.2, low: 8, precip: 4.61, precipDays: 7.8}
+                ],
+                annual: {high: 104, meanMax: 99.1, dailyMax: 77.4, mean: 65.3, dailyMin: 53.1, meanMin: 17.3, low: 3, precip: 67.64, precipDays: 107.7}
+            },
+            pensacola: {
+                name: "Pensacola, FL",
+                source: "NOAA (Pensacola Int'l Airport)",
+                period: "Climate Normals: 1991–2020 | Temperature Extremes: 1879–present",
+                months: [
+                    {month: 'January', high: 81, meanMax: 74.9, dailyMax: 62.7, mean: 53.2, dailyMin: 43.7, meanMin: 25.7, low: 5, precip: 5.03, precipDays: 9.6},
+                    {month: 'February', high: 84, meanMax: 77.4, dailyMax: 66.4, mean: 56.8, dailyMin: 47.2, meanMin: 30.2, low: 7, precip: 4.77, precipDays: 8.6},
+                    {month: 'March', high: 90, meanMax: 82.5, dailyMax: 72.0, mean: 62.3, dailyMin: 52.7, meanMin: 35.1, low: 22, precip: 5.25, precipDays: 8.1},
+                    {month: 'April', high: 96, meanMax: 85.2, dailyMax: 77.6, mean: 68.3, dailyMin: 59.0, meanMin: 44.0, low: 33, precip: 5.52, precipDays: 7.1},
+                    {month: 'May', high: 102, meanMax: 92.6, dailyMax: 85.1, mean: 76.0, dailyMin: 66.9, meanMin: 54.1, low: 44, precip: 3.90, precipDays: 7.6},
+                    {month: 'June', high: 102, meanMax: 95.7, dailyMax: 90.0, mean: 81.7, dailyMin: 73.5, meanMin: 66.7, low: 55, precip: 7.32, precipDays: 12.0},
+                    {month: 'July', high: 106, meanMax: 97.0, dailyMax: 91.6, mean: 83.5, dailyMin: 75.3, meanMin: 70.4, low: 61, precip: 7.89, precipDays: 15.3},
+                    {month: 'August', high: 105, meanMax: 96.2, dailyMax: 91.0, mean: 83.0, dailyMin: 75.0, meanMin: 69.2, low: 60, precip: 7.50, precipDays: 14.7},
+                    {month: 'September', high: 102, meanMax: 94.8, dailyMax: 88.5, mean: 80.0, dailyMin: 71.5, meanMin: 60.3, low: 43, precip: 6.61, precipDays: 9.3},
+                    {month: 'October', high: 97, meanMax: 88.9, dailyMax: 81.1, mean: 71.3, dailyMin: 61.6, meanMin: 44.6, low: 32, precip: 4.70, precipDays: 6.4},
+                    {month: 'November', high: 89, meanMax: 82.3, dailyMax: 71.8, mean: 61.4, dailyMin: 51.0, meanMin: 34.1, low: 22, precip: 4.42, precipDays: 7.1},
+                    {month: 'December', high: 81, meanMax: 77.6, dailyMax: 65.1, mean: 55.5, dailyMin: 45.9, meanMin: 30.5, low: 11, precip: 5.40, precipDays: 9.5}
+                ],
+                annual: {high: 106, meanMax: 98.4, dailyMax: 78.6, mean: 69.4, dailyMin: 60.3, meanMin: 24.1, low: 5, precip: 68.31, precipDays: 115.3}
+            },
+            crestview: {
+                name: "Crestview, FL",
+                source: "NOAA (Bob Sikes Airport)",
+                period: "Climate Normals: 1991–2020 | Temperature Extremes: 1948–present",
+                months: [
+                    {month: 'January', high: 85, meanMax: 76.8, dailyMax: 62.7, mean: 50.6, dailyMin: 38.5, meanMin: 20.3, low: 8, precip: 5.66, precipDays: 10.1},
+                    {month: 'February', high: 85, meanMax: 78.8, dailyMax: 66.8, mean: 54.1, dailyMin: 41.4, meanMin: 22.6, low: 10, precip: 4.58, precipDays: 9.0},
+                    {month: 'March', high: 90, meanMax: 84.9, dailyMax: 73.3, mean: 60.0, dailyMin: 46.7, meanMin: 27.5, low: 17, precip: 5.66, precipDays: 8.2},
+                    {month: 'April', high: 95, meanMax: 88.5, dailyMax: 79.4, mean: 66.0, dailyMin: 52.6, meanMin: 34.9, low: 29, precip: 4.92, precipDays: 7.7},
+                    {month: 'May', high: 101, meanMax: 95.2, dailyMax: 86.9, mean: 73.7, dailyMin: 60.6, meanMin: 45.2, low: 38, precip: 4.13, precipDays: 8.4},
+                    {month: 'June', high: 104, meanMax: 97.6, dailyMax: 91.1, mean: 79.8, dailyMin: 68.5, meanMin: 59.7, low: 52, precip: 5.96, precipDays: 12.7},
+                    {month: 'July', high: 105, meanMax: 98.6, dailyMax: 92.4, mean: 81.8, dailyMin: 71.1, meanMin: 65.6, low: 57, precip: 7.92, precipDays: 15.9},
+                    {month: 'August', high: 103, meanMax: 97.7, dailyMax: 91.7, mean: 81.4, dailyMin: 71.1, meanMin: 63.6, low: 56, precip: 6.42, precipDays: 14.9},
+                    {month: 'September', high: 102, meanMax: 95.5, dailyMax: 88.6, mean: 77.7, dailyMin: 66.9, meanMin: 53.5, low: 40, precip: 5.06, precipDays: 10.2},
+                    {month: 'October', high: 101, meanMax: 90.9, dailyMax: 81.1, mean: 68.3, dailyMin: 55.5, meanMin: 36.1, low: 28, precip: 4.09, precipDays: 7.3},
+                    {month: 'November', high: 90, meanMax: 83.8, dailyMax: 71.6, mean: 58.1, dailyMin: 44.6, meanMin: 26.3, low: 17, precip: 4.27, precipDays: 7.5},
+                    {month: 'December', high: 84, meanMax: 78.7, dailyMax: 64.6, mean: 52.6, dailyMin: 40.6, meanMin: 23.4, low: 9, precip: 4.93, precipDays: 9.9}
+                ],
+                annual: {high: 105, meanMax: 99.6, dailyMax: 79.2, mean: 67.0, dailyMin: 54.8, meanMin: 18.1, low: 8, precip: 63.60, precipDays: 121.8}
+            },
+            mobile: {
+                name: "Mobile, AL",
+                source: "NOAA (Mobile Regional Airport)",
+                period: "Climate Normals: 1991–2020 | Temperature Extremes: 1872–present",
+                months: [
+                    {month: 'January', high: 84, meanMax: 75.7, dailyMax: 61.5, mean: 51.1, dailyMin: 40.7, meanMin: 22.7, low: 3, precip: 5.66, precipDays: 9.9},
+                    {month: 'February', high: 85, meanMax: 77.6, dailyMax: 65.6, mean: 55.0, dailyMin: 44.4, meanMin: 26.9, low: -1, precip: 4.47, precipDays: 9.2},
+                    {month: 'March', high: 91, meanMax: 83.0, dailyMax: 71.8, mean: 60.9, dailyMin: 50.0, meanMin: 31.9, low: 21, precip: 5.44, precipDays: 8.7},
+                    {month: 'April', high: 94, meanMax: 86.3, dailyMax: 77.8, mean: 66.9, dailyMin: 56.0, meanMin: 40.0, low: 32, precip: 5.71, precipDays: 7.6},
+                    {month: 'May', high: 100, meanMax: 92.2, dailyMax: 84.9, mean: 74.4, dailyMin: 63.8, meanMin: 50.0, low: 43, precip: 5.39, precipDays: 8.0},
+                    {month: 'June', high: 103, meanMax: 95.4, dailyMax: 89.4, mean: 80.1, dailyMin: 70.8, meanMin: 63.2, low: 49, precip: 6.55, precipDays: 12.4},
+                    {month: 'July', high: 104, meanMax: 96.7, dailyMax: 90.9, mean: 82.0, dailyMin: 73.1, meanMin: 68.6, low: 62, precip: 7.69, precipDays: 14.9},
+                    {month: 'August', high: 105, meanMax: 96.2, dailyMax: 90.8, mean: 81.9, dailyMin: 72.9, meanMin: 67.3, low: 57, precip: 6.87, precipDays: 13.2},
+                    {month: 'September', high: 103, meanMax: 93.8, dailyMax: 87.5, mean: 78.1, dailyMin: 68.8, meanMin: 56.8, low: 42, precip: 5.30, precipDays: 9.2},
+                    {month: 'October', high: 98, meanMax: 89.1, dailyMax: 79.7, mean: 69.0, dailyMin: 58.2, meanMin: 40.5, low: 30, precip: 3.95, precipDays: 6.9},
+                    {month: 'November', high: 88, meanMax: 82.0, dailyMax: 70.2, mean: 58.9, dailyMin: 47.7, meanMin: 30.8, low: 22, precip: 4.60, precipDays: 7.7},
+                    {month: 'December', high: 85, meanMax: 77.6, dailyMax: 63.5, mean: 53.3, dailyMin: 43.0, meanMin: 27.3, low: 8, precip: 5.45, precipDays: 9.4}
+                ],
+                annual: {high: 105, meanMax: 97.8, dailyMax: 77.8, mean: 67.6, dailyMin: 57.4, meanMin: 21.0, low: -1, precip: 67.08, precipDays: 117.1}
+            },
+            destin: {
+                name: "Destin, FL",
+                source: "NOAA (Destin–Fort Walton Beach Airport)",
+                period: "Climate Normals: 1991–2020 | Temperature Extremes: 1996–present",
+                months: [
+                    {month: 'January', high: 89, meanMax: 74.1, dailyMax: 63.1, mean: 54.2, dailyMin: 45.3, meanMin: 28.6, low: 20, precip: 4.52, precipDays: 10.0},
+                    {month: 'February', high: 81, meanMax: 74.3, dailyMax: 65.8, mean: 56.9, dailyMin: 47.9, meanMin: 33.2, low: 23, precip: 4.96, precipDays: 9.4},
+                    {month: 'March', high: 86, meanMax: 79.6, dailyMax: 70.7, mean: 62.2, dailyMin: 53.6, meanMin: 38.8, low: 30, precip: 4.70, precipDays: 8.7},
+                    {month: 'April', high: 89, meanMax: 83.3, dailyMax: 76.2, mean: 68.1, dailyMin: 60.1, meanMin: 49.5, low: 41, precip: 4.55, precipDays: 7.9},
+                    {month: 'May', high: 98, meanMax: 91.1, dailyMax: 83.5, mean: 75.8, dailyMin: 68.0, meanMin: 57.9, low: 49, precip: 3.22, precipDays: 6.4},
+                    {month: 'June', high: 102, meanMax: 94.5, dailyMax: 88.9, mean: 81.5, dailyMin: 74.1, meanMin: 69.3, low: 62, precip: 4.70, precipDays: 9.7},
+                    {month: 'July', high: 101, meanMax: 95.2, dailyMax: 90.9, mean: 83.6, dailyMin: 76.2, meanMin: 72.2, low: 66, precip: 5.77, precipDays: 11.2},
+                    {month: 'August', high: 104, meanMax: 95.2, dailyMax: 90.6, mean: 83.2, dailyMin: 75.8, meanMin: 72.5, low: 66, precip: 6.08, precipDays: 12.4},
+                    {month: 'September', high: 100, meanMax: 93.5, dailyMax: 88.5, mean: 80.5, dailyMin: 72.4, meanMin: 64.5, low: 55, precip: 5.18, precipDays: 8.2},
+                    {month: 'October', high: 93, meanMax: 88.7, dailyMax: 80.9, mean: 72.1, dailyMin: 63.2, meanMin: 49.0, low: 42, precip: 2.82, precipDays: 6.1},
+                    {month: 'November', high: 91, meanMax: 81.1, dailyMax: 72.1, mean: 62.6, dailyMin: 53.0, meanMin: 38.7, low: 30, precip: 4.13, precipDays: 8.9},
+                    {month: 'December', high: 85, meanMax: 77.2, dailyMax: 65.6, mean: 56.6, dailyMin: 47.5, meanMin: 35.0, low: 22, precip: 4.72, precipDays: 10.6}
+                ],
+                annual: {high: 104, meanMax: 97.3, dailyMax: 78.1, mean: 69.8, dailyMin: 61.4, meanMin: 27.1, low: 20, precip: 55.35, precipDays: 109.5}
+            }
+        };
+
+        let currentLocation = 'milton';
+
+        // Update date
+        const dateElement = document.getElementById("date");
+        const lastModified = new Date(document.lastModified).toLocaleString("en-US", { 
+            timeZone: 'America/Chicago', 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric'
+        });
+        dateElement.textContent = `Last Updated: ${lastModified}`;
+
+        function updateLocation() {
+            const select = document.getElementById('location-select');
+            currentLocation = select.value;
+            renderData();
+        }
+
+        function renderData() {
+            const data = climateData[currentLocation];
+            
+            // Update stats
+            const statsGrid = document.getElementById('stats-grid');
+            statsGrid.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Record High</div>
+                    <div class="stat-value">${data.annual.high}<span class="stat-unit">°F</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Record Low</div>
+                    <div class="stat-value">${data.annual.low}<span class="stat-unit">°F</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Annual Precipitation</div>
+                    <div class="stat-value">${data.annual.precip}<span class="stat-unit">"</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Precipitation Days</div>
+                    <div class="stat-value">${data.annual.precipDays}<span class="stat-unit">days</span></div>
+                </div>
+            `;
+
+            // Update table
+            const table = document.getElementById('climate-table');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Record High</th>
+                        <th>Mean Max</th>
+                        <th>Daily Max</th>
+                        <th>Daily Mean</th>
+                        <th>Daily Min</th>
+                        <th>Mean Min</th>
+                        <th>Record Low</th>
+                        <th>Precip (in)</th>
+                        <th>Precip Days</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.months.map(m => `
+                        <tr>
+                            <td>${m.month}</td>
+                            <td class="temp-high">${m.high}°F</td>
+                            <td>${m.meanMax}°F</td>
+                            <td>${m.dailyMax}°F</td>
+                            <td class="temp-normal">${m.mean}°F</td>
+                            <td>${m.dailyMin}°F</td>
+                            <td>${m.meanMin}°F</td>
+                            <td class="temp-low">${m.low}°F</td>
+                            <td>${m.precip}</td>
+                            <td>${m.precipDays}</td>
+                        </tr>
+                    `).join('')}
+                    <tr>
+                        <td><strong>Annual</strong></td>
+                        <td class="temp-high">${data.annual.high}°F</td>
+                        <td>${data.annual.meanMax}°F</td>
+                        <td>${data.annual.dailyMax}°F</td>
+                        <td class="temp-normal">${data.annual.mean}°F</td>
+                        <td>${data.annual.dailyMin}°F</td>
+                        <td>${data.annual.meanMin}°F</td>
+                        <td class="temp-low">${data.annual.low}°F</td>
+                        <td>${data.annual.precip}</td>
+                        <td>${data.annual.precipDays}</td>
+                    </tr>
+                </tbody>
+            `;
+
+            // Update cards
+            generateCards();
+
+            // Update source citation
+            const citation = document.getElementById('source-citation');
+            citation.innerHTML = `
+                <span class="data-source">Data Source:</span> ${data.source}<br>
+                ${data.period}
+            `;
+        }
+
+        function generateCards() {
+            const data = climateData[currentLocation];
+            const cardsContainer = document.getElementById('cards-view');
+            cardsContainer.innerHTML = data.months.map(m => `
+                <div class="month-card">
+                    <div class="month-name">${m.month}</div>
+                    <div class="month-detail">
+                        <span class="month-detail-label">Record High:</span>
+                        <span class="month-detail-value temp-high">${m.high}°F</span>
+                    </div>
+                    <div class="month-detail">
+                        <span class="month-detail-label">Record Low:</span>
+                        <span class="month-detail-value temp-low">${m.low}°F</span>
+                    </div>
+                    <div class="month-detail">
+                        <span class="month-detail-label">Daily Mean:</span>
+                        <span class="month-detail-value temp-normal">${m.mean}°F</span>
+                    </div>
+                    <div class="month-detail">
+                        <span class="month-detail-label">Precipitation:</span>
+                        <span class="month-detail-value">${m.precip}"</span>
+                    </div>
+                    <div class="month-detail">
+                        <span class="month-detail-label">Precip Days:</span>
+                        <span class="month-detail-value">${m.precipDays}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function switchView(view) {
+            const tableView = document.getElementById('table-view');
+            const cardsView = document.getElementById('cards-view');
+            const buttons = document.querySelectorAll('.view-btn');
+
+            if (view === 'table') {
+                tableView.style.display = 'block';
+                cardsView.classList.remove('active');
+                buttons[0].classList.add('active');
+                buttons[1].classList.remove('active');
+            } else {
+                tableView.style.display = 'none';
+                cardsView.classList.add('active');
+                buttons[0].classList.remove('active');
+                buttons[1].classList.add('active');
+            }
+        }
+
+        // Initialize
+        renderData();
+    </script>
+</body>
+</html>
