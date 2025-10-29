@@ -15,7 +15,7 @@
         <meta name="author" content="Jesse Hasty">
         <meta name="keywords"
             content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl">
-        <meta name="date" content="2025-10-21">
+        <meta name="date" content="2025-10-13">
 
         <!--- Social Media Tags -->
 
@@ -605,21 +605,6 @@
                 background-color: #f0f0f0;
             }
 
-            .compare-button {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 14px;
-                margin-top: 10px;
-                transition: background-color 0.3s;
-            }
-
-            .compare-button:hover {
-                background-color: #45a049;
-            }
 
             .modal {
                 display: none;
@@ -2524,6 +2509,10 @@
         display: none;
     }
 
+    .compare-button {
+        display: none;
+    }
+
         </style>
     </head>
 
@@ -2603,7 +2592,8 @@
                         <div class="menu-category-header">Almanac & History</div>
                         <div class="menu-category-content">
                             <a href="records.html" class="menu-item">Weather Records</a>
-                            <a href="./weather-trends/" class="menu-item">Weather Trends</a>                            
+                            <a href="./weather-trends/" class="menu-item">Weather Trends</a>
+                            <a href="./climate/" class="menu-item">Climate</a>                                                        
                         </div>
                     </div>
                     <div class="menu-category">
@@ -3011,8 +3001,8 @@
                 <p>Weather data provided by <a href="https://www.weather.gov/" target="_blank">National Weather Service</a>
                     and <a href="https://ambientweather.com/" target="_blank">Ambient Weather</a></p>
                 <p>Icons by <a href="https://www.amcharts.com/free-animated-svg-weather-icons/" target="_blank">amCharts</a>
-                </p>
-                <p>Created with the Grace of God by Jesse Hasty (JesseLikesWeather, LaprasLover), with <a
+                </p>    
+                <p>Created with the Grace of God by Jesse, with <a
                         href="https://www.cursor.com">Cursor</a></p>
                 <p>Document last updated: May 20th, 2025 at 10:07 AM CDT</p>
             </div>
@@ -3032,19 +3022,6 @@
                 <button class="refresh-button" onclick="updateWeather()">Refresh Now</button>
             </div>
             <button class="notification-close" onclick="hideNotification()">×</button>
-        </div>
-
-        <!-- Compare Stations Modal -->
-        <div id="compare-stations-modal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Nearby Weather Stations</h2>
-                    <button class="modal-close" onclick="closeCompareModal()">×</button>
-                </div>
-                <div class="modal-body">
-                    <div id="stations-list"></div>
-                </div>
-            </div>
         </div>
 
         <!-- Seasonal Countdown -->
