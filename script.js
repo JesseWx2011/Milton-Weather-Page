@@ -744,13 +744,39 @@ async function updateWeather() {
             const lowTempElement = document.getElementById('low-temp');
 
             if (highTempElement && lowTempElement && dailySummaryData && dailySummaryData.summaries && dailySummaryData.summaries.length > 0) {
-                const todaySummary = dailySummaryData.summaries[6];
-                const highTemp = Math.round(todaySummary.imperial.tempHigh);
-                const lowTemp = Math.round(todaySummary.imperial.tempLow);
-                const displayHighTemp = useMetric ? Math.round(fahrenheitToCelsius(highTemp)) : highTemp;
-                const displayLowTemp = useMetric ? Math.round(fahrenheitToCelsius(lowTemp)) : lowTemp;
-                highTempElement.textContent = `↑ ${displayHighTemp}${useMetric ? '°C' : '°F'}`;
-                lowTempElement.textContent = `↓ ${displayLowTemp}${useMetric ? '°C' : '°F'}`;
+                // Defensive: the summaries array may not be indexed the way we expect (index 6 may be missing),
+                // or individual summary objects may lack the `imperial` property. Find a usable summary entry.
+                let todaySummary = null;
+
+                // Prefer the last summary that contains an imperial object with temps
+                for (let i = dailySummaryData.summaries.length - 1; i >= 0; i--) {
+                    const s = dailySummaryData.summaries[i];
+                    if (s && s.imperial && (typeof s.imperial.tempHigh !== 'undefined' || typeof s.imperial.tempLow !== 'undefined')) {
+                        todaySummary = s;
+                        break;
+                    }
+                }
+
+                // Fallback to the originally attempted index (6) if nothing found above
+                if (!todaySummary) {
+                    todaySummary = dailySummaryData.summaries[6] || dailySummaryData.summaries[dailySummaryData.summaries.length - 1];
+                }
+
+                // Guard against missing imperial data
+                const highTempRaw = todaySummary && todaySummary.imperial ? todaySummary.imperial.tempHigh : null;
+                const lowTempRaw = todaySummary && todaySummary.imperial ? todaySummary.imperial.tempLow : null;
+
+                if (highTempRaw !== null && typeof highTempRaw !== 'undefined') {
+                    const highTemp = Math.round(highTempRaw);
+                    const displayHighTemp = useMetric ? Math.round(fahrenheitToCelsius(highTemp)) : highTemp;
+                    highTempElement.textContent = `↑ ${displayHighTemp}${useMetric ? '°C' : '°F'}`;
+                }
+
+                if (lowTempRaw !== null && typeof lowTempRaw !== 'undefined') {
+                    const lowTemp = Math.round(lowTempRaw);
+                    const displayLowTemp = useMetric ? Math.round(fahrenheitToCelsius(lowTemp)) : lowTemp;
+                    lowTempElement.textContent = `↓ ${displayLowTemp}${useMetric ? '°C' : '°F'}`;
+                }
             } else {
                 // Fallback to NWS data if Wunderground data is not available
                 if (nwsData && nwsData.properties && nwsData.properties.periods) {
