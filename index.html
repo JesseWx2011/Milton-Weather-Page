@@ -1,6 +1,5 @@
     <!DOCTYPE html>
     <html lang="en">
-
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -12,16 +11,16 @@
         <title>Milton Weather Dashboard</title>
         <meta name="description"
             content="A Personal Weather Station in Milton, Florida, including weather alerts, forecasts, and current conditions.">
-        <meta name="author" content="Jesse Hasty">
+        <meta name="author" content="JesseLikesWeather">
         <meta name="keywords"
-            content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl">
-        <meta name="date" content="2025-10-13">
+            content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl. weather milton florida, milton weather ranch, milton fl weather radar, milton fl weather forecast, milton weather weather alerts, milton fl climate, milton fl historical weather, milton fl temperature, milton fl humidity, milton fl wind, milton fl precipitation, milton fl sunrise sunset, jesselikesweather, jessewx2011, 31522 awkeas, MILTONWEATHERRANCH PWSWeather">
+        <meta name="date" content="2025-11-03">
 
         <!--- Social Media Tags -->
 
         <meta property="og:title" content="Milton Weather Dashboard">
         <meta property="og:description"
-            content="Accurate Weather Data, Forecasts, & Outlooks for the Florida Panhandle & Southern Alabam Coast.">
+            content="Accurate Weather Data, Forecasts, & Outlooks for the Florida Panhandle & Southern Alabama Coast.">
         <meta property="og:image" content="https://jessewx2011.github.io/Milton-Weather-Page/Banner.jpg">
         <meta property="og:url" content="https://jessewx2011.github.io/Milton-Weather-Page/">
         <meta property="og:type" content="website">
@@ -30,12 +29,13 @@
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="Milton Weather Dashboard">
         <meta name="twitter:description"
-            content="Accurate Weather Data, Forecasts, & Outlooks for the Florida Panhandle & Southern Alabam Coast.">
+            content="Accurate Weather Data, Forecasts, & Outlooks for the Florida Panhandle & Southern Alabama Coast.">
         <meta name="twitter:image" content="https://jessewx2011.github.io/Milton-Weather-Page/Banner.jpg">
 
         <!-- Language Targeting -->
         <meta http-equiv="Content-Language" content="en-US">
-
+        
+        <meta name="copyright" content="©2025 JesseLikesWeather. All Rights Reserved."/>
         <!-- Mobile Support -->
 
         <link rel="preload" href="script.js" as="script">
@@ -2513,6 +2513,9 @@
         display: none;
     }
 
+    .temp-hour-change {
+        text-align: center;
+    }
         </style>
     </head>
 
@@ -2637,6 +2640,12 @@
                  <a href="./earthquakes/" class="menu-item">Earthquakes</a>
                             </div>
                     </div>
+               <div class="menu-category">
+                <div class="menu-category-header">Misc.</div>
+                                        <div class="menu-category-content">
+                 <a href="./nawn/" class="menu-item">Southeastern Weather Network</a>
+                            </div>
+                    </div>
                     <div class="menu-category">
                         <div class="menu-category-header">Neighbors/Featured</div>
                         <div class="menu-category-content">
@@ -2653,6 +2662,7 @@
                 <p id="last-update" data-time="">Last updated: --:--:--</p>
                 <p id="next-update" data-time="">Next update in: --:--</p>
                 <p id="temp-change" class="temp-change">Temperature change: --°F</p>
+                <i id="temp-hour-change" class="temp-hour-change">(If nothing displays here within the next 15 seconds, past hour data couldn't fetch.)</i>
                 <div class="unit-toggle">
                     <span class="unit-label">Units:</span>
                     <button id="imperial-btn" class="unit-btn active">Imperial</button>

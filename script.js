@@ -690,6 +690,67 @@ async function updateWeather() {
             const tempElement = document.getElementById('current-temp');
             const displayTemp = useMetric ? fahrenheitToCelsius(currentTemp) : currentTemp;
             animateTemperature(tempElement, displayTemp);
+
+            // Update the hourly temperature-change message based on current temp vs ~1 hour ago.
+            (async () => {
+                const tempHourEl = document.getElementById('temp-hour-change');
+                try {
+                    const hist = await getHistoricalData('temp');
+                    let oneHourAgo = null;
+                    if (hist && Array.isArray(hist.values) && hist.values.length >= 2) {
+                        // hist.values is oldest->newest, so take second-to-last as ~1 hour ago
+                        oneHourAgo = hist.values[hist.values.length - 2];
+                    }
+
+                    if (oneHourAgo === null || typeof currentData.tempf === 'undefined' || currentData.tempf === null) {
+                        if (tempHourEl) tempHourEl.textContent = '(If nothing displays here within the next 15 seconds, past hour data couldn\'t fetch.)';
+                        return;
+                    }
+
+                    const currentF = parseFloat(currentData.tempf);
+                    const prevF = parseFloat(oneHourAgo);
+                    if (isNaN(currentF) || isNaN(prevF)) {
+                        if (tempHourEl) tempHourEl.textContent = '(If nothing displays here within the next 15 seconds, past hour data couldn\'t fetch.)';
+                        return;
+                    }
+
+                    // Compute difference in preferred units (respect user preference)
+                    const diffF = currentF - prevF;
+                    const diff = useMetric ? (diffF * 5 / 9) : diffF;
+
+                    // Thresholds: small change vs significant change
+                    const significantThreshold = useMetric ? 1.7 : 3; // ~3°F == ~1.7°C
+                    const minorThreshold = useMetric ? 0.6 : 1; // ~1°F == ~0.6°C
+
+                    let message = 'Temperatures have been steady in the last hour';
+                    // Default neutral color
+                    let color = '#666';
+
+                    if (diff <= -significantThreshold) {
+                        message = 'There has been a significant cooldown in the last hour';
+                        color = '#0b6623'; // dark green
+                    } else if (diff < -minorThreshold) {
+                        message = 'It has cooled off some in the last hour';
+                        color = '#006400'; // green
+                    } else if (diff >= significantThreshold) {
+                        message = 'There has been a significant warmup in the last hour';
+                        color = '#b71c1c'; // dark red
+                    } else if (diff > minorThreshold) {
+                        message = 'It has warmed up in the last hour';
+                        color = '#d32f2f'; // red
+                    }
+
+                    if (tempHourEl) {
+                        // Append formatted delta (use user's preferred units)
+                        const unitSymbol = useMetric ? '°C' : '°F';
+                        const formattedDelta = (diff >= 0 ? '+' : '-') + Math.abs(diff).toFixed(1) + unitSymbol;
+                        tempHourEl.textContent = `${message} (${formattedDelta})`;
+                        tempHourEl.style.color = color;
+                    }
+                } catch (e) {
+                    console.warn('Error computing hourly temp change:', e);
+                }
+            })();
             
             // Update other elements
             const tempFeelElement = document.getElementById('temp-feel');
@@ -738,7 +799,7 @@ async function updateWeather() {
                 console.error('Error fetching Wunderground History API data:', error);
                 dailySummaryData = null;
             }
-
+           
             // Update high and low temperatures
             const highTempElement = document.getElementById('high-temp');
             const lowTempElement = document.getElementById('low-temp');
@@ -1005,7 +1066,7 @@ try {
                 const windSpeed = useMetric ? mphToKmh(parseFloat(period.windSpeed)) : period.windSpeed;
                 forecastDay.innerHTML = `
                     <h3>${period.name}</h3>
-                    <img src="${period.icon}" alt="${period.shortForecast}" style="width: 50px; height: 50px;">
+                    <img src="${period.icon}" alt="${period.shortForecast}" style="width: 50px; height: 50px; border-radius: 8px;">
                     <p class="forecast-temp">${Math.round(temp)}${useMetric ? '°C' : '°F'}</p>
                     <p class="forecast-condition">${period.shortForecast}</p>
                     <div class="forecast-details">
@@ -2302,14 +2363,17 @@ function getMoonPhaseInfo(phaseValue) {
 // Main function to fetch data and update the HTML card
 async function updateAstroData() {
     // ---===[ CONFIGURATION ]===---
-    const LOCATION = "milton, fl";
-    const API_KEY = "T6WJW9WL2ESHHL5LRZA4XHVT4"; // Your Visual Crossing API key
+    const LOCATION = "east milton,fl";
+    const API_KEY = "E659GRSHB3RLKRMPTFT3GWQ3Z"; // Your Visual Crossing API key
     // ---------------------------
     
-    // 1. Calculate the START and END dates
+    // 1. Calculate the START (yesterday) and END dates
     const today = new Date();
-    const startDateString = formatDateForApi(today);
-    
+    // Subtract one day to include yesterday (handles month/year rollover automatically)
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - 1);
+    const startDateString = formatDateForApi(startDate);
+
     // Calculate the date one month from today, handling year rollover automatically.
     const endDate = new Date(today); // Clone today's date
     endDate.setMonth(today.getMonth() + 1);
@@ -2317,7 +2381,7 @@ async function updateAstroData() {
     
     // 2. Construct the API URL with the date range
     // URL format: /LOCATION/START_DATE/END_DATE
-    const apiUrl = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${encodeURIComponent(LOCATION)}/${startDateString}/${endDateString}?unitGroup=us&key=${API_KEY}&contentType=json&elements=datetime,moonphase,sunrise,sunset`;
+    const apiUrl = `https://corsproxy.io/?url=https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${encodeURIComponent(LOCATION)}/${startDateString}/${endDateString}?unitGroup=us&key=${API_KEY}&contentType=json&elements=datetime,moonphase,sunrise,sunset`;
     
     const moonPhasesTable = document.getElementById('moon-phases-table');
     
@@ -2329,6 +2393,97 @@ async function updateAstroData() {
         const data = await response.json();
 
         moonPhasesTable.innerHTML = ''; // Clear existing content
+
+        // Provide a current-day moon phase entry (so there isn't a visual "gap").
+        // Find today's and yesterday's entries (if present) so we can compare sunrise/sunset.
+        const todayStr = formatDateForApi(today);
+        const yesterdayStr = formatDateForApi(startDate);
+        const todayEntry = Array.isArray(data.days) ? data.days.find(d => d.datetime === todayStr) : null;
+        const yesterdayEntry = Array.isArray(data.days) ? data.days.find(d => d.datetime === yesterdayStr) : null;
+
+        if (todayEntry) {
+            try {
+                const phaseInfo = getMoonPhaseInfo(todayEntry.moonphase);
+                let illumination = Math.round((1 - 2 * Math.abs(0.5 - (todayEntry.moonphase || 0))) * 100);
+                illumination = Math.max(0, Math.min(100, illumination));
+
+                // Helper to build a Date object for a given day datetime string and API time string
+                const buildDateTime = (dateStr, timeStr) => {
+                    if (!timeStr) return null;
+                    const [hh, mm, ss] = timeStr.split(':').map(v => parseInt(v, 10) || 0);
+                    const d = new Date(dateStr + 'T00:00:00');
+                    d.setHours(hh, mm, ss, 0);
+                    return d;
+                };
+
+                // Format sunrise/sunset times using the existing locale/timezone
+                const sunriseDisplay = todayEntry.sunrise ? formatTime(buildDateTime(todayEntry.datetime, todayEntry.sunrise)) : '--';
+                const sunsetDisplay = todayEntry.sunset ? formatTime(buildDateTime(todayEntry.datetime, todayEntry.sunset)) : '--';
+
+                // Compare to yesterday if available (minutes difference)
+                let sunriseDiffText = '';
+                let sunsetDiffText = '';
+                if (yesterdayEntry) {
+                    // Compare clock times (minutes since midnight) instead of absolute Date subtraction.
+                    // This avoids a ~1440 minute difference when comparing across days and handles DST roll.
+                    const parseToMinutes = (timeStr) => {
+                        if (!timeStr) return null;
+                        const parts = timeStr.split(':');
+                        const hh = parseInt(parts[0], 10) || 0;
+                        const mm = parseInt(parts[1], 10) || 0;
+                        return hh * 60 + mm;
+                    };
+
+                    const ySunriseMin = parseToMinutes(yesterdayEntry.sunrise);
+                    const ySunsetMin = parseToMinutes(yesterdayEntry.sunset);
+                    const tSunriseMin = parseToMinutes(todayEntry.sunrise);
+                    const tSunsetMin = parseToMinutes(todayEntry.sunset);
+
+                    if (ySunriseMin !== null && tSunriseMin !== null) {
+                        let diffMin = tSunriseMin - ySunriseMin;
+                        // Normalize across day boundary to the shortest difference (e.g., handle DST jumps)
+                        if (diffMin > 720) diffMin -= 1440;
+                        if (diffMin < -720) diffMin += 1440;
+                        const sign = diffMin > 0 ? '+' : '';
+                        sunriseDiffText = ` (${sign}${diffMin}m)`;
+                    }
+
+                    if (ySunsetMin !== null && tSunsetMin !== null) {
+                        let diffMin = tSunsetMin - ySunsetMin;
+                        if (diffMin > 720) diffMin -= 1440;
+                        if (diffMin < -720) diffMin += 1440;
+                        const sign = diffMin > 0 ? '+' : '';
+                        sunsetDiffText = ` (${sign}${diffMin}m)`;
+                    }
+                }
+
+                const currentRow = document.createElement('tr');
+                currentRow.style = 'border-bottom: 1px solid #eee;';
+                currentRow.innerHTML = `
+                    <td style="padding: 8px 10px 8px 0; vertical-align: middle;">
+                        <img src="${phaseInfo.path}" alt="${phaseInfo.name}" style="width: 50px; height: 50px;">
+                    </td>
+                    <td style="vertical-align: middle; width: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Current: ${phaseInfo.name}</strong><br>
+                                <span style="color: #555;">${new Date(todayEntry.datetime).toLocaleDateString()}</span>
+                            </div>
+                            <div style="text-align: right; font-size: 0.9em; color: #555;">
+                                <span>Illumination: ${illumination}%</span><br>
+                                <span>Sunrise: ${sunriseDisplay}${sunriseDiffText}</span><br>
+                                <span>Sunset: ${sunsetDisplay}${sunsetDiffText}</span>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                // Insert current day row at the top of the table
+                moonPhasesTable.appendChild(currentRow);
+            } catch (e) {
+                console.warn('Error rendering current moon phase row:', e);
+            }
+        }
         
         // 3. Filter for the next four MAJOR moon phases
         const mainPhases = data.days.filter(day => {
