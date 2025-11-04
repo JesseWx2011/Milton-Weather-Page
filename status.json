@@ -7,11 +7,8 @@
     "powerOutage": {
       "active": true,
       "message": "Power flickers are ongoing due to a nearby thunderstorm.",
-      "timestamp": "Mon Aug 15 2025 18:35:35 GMT-0500"
+      "timestamp": "Mon Aug 15 2025 18:35:35 GMT-0500",
+        "comment": "status.json script has been discontinued and a new script for notifications has been put into order."
     }
   }
-  
-
-
-
 
