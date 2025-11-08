@@ -3,15 +3,15 @@ const CAMERA_CONFIG = {
     sources: [
         {
             id: 'fl511_6573',
-            name: 'Escambia County',
-            url: 'https://streaming.myescambia.com:8081',
+            name: 'Pensacola - North View',
+            url: 'https://streaming.myescambia.com:8080',
             type: 'image' // Treat as an image
         },
         {
             id: 'camera2',
-            name: 'Navarre Beach Cam',
-            url: 'https://1-or.vdn.terrafox.net/NBL/nbl-1.stream/chunks_dvr.m3u8',
-            type: 'video'
+            name: 'Pensacola - South View',
+            url: 'https://streaming.myescambia.com:8083/video.mjpg',
+            type: 'image'
         }
     ]
 };
