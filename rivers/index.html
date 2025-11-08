@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>River Gauge Data Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', Verdana, sans-serif;
+            background: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .back-link {
+            color: #0066cc;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-block;
+            margin-bottom: 16px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #0052a3;
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .gauge-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .gauge-selector label {
+            display: block;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .gauge-selector select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: 'Roboto', Verdana, sans-serif;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+
+        .gauge-selector select:focus {
+            outline: none;
+            border-color: #0066cc;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .stat-unit {
+            font-size: 18px;
+            color: #666;
+            margin-left: 4px;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+
+        .chart-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 400px;
+        }
+
+        .flood-stages {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+
+        .flood-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+        }
+
+        .flood-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .flood-item {
+            padding: 16px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+
+        .flood-item.major {
+            background: #fee;
+            border-color: #dc3545;
+        }
+
+        .flood-item.moderate {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+
+        .flood-item.minor {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+        }
+
+        .flood-item-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 4px;
+        }
+
+        .flood-item-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 16px;
+        }
+
+        .error {
+            background: #fee;
+            border: 2px solid #fcc;
+            border-radius: 8px;
+            padding: 16px;
+            color: #c33;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0066cc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 24px;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-wrapper {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <a href="../" class="back-link">← Back to Main Page</a>
+            <h1>River Gauge Data Dashboard</h1>
+            <p class="subtitle">Real-time water level monitoring for Northwest Florida</p>
+        </div>
+
+        <!-- Gauge Selector -->
+        <div class="gauge-selector">
+            <label for="gaugeSelect">Select Gauge Station:</label>
+            <select id="gaugeSelect">
+                <option value="MLYF1">Yellow River, Milton, FL</option>
+                <option value="YRBF1">Brown's Fishing Camp, Milton, FL</option>
+                <option value="MITF1">Milton Riverwalk, Milton, FL</option>
+                <option value="ABRF1">Avalon Boat Ramp, Avalon, FL</option>
+                <option value="HLEF1">Holley, FL</option>
+                <option value="ESSF1">Navarre Causeway, Navarre, FL</option>
+                <option value="PCLF1">Pensacola, FL</option>
+                <option value="FPBF1">Fort Pickens, FL</option>
+                <option value="CRVF1">Shoal River, Crestview, FL</option>
+                <option value="BAKF1">Blackwater River, Baker, FL</option>
+                <option value="HARF1">Blackwater River, Harold, FL</option>
+            </select>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Current Water Height</div>
+                <div class="stat-value" id="currentHeight">--<span class="stat-unit">ft</span></div>
+                <div class="info-text" id="heightLabel">Water Height (MHHW)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Current Flow</div>
+                <div class="stat-value" id="currentFlow">--<span class="stat-unit">kcfs</span></div>
+                <div class="info-text">Flow Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Last Updated</div>
+                <div class="stat-value" style="font-size: 18px;" id="lastUpdate">--</div>
+                <div class="info-text" id="timezone">--</div>
+            </div>
+        </div>
+
+        <!-- Flood Stages -->
+        <div class="flood-stages" id="floodStages" style="display: none;">
+            <h2 class="flood-title">Flood Stage Levels</h2>
+            <div class="flood-grid" id="floodGrid"></div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-container">
+            <h2 class="chart-title">7-Day Water Height Trend</h2>
+            <div id="loadingState" class="loading">
+                <div class="spinner"></div>
+                <p>Loading gauge data...</p>
+            </div>
+            <div id="errorState" class="error" style="display: none;"></div>
+            <div class="chart-wrapper" id="chartWrapper" style="display: none;">
+                <canvas id="gaugeChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chart = null;
+        let currentGaugeData = null;
+        let currentFloodData = null;
+
+        const gaugeSelect = document.getElementById('gaugeSelect');
+        gaugeSelect.addEventListener('change', (e) => {
+            fetchGaugeData(e.target.value);
+            fetchFloodData(e.target.value);
+        });
+
+        async function fetchGaugeData(gaugeCode) {
+            const loadingState = document.getElementById('loadingState');
+            const errorState = document.getElementById('errorState');
+            const chartWrapper = document.getElementById('chartWrapper');
+
+            loadingState.style.display = 'block';
+            errorState.style.display = 'none';
+            chartWrapper.style.display = 'none';
+
+            try {
+                const response = await fetch(
+                    `https://api.water.noaa.gov/nwps/v1/gauges/${gaugeCode}/stageflow`
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch gauge data');
+                }
+
+                const data = await response.json();
+                currentGaugeData = data;
+                displayGaugeData(data);
+                createChart(data);
+
+                loadingState.style.display = 'none';
+                chartWrapper.style.display = 'block';
+            } catch (err) {
+                console.error('Error fetching data:', err);
+                loadingState.style.display = 'none';
+                errorState.textContent = `Error: ${err.message}. Please try again.`;
+                errorState.style.display = 'block';
+            }
+        }
+
+        async function fetchFloodData(gaugeCode) {
+            try {
+                const response = await fetch(
+                    `https://api.water.noaa.gov/nwps/v1/gauges/${gaugeCode}`
+                );
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch flood data');
+                }
+
+                const data = await response.json();
+                currentFloodData = data;
+                displayFloodStages(data);
+            } catch (err) {
+                console.error('Error fetching flood data:', err);
+                document.getElementById('floodStages').style.display = 'none';
+            }
+        }
+
+        function displayFloodStages(data) {
+            const floodStages = document.getElementById('floodStages');
+            const floodGrid = document.getElementById('floodGrid');
+            
+            if (!data.flood || !data.flood.categories) {
+                floodStages.style.display = 'none';
+                return;
+            }
+
+            const categories = data.flood.categories;
+            const stageUnits = data.flood.stageUnits || 'ft';
+            let html = '';
+
+            // Check for major flood stage
+            if (categories.major && categories.major.stage !== -9999 && categories.major.stage !== null) {
+                html += `
+                    <div class="flood-item major">
+                        <div class="flood-item-label">Major Flood</div>
+                        <div class="flood-item-value">${categories.major.stage} ${stageUnits}</div>
+                    </div>
+                `;
+            }
+
+            // Check for moderate flood stage
+            if (categories.moderate && categories.moderate.stage !== -9999 && categories.moderate.stage !== null) {
+                html += `
+                    <div class="flood-item moderate">
+                        <div class="flood-item-label">Moderate Flood</div>
+                        <div class="flood-item-value">${categories.moderate.stage} ${stageUnits}</div>
+                    </div>
+                `;
+            }
+
+            // Check for minor flood stage
+            if (categories.minor && categories.minor.stage !== -9999 && categories.minor.stage !== null) {
+                html += `
+                    <div class="flood-item minor">
+                        <div class="flood-item-label">Minor Flood</div>
+                        <div class="flood-item-value">${categories.minor.stage} ${stageUnits}</div>
+                    </div>
+                `;
+            }
+
+            if (html) {
+                floodGrid.innerHTML = html;
+                floodStages.style.display = 'block';
+            } else {
+                floodStages.style.display = 'none';
+            }
+        }
+
+        function displayGaugeData(data) {
+            const observed = data.observed;
+            if (!observed || !observed.data || observed.data.length === 0) return;
+
+            const latestData = observed.data[0];
+
+            // Update current height
+            const heightValue = latestData.primary !== null && latestData.primary !== -999 
+                ? latestData.primary.toFixed(2) 
+                : '--';
+            document.getElementById('currentHeight').innerHTML = 
+                `${heightValue}<span class="stat-unit">${observed.primaryUnits}</span>`;
+            document.getElementById('heightLabel').textContent = observed.primaryName;
+
+            // Update current flow
+            const flowValue = latestData.secondary !== null && latestData.secondary !== -999 
+                ? latestData.secondary.toFixed(2) 
+                : 'N/A';
+            document.getElementById('currentFlow').innerHTML = 
+                flowValue !== 'N/A' 
+                    ? `${flowValue}<span class="stat-unit">${observed.secondaryUnits}</span>`
+                    : `<span style="font-size: 24px;">N/A</span>`;
+
+            // Update last update time
+            const validTime = new Date(latestData.validTime);
+            const updateTime = validTime.toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('lastUpdate').textContent = updateTime;
+            document.getElementById('timezone').textContent = observed.timeZone || 'CST';
+        }
+
+        function createChart(data) {
+            const observed = data.observed;
+            if (!observed || !observed.data) return;
+
+            // Filter last 7 days
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+            const chartData = observed.data
+                .filter(d => {
+                    const dataDate = new Date(d.validTime);
+                    return dataDate >= sevenDaysAgo && d.primary !== null && d.primary !== -999;
+                })
+                .reverse()
+                .map(d => ({
+                    time: new Date(d.validTime),
+                    height: d.primary
+                }));
+
+            const labels = chartData.map(d => 
+                d.time.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    hour: '2-digit'
+                })
+            );
+            const heights = chartData.map(d => d.height);
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            const ctx = document.getElementById('gaugeChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: `Water Height (${observed.primaryUnits})`,
+                        data: heights,
+                        borderColor: '#0066cc',
+                        backgroundColor: 'rgba(0, 102, 204, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.4,
+                        pointRadius: 3,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Roboto, Verdana, sans-serif',
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleFont: {
+                                family: 'Roboto, Verdana, sans-serif'
+                            },
+                            bodyFont: {
+                                family: 'Roboto, Verdana, sans-serif'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                                font: {
+                                    family: 'Roboto, Verdana, sans-serif',
+                                    size: 11
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    family: 'Roboto, Verdana, sans-serif'
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load initial data
+        fetchGaugeData('MLYF1');
+        fetchFloodData('MLYF1');
+    </script>
+</body>
+</html>
