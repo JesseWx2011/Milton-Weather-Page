@@ -476,15 +476,14 @@
             const sevenDaysAgo = new Date();
             sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-            const chartData = observed.data
-                .filter(d => {
-                    const dataDate = new Date(d.validTime);
-                    return dataDate >= sevenDaysAgo && d.primary !== null && d.primary !== -999;
-                })
-                .reverse()
-                .map(d => ({
-                    time: new Date(d.validTime),
-                    height: d.primary
+const chartData = observed.data
+                .filter(d => {
+                    const dataDate = new Date(d.validTime);
+                    return dataDate >= sevenDaysAgo && d.primary !== null && d.primary !== -999;
+                })
+                .map(d => ({
+                    time: new Date(d.validTime),
+                    height: d.primary
                 }));
 
             const labels = chartData.map(d => 
@@ -510,11 +509,12 @@
                         data: heights,
                         borderColor: '#0066cc',
                         backgroundColor: 'rgba(0, 102, 204, 0.1)',
-                        borderWidth: 2,
+                        borderWidth: 4,
                         fill: false,
                         tension: 0.4,
-                        pointRadius: 3,
-                        pointHoverRadius: 6
+                        pointRadius: 0,
+                        pointHoverRadius: 6,
+                        reverse: true,
                     }]
                 },
                 options: {
