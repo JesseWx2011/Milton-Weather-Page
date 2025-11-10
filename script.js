@@ -728,10 +728,10 @@ async function updateWeather() {
 
                     if (diff <= -significantThreshold) {
                         message = 'There has been a significant cooldown in the last hour';
-                        color = '#0b6623'; // dark green
+                        color = '#2e00acff'; // dark green
                     } else if (diff < -minorThreshold) {
                         message = 'It has cooled off some in the last hour';
-                        color = '#006400'; // green
+                        color = '#001e64ff'; // green
                     } else if (diff >= significantThreshold) {
                         message = 'There has been a significant warmup in the last hour';
                         color = '#b71c1c'; // dark red
@@ -1174,6 +1174,52 @@ function getLast12HoursLabels() {
     return labels;
 }
 
+async function getExtraData(useMetric) { // ONLY accept useMetric
+    const extrasUrl = 'https://lightning.ambientweather.net/devices?public.slug=6d86c574d69e27a7084ace4c66aa4435'
+    const response = await fetch(extrasUrl);
+    const responseData = await response.json(); 
+    
+    // Updated check for the new structure
+    if (!responseData || !responseData.data || responseData.data.length === 0) {
+        console.error('No data returned from Ambient Weather API for extra data');
+        return null;
+    }
+
+    const stationData = responseData.data[0];
+
+    // The rest of your code...
+    
+    // Calculation uses the passed-in useMetric
+    const maxDailyGust = useMetric 
+        ? mphToKmh(stationData.lastData.hl.maxdailygust.h) 
+        : stationData.lastData.hl.maxdailygust.h;
+
+    const maxDailyGustTimeunix = stationData.lastData.hl.maxdailygust.ht * 1000;
+    const closestLightning = stationData.lastData.hl.lightning_distance.h;
+    const ColdestFeelsLike = stationData.lastData.hl.feelsLike.l;
+    const ColdestFeelsLikeunix = stationData.lastData.hl.feelsLike.lt;
+    const HottestFeelsLike = stationData.lastData.hl.feelsLike.h;
+    const HottestFeelsLikeunix = stationData.lastData.hl.feelsLike.ht;
+
+
+
+    const maxDailyGustElement = document.getElementById('highest-gust');
+    const ClosestLightningElement = document.getElementById('closest-lightning');
+    const ColdestFeelsLikeElement = document.getElementById('coldest-feels-like');
+    const HottestFeelsLikeElement = document.getElementById('hottest-feels-like');
+
+    // Unit string uses the passed-in useMetric
+    const unitString = useMetric ? 'km/h' : 'mph';
+
+    maxDailyGustElement.textContent = `${(maxDailyGust.toFixed(1))} ${unitString} at ${new Date(maxDailyGustTimeunix).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', timeStyle: 'short' })}`;
+
+    ClosestLightningElement.textContent = closestLightning + " mi."
+
+    ColdestFeelsLikeElement.textContent = `${ColdestFeelsLike.toFixed(1)}°F at ${new Date(ColdestFeelsLikeunix).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', timeStyle: 'short' })}`;
+
+    HottestFeelsLikeElement.textContent = `${HottestFeelsLike.toFixed(1)}°F at ${new Date(HottestFeelsLikeunix).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', timeStyle: 'short' })}`;
+}   
+getExtraData();
 // Function to get historical data for a metric
 async function getHistoricalData(metric) {
     try {
