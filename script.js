@@ -88,6 +88,12 @@ function isDaytime() {
 }
 
 // Function to determine temperature feel
+// NOTE: Assuming 'useMetric' and 'celsiusToFahrenheit' are defined elsewhere in your environment
+// For this script to run, you will need a function like:
+// function celsiusToFahrenheit(c) { return c * 9/5 + 32; }
+
+// --- YOUR EXISTING FUNCTIONS (KEPT FOR REFERENCE/COMPLETENESS) ---
+
 function getTempFeel(temp) {
     if (temp < 0) return "Extreme Cold";
     if (temp < 15) return "Very Cold";
@@ -101,25 +107,26 @@ function getTempFeel(temp) {
     if (temp < 95) return "Hot";
     if (temp < 99) return "Very Hot";
     return "Extremely Hot";
-}   
+}   
 
-// Function to determine text color based on temperature
+// Function to determine text color based on temperature (RETAINED AS IS)
+// NOTE: This function is not used for the background color, but I'll keep it.
 function getTempTextColor(temp) {
-    if (temp < 0) return "#1a237e"; // Dark Blue
-    if (temp < 15) return "#3949ab"; // Indigo
-    if (temp < 25) return "#5c6bc0"; // Blue
-    if (temp < 32) return "#7986cb"; // Light Blue
-    if (temp < 43) return "#90caf9"; // Pale Blue
-    if (temp < 55) return "#bbdefb"; // Very Light Blue
-    if (temp < 66) return "#e3f2fd"; // Extremely Light Blue
-    if (temp < 79) return "#fff3e0"; // Light Gray
-    if (temp < 87) return "#ffccbc"; // Light Orange
-    if (temp < 95) return "#ffab91"; // Orange
-    if (temp < 99) return "#ff7043"; // Deep Orange
-    return "#d32f2f"; // Red
+    if (temp < 0) return "#1a237e"; 
+    if (temp < 15) return "#3949ab"; 
+    if (temp < 25) return "#5c6bc0"; 
+    if (temp < 32) return "#7986cb"; 
+    if (temp < 43) return "#90caf9"; 
+    if (temp < 55) return "#bbdefb"; 
+    if (temp < 66) return "#e3f2fd"; 
+    if (temp < 79) return "#fff3e0"; 
+    if (temp < 87) return "#ffccbc"; 
+    if (temp < 95) return "#ffab91"; 
+    if (temp < 99) return "#ff7043"; 
+    return "#d32f2f"; 
 }
 
-// Function to interpolate between two colors
+// Function to interpolate between two colors (RETAINED AS IS)
 function interpolateColor(color1, color2, factor) {
     // Convert hex to RGB
     const hexToRgb = (hex) => {
@@ -148,44 +155,81 @@ function interpolateColor(color1, color2, factor) {
     return rgbToHex(r, g, b);
 }
 
-// Function to get color for a specific temperature
+// --- NEW/UPDATED FUNCTIONS USING THE NEW COLOR SCALE ---
+
+// Function to get the specific color for a temperature (no interpolation)
 function getColorForTemp(temp) {
     // Convert to Fahrenheit if in Celsius for color calculation
     const tempF = useMetric ? celsiusToFahrenheit(temp) : temp;
+
+    // Use approximate Fahrenheit breakpoints derived from the Celsius scale:
+    if (tempF > 129.2) return "#BA1928"; 
+    if (tempF > 113) return "#E02538"; 
+    if (tempF > 102.2) return "#E178A1"; 
+    if (tempF > 84.2) return "#CC6633"; 
+    if (tempF > 78.8) return "#CC9933"; 
+    if (tempF > 60.8) return "#C6EF8C"; 
+    if (tempF > 46.4) return "#89B2EA"; 
+    if (tempF > 30.2) return "#6699FF"; 
+    if (tempF > 15.8) return "#3366FF"; 
+    if (tempF > -0.4) return "#806AF9"; 
+    if (tempF > -18.4) return "#91ACFF";
     
-    if (tempF < 0) return "#1a237e"; // Dark Blue
-    if (tempF < 15) return "#3949ab"; // Indigo
-    if (tempF < 25) return "#5c6bc0"; // Blue
-    if (tempF < 32) return "#7986cb"; // Light Blue
-    if (tempF < 43) return "#90caf9"; // Pale Blue
-    if (tempF < 55) return "#bbdefb"; // Very Light Blue
-    if (tempF < 66) return "#e3f2fd"; // Extremely Light Blue
-    if (tempF < 79) return "#fff3e0"; // Light Gray
-    if (tempF < 87) return "#ffccbc"; // Light Orange
-    if (tempF < 95) return "#ffab91"; // Orange
-    if (tempF < 99) return "#ff7043"; // Deep Orange
-    return "#d32f2f"; // Red
+    // Default for extremely cold (<= -18.4 F)
+    return "#91ACFF"; 
 }
 
-// Function to get the color range for a temperature
+// Function to get the color range for a temperature (for interpolation)
 function getColorRangeForTemp(temp) {
     // Convert to Fahrenheit if in Celsius for color calculation
     const tempF = useMetric ? celsiusToFahrenheit(temp) : temp;
-    
-    if (tempF < 0) return { min: -20, max: 0, minColor: "#000080", maxColor: "#1a237e" };
-    if (tempF < 15) return { min: 0, max: 15, minColor: "#1a237e", maxColor: "#3949ab" };
-    if (tempF < 25) return { min: 15, max: 25, minColor: "#3949ab", maxColor: "#5c6bc0" };
-    if (tempF < 32) return { min: 25, max: 32, minColor: "#5c6bc0", maxColor: "#7986cb" };
-    if (tempF < 43) return { min: 32, max: 43, minColor: "#7986cb", maxColor: "#90caf9" };
-    if (tempF < 55) return { min: 43, max: 55, minColor: "#90caf9", maxColor: "#bbdefb" };
-    if (tempF < 66) return { min: 55, max: 66, minColor: "#bbdefb", maxColor: "#e3f2fd" };
-    if (tempF < 79) return { min: 66, max: 79, minColor: "#fff3e0", maxColor: "#ffe0b2" };
-    if (tempF < 87) return { min: 79, max: 87, minColor: "#f5f5f5", maxColor: "#ffccbc" };
-    if (tempF < 95) return { min: 87, max: 95, minColor: "#ffccbc", maxColor: "#ffab91" };
-    if (tempF < 99) return { min: 95, max: 99, minColor: "#ffab91", maxColor: "#ff7043" };
-    return { min: 99, max: 110, minColor: "#ff7043", maxColor: "#d32f2f" };
-}
 
+    // Define the breakpoints in Fahrenheit (F) and their associated colors:
+    const breakpoints = [
+        { temp: -18.4, color: "#91ACFF" },
+        { temp: -0.4, color: "#806AF9" },
+        { temp: 15.8, color: "#3366FF" },
+        { temp: 30.2, color: "#6699FF" },
+        { temp: 46.4, color: "#89B2EA" },
+        { temp: 60.8, color: "#C6EF8C" },
+        { temp: 78.8, color: "#CC9933" },
+        { temp: 84.2, color: "#CC6633" },
+        { temp: 102.2, color: "#E178A1" },
+        { temp: 113, color: "#E02538" },
+        { temp: 129.2, color: "#BA1928" },
+    ];
+
+    // Case 1: Below the lowest breakpoint
+    if (tempF <= breakpoints[0].temp) {
+        return { 
+            min: breakpoints[0].temp - 10, // Create a range below the lowest point
+            max: breakpoints[0].temp, 
+            minColor: "#6184ff", // Slightly darker/different shade for visual effect
+            maxColor: breakpoints[0].color 
+        };
+    }
+
+    // Case 2: Between breakpoints
+    for (let i = 0; i < breakpoints.length - 1; i++) {
+        if (tempF > breakpoints[i].temp && tempF <= breakpoints[i+1].temp) {
+            return {
+                min: breakpoints[i].temp,
+                max: breakpoints[i+1].temp,
+                minColor: breakpoints[i].color,
+                maxColor: breakpoints[i+1].color
+            };
+        }
+    }
+
+    // Case 3: Above the highest breakpoint
+    const lastBreakpoint = breakpoints[breakpoints.length - 1];
+    return { 
+        min: lastBreakpoint.temp, 
+        max: lastBreakpoint.temp + 10, // Create a range above the highest point
+        minColor: lastBreakpoint.color, 
+        maxColor: "#9e0018" // Slightly darker/different shade for visual effect
+    };
+}
 // Function to animate temperature counting up or down
 function animateTemperature(element, targetTemp, duration = 2000) {
     // Stop any existing animation
@@ -1191,10 +1235,10 @@ async function getExtraData(useMetric) { // ONLY accept useMetric
     
     // Calculation uses the passed-in useMetric
     const maxDailyGust = useMetric 
-        ? mphToKmh(stationData.lastData.hl.maxdailygust.h) 
-        : stationData.lastData.hl.maxdailygust.h;
+        ? mphToKmh(stationData.lastData.hl.windspeedmph.h) 
+        : stationData.lastData.hl.windspeedmph.h;
 
-    const maxDailyGustTimeunix = stationData.lastData.hl.maxdailygust.ht * 1000;
+    const maxDailyGustTimeunix = stationData.lastData.hl.windspeedmph.ht;
     const closestLightning = stationData.lastData.hl.lightning_distance.h;
     const ColdestFeelsLike = stationData.lastData.hl.feelsLike.l;
     const ColdestFeelsLikeunix = stationData.lastData.hl.feelsLike.lt;
