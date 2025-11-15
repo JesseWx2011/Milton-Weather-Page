@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Milton Weather Dashboard - Legacy</title>
   <link rel="stylesheet" href="./styles.css">
+
+  <meta name="date" content="2025-11-15"/>
+  <meta name="author" content="JesseLikesWeather"/>
 </head>
 <body>
         <button class="back-button" onclick="location.href='../'">Back to Weather Dashboard</button>
@@ -52,9 +55,13 @@
                 </td>
             </tr>
             <tr>
-                <td class="weather-cell full-width left-align" colspan="3">
+                <td class="weather-cell" colspan="2">
                     <h3>Rain Today:</h3>
                     <h4 id="rain">N/A</h4>
+                </td>
+                <td class="weather-cell" colspan="1">
+                    <h3>Current Wind:</h3>
+                    <h4 id="wind">N/A mph</h4>
                 </td>
             </tr>
         </table>
@@ -65,12 +72,12 @@
             <table>
                 <tr>
                     <td class="image-section">
-                        <h2>KMOB Radar</h2>
-                        <img src="https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/KMOB_radar.png" style="height: 451.9px;" alt="KMOB Radar">
+                        <h2>Current Radar</h2>
+                        <img src="https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/EVX.gif" style="height: 451.9px;" alt="KMOB Radar">
                     </td>
                     <td class="image-section">
                         <h2>Rip Current Risk</h2>
-                        <img src="http://www.weather.gov/images//mob/graphicast/image9.png" alt="Rip Current Risk">
+                        <img src="http://www.weather.gov/images//mob/graphicast/image30.png" alt="Rip Current Risk">
                     </td>
                 </tr>
             </table>

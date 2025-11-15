@@ -20,6 +20,7 @@ async function fetchWeather() {
     const pressure = document.getElementById("pressure");
     const dewpoint = document.getElementById("dewpoint");
     const feelslike = document.getElementById("feelslike");
+    const wind = document.getElementById('wind');
     
     lastUpdate.innerHTML = `Last Update: ${new Date(data[0].lastData.dateutc).toLocaleString("en-US", { timeZone: "America/Chicago", dateStyle: "short", timeStyle: "short" })} CDT`;
     temp.innerHTML = `${data[0].lastData.tempf}°F`;
@@ -30,6 +31,28 @@ async function fetchWeather() {
     pressure.innerHTML = `${toHundredths(data[0].lastData.baromrelin).toFixed(2)} inHg`;
     dewpoint.innerHTML = `${data[0].lastData.dewPoint}°F`;
     feelslike.innerHTML = `${data[0].lastData.feelsLike}°F`;
-}
 
+    windGust = data[0].lastData.windgustmph
+    windSpeed = data[0].lastData.windspeedmph;
+    if (windGust > windSpeed) {
+    wind.innerHTML = `${windSpeed.toFixed(0)} mph G ${windGust.toFixed(0)}`;
+    } else {
+    wind.innerHTML = `${windSpeed} mph`;
+    }
+}
+async function getWx() {
+  const nwsUrl = "https://api.weather.gov/stations/KNDZ/observations/latest"
+  const response = await fetch(nwsUrl);
+  const data = await response.json();
+  console.log(data);
+
+  try {
+     document.getElementById('weather').textContent = data.properties.textDescription;
+  } catch (error) {
+    console.log(error);
+    document.getElementById('weather').textContent = 'N/A';
+  }
+}
+// Call Funcs
 fetchWeather();
+getWx();
