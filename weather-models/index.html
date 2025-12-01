@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
     <title>Weather Model Archive</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght=700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@700&display=swap" rel="stylesheet">
+
+    <meta name='date' content='2025-11-30'/>
     <style>
         * {
             margin: 0;
@@ -43,6 +45,36 @@
             margin-bottom: 30px;
             transition: all 0.3s ease;
         }
+        
+        /* NEW STYLES for Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr; /* Left column fixed width, right column takes remaining space */
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 1000px) {
+             .main-layout {
+                 grid-template-columns: 1fr; /* Stack columns on smaller screens */
+             }
+             .param-controls {
+                 order: 1; /* Move parameters to the top when stacked */
+             }
+             .visualization-area {
+                 order: 2;
+             }
+        }
+        
+        .param-controls {
+            /* Styles for the left column content (Parameters) */
+        }
+        
+        .visualization-area {
+            /* Styles for the right column content (Dates, Slider, Image) */
+        }
+        /* END NEW STYLES for Layout */
+
 
         .control-row {
             display: grid;
@@ -255,6 +287,23 @@
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 10px;
         }
+        
+        /* Adjust param grid for narrow left column on large screens */
+        @media (min-width: 1001px) {
+             .param-controls .param-grid {
+                 grid-template-columns: 1fr; 
+                 padding: 10px;
+             }
+             .param-controls .param-category summary {
+                 padding: 10px;
+                 font-size: 1em;
+             }
+             .param-controls .param-category {
+                 margin-top: 5px;
+             }
+        }
+        
+        
 
         .param-btn {
             padding: 10px 15px;
@@ -296,6 +345,7 @@
             align-items: center;
             justify-content: center;
             position: relative; /* For status overlay */
+            margin-top: 20px;
         }
 
         #archiveImage {
@@ -400,6 +450,10 @@
                 width: 100%;
                 justify-content: center;
             }
+            
+            .image-container {
+                 min-height: 300px;
+            }
         }
         
         /* Ensure minimum usability for very small screens (down to 250px) */
@@ -435,116 +489,134 @@
 </head>
 <body>
     <div class="container">
-                <button class="back-to-weather-dashboard"><a href="../">Back to Weather Dashboard</a></button>
-       <h1>Weather Model Archive (Multi-Day Viewer)</h1>
-        <div class="controls">
-            <div class="control-row">
+        <button class="back-to-weather-dashboard"><a href="../">Back to Weather Dashboard</a></button>
+        <h1>Weather Model Archive</h1>
+        
+        <div class="main-layout">
+            
+            <div class="param-controls">
                 <div class="control-group">
-                    <label for="startDatePicker">Start Date (Min: 2005-09-29):</label>
-                    <input type="date" id="startDatePicker" min="2005-09-29">
-                </div>
-
-                <div class="control-group">
-                    <label for="endDatePicker">End Date (Max 5-day span):</label>
-                    <input type="date" id="endDatePicker" min="2005-09-29">
-                </div>
-            </div>
-
-            <div class="control-row" style="margin-bottom: 0;">
-                <div class="control-group">
-                    <label for="timezone">Time Zone (For Local Time Display):</label>
-                    <select id="timezone">
-                        <option value="UTC">UTC</option>
-                        <option value="EST">Eastern (EST/EDT)</option>
-                        <option value="CST">Central (CST/CDT)</option>
-                        <option value="MST">Mountain (MST/MDT)</option>
-                        <option value="PST">Pacific (PST/PDT)</option>
-                        <option value="AKST">Alaska (AKST/AKDT)</option>
-                        <option value="HST">Hawaii (HST)</option>
-                    </select>
-                </div>
-                 <div class="control-group">
-                    </div>
-            </div>
-
-            <div class="control-group">
-                <label for="frameSlider">Select Frame (Frame 1 to Max 120):</label>
-                <div class="slider-container slider-wrapper">
-                    <input type="range" id="frameSlider" min="1" max="1" value="1" step="1">
-                    <div class="hour-ticks" id="frameTicks">
+                    <label>Select Parameter:</label>
+                    
+                    <details class="param-category" open>
+                        <summary>Convective Parameters</summary>
+                        <div class="param-grid">
+                            <button class="param-btn" data-param="eshr">Effective Shear</button>
+                            <button class="param-btn" data-param="srh1">0-1km SRH</button>
+                            <button class="param-btn" data-param="lclh">LCL Heights</button>
+                            <button class="param-btn" data-param="lfch">LCF Heights</button>
+                            <button class="param-btn" data-param="lr3c">0-3km MLCAPE</button>
+                            <button class="param-btn" data-param="scp">Supercell Composite</button>
+                            <button class="param-btn" data-param="dcp">Derecho Composite</button>
+                            <button class="param-btn" data-param="sbcp">Surface CAPE</button>
+                            <button class="param-btn" data-param="stpc">Sig. Tornado Param. (STPC)</button>
+                            <button class="param-btn" data-param="mlcp">100mb MLCAPE</button>
+                            <button class="param-btn" data-param="dcape">Downdraft CAPE</button>
+                            <button class="param-btn" data-param="laps">Low-Level Lapse Rates</button>
+                            <button class="param-btn" data-param="lllr">Mid-Level Lapse Rates</button>
+                            <button class="param-btn" data-param="hail">Hail Parameter</button>
                         </div>
+                    </details>
+                    
+                    <details class="param-category" open>
+                        <summary>Upper Air & Wind Profiles</summary>
+                        <div class="param-grid">
+                            <button class="param-btn" data-param="350mb">350mb Winds</button>
+                            <button class="param-btn active" data-param="500mb">500mb Winds</button>
+                            <button class="param-btn" data-param="700mb">700mb Winds</button>
+                            <button class="param-btn" data-param="850mb">850mb Winds</button>
+                            <button class="param-btn" data-param="llsr">0-2km SR Winds (LLSR)</button>
+                            <button class="param-btn" data-param="mslr">4-6km SR Winds (MLSR)</button>
+                            <button class="param-btn" data-param="hlsr">9-11km SR Winds (HLSR)</button>
+                            <button class="param-btn" data-param="xover">500 & 850mb X-Over</button>
+                            <button class="param-btn" data-param="75ft">700-500mb Frontogenisis</button>
+                        </div>
+                    </details>
+
+                    <details class="param-category" open>
+                        <summary>Surface & Observational</summary>
+                        <div class="param-grid">
+                            <button class="param-btn" data-param="pmsl">MSLP Contours</button>
+                            <button class="param-btn" data-param="1kmv">Visible Satellite</button>
+                            <button class="param-btn" data-param="bigsfc">Surface Charts</button>
+                            <button class="param-btn" data-param="rgnlwarn">Radar/Warnings</button>
+                            <button class="param-btn" data-param="rgnlrad">CONUS Base Reflectivity</button>
+                        </div>
+                    </details>
                 </div>
-                <div class="hour-display" id="frameDisplay">Frame: 1 / 1 | 2005-09-29 01:00 UTC | MSLP Contours</div>
             </div>
+            
+            <div class="visualization-area">
+                <div class="controls">
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label for="datePresetSelect">Date Presets (Start Date):</label>
+                            <select id="datePresetSelect">
+                                <option value="">--- Select a Historic Date ---</option>
+                                </select>
+                        </div>
+                        <div class="control-group">
+                            <label for="timezone">Time Zone (For Local Time Display):</label>
+                            <select id="timezone">
+                                <option value="UTC">UTC</option>
+                                <option value="EST">Eastern (EST/EDT)</option>
+                                <option value="CST">Central (CST/CDT)</option>
+                                <option value="MST">Mountain (MST/MDT)</option>
+                                <option value="PST">Pacific (PST/PDT)</option>
+                                <option value="AKST">Alaska (AKST/AKDT)</option>
+                                <option value="HST">Hawaii (HST)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label for="startDatePicker">Start Date (Min: 2005-09-29):</label>
+                            <input type="date" id="startDatePicker" min="2005-09-29">
+                        </div>
 
-            <div class="playback-controls">
-                <button class="play-btn" id="playBtn" disabled>▶ Play</button>
-                <div class="speed-control">
-                    <label for="speedSelect">Speed:</label>
-                    <select id="speedSelect">
-                        <option value="2000">Slow (2s)</option>
-                        <option value="1000" selected>Normal (1s)</option>
-                        <option value="500">Fast (0.5s)</option>
-                        <option value="100">Very Fast (0.1s)</option>
-                    </select>
+                        <div class="control-group">
+                            <label for="endDatePicker">End Date (Max 5-day span):</label>
+                            <input type="date" id="endDatePicker" min="2005-09-30">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="frameSlider">Select Frame (Frame 1 to Max 120):</label>
+                        <div class="slider-container slider-wrapper">
+                            <input type="range" id="frameSlider" min="1" max="1" value="1" step="1">
+                            <div class="hour-ticks" id="frameTicks">
+                            </div>
+                        </div>
+                        <div class="hour-display" id="frameDisplay">Frame: 1 / 1 | 2005-09-29 01:00 UTC | MSLP Contours</div>
+                    </div>
+
+                    <div class="playback-controls">
+                        <button class="play-btn" id="playBtn" disabled>▶ Play</button>
+                        <div class="speed-control">
+                            <label for="speedSelect">Speed:</label>
+                            <select id="speedSelect">
+                                <option value="2000">Slow (2s)</option>
+                                <option value="1000" selected>Normal (1s)</option>
+                                <option value="500">Fast (0.5s)</option>
+                                <option value="100">Very Fast (0.1s)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="image-container" id="imageContainer">
+                    <img id="archiveImage" src="" alt="Weather Archive Image" style="display: none;">
+                    <div id="statusMessage" class="loading">Select your date range and parameter.</div>
                 </div>
             </div>
-
-            <div class="control-group">
-                <label style="margin-top: 20px;">Select Parameter:</label>
-                
-                <details class="param-category" open>
-                    <summary>Convective Parameters</summary>
-                    <div class="param-grid">
-                        <button class="param-btn" data-param="eshr">Effective Shear</button>
-                        <button class="param-btn" data-param="srh1">0-1km SRH</button>
-                        <button class="param-btn" data-param="lclh">LCL Heights</button>
-                        <button class="param-btn" data-param="lr3c">0-3km MLCAPE</button>
-                        <button class="param-btn" data-param="scp">Supercell Composite</button>
-                        <button class="param-btn" data-param="dcp">Derecho Composite</button>
-                        <button class="param-btn" data-param="sbcp">Surface CAPE</button>
-                        <button class="param-btn" data-param="stpc">Sig. Tornado Param. (STPC)</button>
-                    </div>
-                </details>
-                
-                <details class="param-category">
-                    <summary>Upper Air & Wind Profiles</summary>
-                    <div class="param-grid">
-                        <button class="param-btn" data-param="350mb">350mb Winds</button>
-                        <button class="param-btn" data-param="500mb">500mb Winds</button>
-                        <button class="param-btn" data-param="700mb">700mb Winds</button>
-                        <button class="param-btn" data-param="850mb">850mb Winds</button>
-                        <button class="param-btn" data-param="llsr">0-2km SR Winds (LLSR)</button>
-                        <button class="param-btn" data-param="mslr">4-6km SR Winds (MLSR)</button>
-                        <button class="param-btn" data-param="hlsr">9-11km SR Winds (HLSR)</button>
-                        <button class="param-btn" data-param="xover">500 & 850mb X-Over</button>
-                    </div>
-                </details>
-
-                <details class="param-category">
-                    <summary>Surface & Observational</summary>
-                    <div class="param-grid">
-                        <button class="param-btn active" data-param="pmsl">MSLP Contours</button>
-                        <button class="param-btn" data-param="1kmv">Visible Satellite</button>
-                        <button class="param-btn" data-param="bigsfc">Surface Charts</button>
-                        <button class="param-btn" data-param="rgnlwarn">Radar/Warnings</button>
-                        <button class="param-btn" data-param="rgnlrad">CONUS Base Reflectivity</button>
-                    </div>
-                </details>
-            </div>
-        </div>
-
-        <div class="image-container" id="imageContainer">
-            <img id="archiveImage" src="" alt="Weather Archive Image" style="display: none;">
-            <div id="statusMessage" class="loading">Select your date range and parameter.</div>
-        </div>
-    </div>
+        </div> </div>
 
     <script>
         let startDate = '2005-09-29';
         let endDate = '2005-09-29';
         let currentFrame = 1; // 1-based index in validFrames array
-        let selectedParam = 'pmsl';
+        let selectedParam = '500mb';
         let selectedTimezone = 'UTC';
         let isPlaying = false;
         let playInterval = null;
@@ -564,6 +636,9 @@
         const frameTicksContainer = document.getElementById('frameTicks');
         const archiveImage = document.getElementById('archiveImage');
         const statusMessage = document.getElementById('statusMessage');
+        // NEW DOM Element
+        const datePresetSelect = document.getElementById('datePresetSelect');
+
 
         const MIN_DATE_STR = '2005-09-29';
         const MAX_DAYS_SPAN = 5; // 5 days * 24 hours = 120 potential frames
@@ -572,6 +647,26 @@
         const timezoneOffsets = {
             'UTC': 0, 'EST': -5, 'CST': -6, 'MST': -7, 'PST': -8, 'AKST': -9, 'HST': -10
         };
+        
+        // NEW: Date Presets List (Converted to YYYY-MM-DD for consistency)
+        const datePresets = [
+             '2007-05-04', '2008-02-05', '2008-03-15', '2008-05-25', '2009-02-10', 
+             '2009-04-10', '2010-04-24', '2010-05-10', '2010-06-17', '2010-07-23', 
+             '2011-04-09', '2011-04-27', '2011-05-22', '2011-05-24', '2012-02-28', 
+             '2012-03-02', '2012-04-14', '2012-12-25', '2013-05-15', '2013-05-18', 
+             '2013-05-19', '2013-05-20', '2013-05-28', '2013-05-31', '2013-10-04', 
+             '2013-11-17', '2014-04-27', '2014-04-28', '2014-05-11', '2014-06-16', 
+             '2015-05-06', '2015-05-16', '2015-12-23', '2015-12-24', '2015-12-26', 
+             '2016-02-23', '2016-02-24', '2016-05-09', '2016-05-25', '2017-01-21', 
+             '2017-02-28', '2017-04-14', '2017-04-29', '2017-05-18', '2018-06-26', 
+             '2019-03-03', '2019-05-17', '2019-05-18', '2019-05-28', '2019-10-20', 
+             '2020-04-12', '2020-07-08', '2021-03-25', '2021-03-26', '2021-12-10', 
+             '2021-12-15', '2022-03-05', '2022-03-22', '2022-03-30', '2022-04-05', 
+             '2022-04-13', '2022-11-04', '2023-01-12', '2023-03-24', '2023-03-31', 
+             '2023-04-01', '2023-04-19', '2023-06-15', '2023-06-21', '2023-07-15', 
+             '2023-07-27', '2023-12-09', '2024-04-26', '2024-04-27', '2024-05-09', 
+             '2024-05-21', '2024-06-05', '2024-12-28'
+        ].sort(); // Sort chronologically
 
         // Helper: Convert YYYY-MM-DD to a Date object (UTC midnight)
         function dateToUTC(dateStr) {
@@ -581,6 +676,13 @@
         // Helper: Format Date object to YYYY-MM-DD
         function dateToYYYYMMDD(dateObj) {
             return dateObj.toISOString().split('T')[0];
+        }
+        
+        // Helper: Format Date object to Mmm D, YYYY for display
+        function dateToFriendly(dateStr) {
+            const [year, month, day] = dateStr.split('-');
+            const date = new Date(year, month - 1, day);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
         // Helper: Add days to a date string
@@ -859,10 +961,30 @@
             const totalPotentialFrames = calculateTotalPotentialFrames();
             const total = totalPotentialFrames;
 
-            if (total === 1) {
-                 displayMessage('loading', 'Select a multi-day range for full playback.');
+            if (total === 1 && startDate === endDate) {
+                 displayMessage('loading', 'Select a multi-day range or a historic preset for full playback.');
                  currentlyPreloading = false;
                  updateSliderBasedOnValidFrames();
+                 // Load the single frame for today if it exists
+                 if(startDatePicker.value === dateToYYYYMMDD(new Date())) {
+                     // Check if current hour frame is potentially available
+                     const now = new Date();
+                     const currentUTCHour = now.getUTCHours(); 
+                     if (currentUTCHour >= 1) { // If it's 1 UTC or later
+                         const url = getImageURL(1); // Frame 1 will correspond to the first available hour for today
+                         const img = new Image();
+                         img.onload = () => {
+                             validFrames = [1];
+                             updateSliderBasedOnValidFrames();
+                         };
+                         img.onerror = () => {
+                             displayMessage('loading', 'Select a multi-day range or a historic preset for full playback. Current frame not yet available.');
+                             updateFrameDisplay();
+                         };
+                         img.src = url;
+                         preloadedImages[1] = img;
+                     }
+                 }
                  return;
             }
             
@@ -988,6 +1110,11 @@
              const startVal = startDatePicker.value;
              const endVal = endDatePicker.value;
              const todayStr = dateToYYYYMMDD(new Date());
+             
+             // Reset preset selector if a manual date change occurs
+             if (datePresetSelect.value !== startVal) {
+                 datePresetSelect.value = "";
+             }
 
              if (!startVal || !endVal) return;
 
@@ -1029,6 +1156,20 @@
              preloadImages(); // Start preloading after date change
         }
 
+        // NEW: Handles date preset selection
+        function handlePresetChange(e) {
+            const presetDate = e.target.value;
+            if (presetDate) {
+                 // Set both start and end date to the selected preset date
+                 startDatePicker.value = presetDate;
+                 endDatePicker.value = presetDate;
+                 // Set the min date for endDatePicker
+                 endDatePicker.min = presetDate;
+                 
+                 handleDateChange(); // Triggers the full logic and preload
+            }
+        }
+
         // SLIDER handler
         frameSlider.addEventListener('input', (e) => {
             stopPlayback();
@@ -1040,6 +1181,9 @@
         // DATE RANGE handlers
         startDatePicker.addEventListener('change', handleDateChange);
         endDatePicker.addEventListener('change', handleDateChange);
+        
+        // NEW: DATE PRESET handler
+        datePresetSelect.addEventListener('change', handlePresetChange);
 
         // TIMEZONE handler
         document.getElementById('timezone').addEventListener('change', (e) => {
@@ -1069,6 +1213,16 @@
 
         // PLAY button handler
         playBtn.addEventListener('click', togglePlay);
+        
+        // NEW: Function to populate date presets
+        function populateDatePresets() {
+             datePresets.forEach(dateStr => {
+                 const option = document.createElement('option');
+                 option.value = dateStr;
+                 option.textContent = dateToFriendly(dateStr);
+                 datePresetSelect.appendChild(option);
+             });
+        }
 
 
         // Real-time update check (only relevant if endDate is today)
@@ -1105,10 +1259,12 @@
             currentFrame = 1;
             frameSlider.value = currentFrame;
             
+            // NEW: Populate the date presets dropdown
+            populateDatePresets();
+            
             // Initial load
             preloadImages();
         })();
     </script>
 </body>
 </html>
-
