@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Regional Climate Data - Florida & Alabama</title>
-    <meta name="date" content="2025-10-29"/>
+    <meta name="date" content="2025-12-10"/>
     <meta name="author" content="JesseLikesWeather"/>
     <meta name="description" content="Climate data for multiple locations in the Florida Panhandle and Gulf Coast region"/>
     <style>
@@ -515,8 +515,10 @@
                             <option value="milton">Milton, FL</option>
                             <option value="pensacola">Pensacola, FL</option>
                             <option value="crestview">Crestview, FL</option>
-                            <option value="mobile">Mobile, AL</option>
+                            <option value="niceville">Niceville, FL</option>
                             <option value="destin">Destin, FL</option>
+                            <option value="mobile">Mobile, AL</option>
+                            <option value="evergreen">Evergreen, AL</option>
                         </select>
                     </div>
                 </div>
@@ -554,7 +556,7 @@
                     <!-- Source will be populated by JavaScript -->
                 </p>
                 <a href="../index.html" class="back-link">
-                    Back to Main Site
+                    Back to Weather Dashboard
                 </a>
             </div>
         </footer>
@@ -622,6 +624,26 @@
                 ],
                 annual: {high: 105, meanMax: 99.6, dailyMax: 79.2, mean: 67.0, dailyMin: 54.8, meanMin: 18.1, low: 8, precip: 63.60, precipDays: 121.8}
             },
+            niceville: {
+                name: "Niceville, FL",
+                source: "NOAA",
+                period: "Climate Normals: 1991–2020 | Temperature Extremes: 1937–present",
+                months: [
+                    {month: 'January', high: 80, meanMax: 72.3, dailyMax: 61.2, mean: 49.6, dailyMin: 38.0, meanMin: 21.0, low: 4, precip: 5.86, precipDays: 10.1},
+                    {month: 'February', high: 87, meanMax: 74.9, dailyMax: 64.7, mean: 52.8, dailyMin: 40.8, meanMin: 24.7, low: 11, precip: 5.25, precipDays: 9.6},
+                    {month: 'March', high: 96, meanMax: 80.7, dailyMax: 70.2, mean: 58.3, dailyMin: 46.4, meanMin: 30.0, low: 19, precip: 5.35, precipDays: 7.9},
+                    {month: 'April', high: 92, meanMax: 83.4, dailyMax: 76.2, mean: 64.6, dailyMin: 53.0, meanMin: 38.3, low: 20, precip: 5.99, precipDays: 7.6},
+                    {month: 'May', high: 101, meanMax: 91.1, dailyMax: 83.5, mean: 72.4, dailyMin: 61.4, meanMin: 47.9, low: 38, precip: 3.78, precipDays: 7.2},
+                    {month: 'June', high: 102, meanMax: 94.0, dailyMax: 88.2, mean: 78.8, dailyMin: 69.4, meanMin: 62.5, low: 48, precip: 6.79, precipDays: 12.5},
+                    {month: 'July', high: 107, meanMax: 95.6, dailyMax: 89.9, mean: 80.8, dailyMin: 71.7, meanMin: 67.3, low: 55, precip: 8.91, precipDays: 14.6},
+                    {month: 'August', high: 103, meanMax: 95.1, dailyMax: 89.7, mean: 80.6, dailyMin: 71.5, meanMin: 66.3, low: 55, precip: 9.21, precipDays: 14.9},
+                    {month: 'September', high: 102, meanMax: 93.2, dailyMax: 87.1, mean: 77.3, dailyMin: 67.6, meanMin: 55.6, low: 37, precip: 6.97, precipDays: 9.9},
+                    {month: 'October', high: 99, meanMax: 88.8, dailyMax: 80.2, mean: 68.4, dailyMin: 56.5, meanMin: 39.5, low: 27, precip: 4.60, precipDays: 6.3},
+                    {month: 'November', high: 89, meanMax: 81.1, dailyMax: 70.7, mean: 57.9, dailyMin: 45.1, meanMin: 29.9, low: 18, precip: 4.97, precipDays: 7.0},
+                    {month: 'December', high: 84, meanMax: 75.0, dailyMax: 63.8, mean: 52.4, dailyMin: 41.0, meanMin: 25.4, low: 8, precip: 5.68, precipDays: 11.2}
+                ],
+                annual: {high: 107, meanMax: 97.0, dailyMax: 77.1, mean: 66.2, dailyMin: 55.2, meanMin: 19.9, low: 4, precip: 73.36, precipDays: 118.7}
+            },
             mobile: {
                 name: "Mobile, AL",
                 source: "NOAA (Mobile Regional Airport)",
@@ -661,6 +683,26 @@
                     {month: 'December', high: 85, meanMax: 77.2, dailyMax: 65.6, mean: 56.6, dailyMin: 47.5, meanMin: 35.0, low: 22, precip: 4.72, precipDays: 10.6}
                 ],
                 annual: {high: 104, meanMax: 97.3, dailyMax: 78.1, mean: 69.8, dailyMin: 61.4, meanMin: 27.1, low: 20, precip: 55.35, precipDays: 109.5}
+            },
+            evergreen: {
+                name: "Evergreen, AL",
+                source: "NOAA",
+                period: "Climate Normals: 1991–2020",
+                months: [
+                    {month: 'January', high: null, meanMax: null, dailyMax: 59.3, mean: 47.9, dailyMin: 36.5, meanMin: null, low: null, precip: 5.91, precipDays: null},
+                    {month: 'February', high: null, meanMax: null, dailyMax: 63.4, mean: 51.4, dailyMin: 39.5, meanMin: null, low: null, precip: 4.97, precipDays: null},
+                    {month: 'March', high: null, meanMax: null, dailyMax: 71.0, mean: 58.3, dailyMin: 45.6, meanMin: null, low: null, precip: 5.13, precipDays: null},
+                    {month: 'April', high: null, meanMax: null, dailyMax: 77.2, mean: 64.5, dailyMin: 51.7, meanMin: null, low: null, precip: 4.93, precipDays: null},
+                    {month: 'May', high: null, meanMax: null, dailyMax: 84.2, mean: 72.3, dailyMin: 60.4, meanMin: null, low: null, precip: 4.45, precipDays: null},
+                    {month: 'June', high: null, meanMax: null, dailyMax: 89.0, mean: 78.5, dailyMin: 67.9, meanMin: null, low: null, precip: 5.75, precipDays: null},
+                    {month: 'July', high: null, meanMax: null, dailyMax: 90.8, mean: 80.7, dailyMin: 70.6, meanMin: null, low: null, precip: 6.12, precipDays: null},
+                    {month: 'August', high: null, meanMax: null, dailyMax: 90.4, mean: 80.2, dailyMin: 70.1, meanMin: null, low: null, precip: 5.48, precipDays: null},
+                    {month: 'September', high: null, meanMax: null, dailyMax: 86.7, mean: 76.2, dailyMin: 65.8, meanMin: null, low: null, precip: 4.95, precipDays: null},
+                    {month: 'October', high: null, meanMax: null, dailyMax: 78.3, mean: 66.5, dailyMin: 54.8, meanMin: null, low: null, precip: 3.58, precipDays: null},
+                    {month: 'November', high: null, meanMax: null, dailyMax: 68.5, mean: 56.2, dailyMin: 44.0, meanMin: null, low: null, precip: 4.34, precipDays: null},
+                    {month: 'December', high: null, meanMax: null, dailyMax: 61.2, mean: 50.1, dailyMin: 39.1, meanMin: null, low: null, precip: 5.66, precipDays: null}
+                ],
+                annual: {high: null, meanMax: null, dailyMax: 76.7, mean: 65.2, dailyMin: 53.8, meanMin: null, low: null, precip: 61.27, precipDays: null}
             }
         };
 
@@ -682,29 +724,56 @@
             renderData();
         }
 
+        function formatValue(value) {
+            return value === null ? '—' : value;
+        }
+
         function renderData() {
             const data = climateData[currentLocation];
             
             // Update stats
             const statsGrid = document.getElementById('stats-grid');
-            statsGrid.innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">Record High</div>
-                    <div class="stat-value">${data.annual.high}<span class="stat-unit">°F</span></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Record Low</div>
-                    <div class="stat-value">${data.annual.low}<span class="stat-unit">°F</span></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Annual Precipitation</div>
-                    <div class="stat-value">${data.annual.precip}<span class="stat-unit">"</span></div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Precipitation Days</div>
-                    <div class="stat-value">${data.annual.precipDays}<span class="stat-unit">days</span></div>
-                </div>
-            `;
+            const hasExtremes = data.annual.high !== null && data.annual.low !== null;
+            
+            if (hasExtremes) {
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-label">Record High</div>
+                        <div class="stat-value">${data.annual.high}<span class="stat-unit">°F</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Record Low</div>
+                        <div class="stat-value">${data.annual.low}<span class="stat-unit">°F</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Annual Precipitation</div>
+                        <div class="stat-value">${data.annual.precip}<span class="stat-unit">"</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Precipitation Days</div>
+                        <div class="stat-value">${formatValue(data.annual.precipDays)}<span class="stat-unit">${data.annual.precipDays ? 'days' : ''}</span></div>
+                    </div>
+                `;
+            } else {
+                statsGrid.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-label">Annual Mean Temp</div>
+                        <div class="stat-value">${data.annual.mean}<span class="stat-unit">°F</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Annual Avg High</div>
+                        <div class="stat-value">${data.annual.dailyMax}<span class="stat-unit">°F</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Annual Avg Low</div>
+                        <div class="stat-value">${data.annual.dailyMin}<span class="stat-unit">°F</span></div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Annual Precipitation</div>
+                        <div class="stat-value">${data.annual.precip}<span class="stat-unit">"</span></div>
+                    </div>
+                `;
+            }
 
             // Update table
             const table = document.getElementById('climate-table');
@@ -727,28 +796,28 @@
                     ${data.months.map(m => `
                         <tr>
                             <td>${m.month}</td>
-                            <td class="temp-high">${m.high}°F</td>
-                            <td>${m.meanMax}°F</td>
-                            <td>${m.dailyMax}°F</td>
-                            <td class="temp-normal">${m.mean}°F</td>
-                            <td>${m.dailyMin}°F</td>
-                            <td>${m.meanMin}°F</td>
-                            <td class="temp-low">${m.low}°F</td>
-                            <td>${m.precip}</td>
-                            <td>${m.precipDays}</td>
+                            <td class="temp-high">${formatValue(m.high)}${m.high ? '°F' : ''}</td>
+                            <td>${formatValue(m.meanMax)}${m.meanMax ? '°F' : ''}</td>
+                            <td>${formatValue(m.dailyMax)}${m.dailyMax ? '°F' : ''}</td>
+                            <td class="temp-normal">${formatValue(m.mean)}${m.mean ? '°F' : ''}</td>
+                            <td>${formatValue(m.dailyMin)}${m.dailyMin ? '°F' : ''}</td>
+                            <td>${formatValue(m.meanMin)}${m.meanMin ? '°F' : ''}</td>
+                            <td class="temp-low">${formatValue(m.low)}${m.low !== null ? '°F' : ''}</td>
+                            <td>${formatValue(m.precip)}</td>
+                            <td>${formatValue(m.precipDays)}</td>
                         </tr>
                     `).join('')}
                     <tr>
                         <td><strong>Annual</strong></td>
-                        <td class="temp-high">${data.annual.high}°F</td>
-                        <td>${data.annual.meanMax}°F</td>
-                        <td>${data.annual.dailyMax}°F</td>
-                        <td class="temp-normal">${data.annual.mean}°F</td>
-                        <td>${data.annual.dailyMin}°F</td>
-                        <td>${data.annual.meanMin}°F</td>
-                        <td class="temp-low">${data.annual.low}°F</td>
-                        <td>${data.annual.precip}</td>
-                        <td>${data.annual.precipDays}</td>
+                        <td class="temp-high">${formatValue(data.annual.high)}${data.annual.high ? '°F' : ''}</td>
+                        <td>${formatValue(data.annual.meanMax)}${data.annual.meanMax ? '°F' : ''}</td>
+                        <td>${formatValue(data.annual.dailyMax)}${data.annual.dailyMax ? '°F' : ''}</td>
+                        <td class="temp-normal">${formatValue(data.annual.mean)}${data.annual.mean ? '°F' : ''}</td>
+                        <td>${formatValue(data.annual.dailyMin)}${data.annual.dailyMin ? '°F' : ''}</td>
+                        <td>${formatValue(data.annual.meanMin)}${data.annual.meanMin ? '°F' : ''}</td>
+                        <td class="temp-low">${formatValue(data.annual.low)}${data.annual.low !== null ? '°F' : ''}</td>
+                        <td>${formatValue(data.annual.precip)}</td>
+                        <td>${formatValue(data.annual.precipDays)}</td>
                     </tr>
                 </tbody>
             `;
@@ -770,26 +839,34 @@
             cardsContainer.innerHTML = data.months.map(m => `
                 <div class="month-card">
                     <div class="month-name">${m.month}</div>
-                    <div class="month-detail">
+                    ${m.high !== null ? `<div class="month-detail">
                         <span class="month-detail-label">Record High:</span>
                         <span class="month-detail-value temp-high">${m.high}°F</span>
-                    </div>
-                    <div class="month-detail">
+                    </div>` : ''}
+                    ${m.low !== null ? `<div class="month-detail">
                         <span class="month-detail-label">Record Low:</span>
                         <span class="month-detail-value temp-low">${m.low}°F</span>
-                    </div>
+                    </div>` : ''}
                     <div class="month-detail">
                         <span class="month-detail-label">Daily Mean:</span>
                         <span class="month-detail-value temp-normal">${m.mean}°F</span>
                     </div>
                     <div class="month-detail">
+                        <span class="month-detail-label">Daily Max:</span>
+                        <span class="month-detail-value">${m.dailyMax}°F</span>
+                    </div>
+                    <div class="month-detail">
+                        <span class="month-detail-label">Daily Min:</span>
+                        <span class="month-detail-value">${m.dailyMin}°F</span>
+                    </div>
+                    <div class="month-detail">
                         <span class="month-detail-label">Precipitation:</span>
                         <span class="month-detail-value">${m.precip}"</span>
                     </div>
-                    <div class="month-detail">
+                    ${m.precipDays !== null ? `<div class="month-detail">
                         <span class="month-detail-label">Precip Days:</span>
                         <span class="month-detail-value">${m.precipDays}</span>
-                    </div>
+                    </div>` : ''}
                 </div>
             `).join('');
         }
