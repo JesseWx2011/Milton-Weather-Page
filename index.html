@@ -14,7 +14,7 @@
         <meta name="author" content="JesseLikesWeather">
         <meta name="keywords"
             content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl. weather milton florida, milton weather ranch, milton fl weather radar, milton fl weather forecast, milton weather weather alerts, milton fl climate, milton fl historical weather, milton fl temperature, milton fl humidity, milton fl wind, milton fl precipitation, milton fl sunrise sunset, jesselikesweather, jessewx2011, 31522 awkeas, MILTONWEATHERRANCH PWSWeather">
-        <meta name="date" content="2025-12-10">
+        <meta name="date" content="2025-12-23">
 
         <!--- Social Media Tags -->
 
@@ -2528,6 +2528,60 @@
     #goog-gt-votingHiddenPane {
         display: none;
     }
+
+    /* Almanac Card Styles */
+    .almanac-item {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    .record-high {
+        border: 2px solid red;
+    }
+    .record-high:hover {
+        border-color: darkred;
+        background-color: rgba(255, 0, 0, 0.1);
+    }
+    .record-low {
+        border: 2px solid blue;
+    }
+    .record-low:hover {
+        border-color: darkblue;
+        background-color: rgba(0, 0, 255, 0.1);
+    }
+    .average-high, .average-low {
+        border: 1px solid #ccc;
+    }
+
+/* Snow Effect Styles */
+#snow-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 1s ease-out;
+}
+
+.snowflake {
+    position: absolute;
+    top: -10px;
+    width: 8px;
+    height: 8px;
+    background: white;
+    border-radius: 50%;
+    animation: fall linear infinite;
+}
+
+@keyframes fall {
+    to {
+        transform: translateY(100vh);
+    }
+}
         </style>
     </head>
 
@@ -2685,7 +2739,7 @@
                 <p id="last-update" data-time="">Last updated: --:--:--</p>
                 <p id="next-update" data-time="">Next update in: --:--</p>
                 <p id="temp-change" class="temp-change">Temperature change: --°F</p>
-                <i id="temp-hour-change" class="temp-hour-change">(If nothing displays here within the next 15 seconds, past hour data couldn't fetch.)</i>
+                <i id="temp-hour-change" class="temp-hour-change"></i>
                 <div class="unit-toggle">
                     <span class="unit-label">Units:</span>
                     <button id="imperial-btn" class="unit-btn active">Imperial</button>
@@ -3042,16 +3096,18 @@
             </div>
 
                             <!-- Row 3 -->
-                <div class="row" style="display: flex; justify-content: space-between;">
-                    <!-- Weather Radar Card --> 
-                    <div class="weather-card satellite-card"
-                        style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
+                <div class="row" style="display: grid;grid-template-columns: 1fr 1fr;gap: 60px;margin-bottom: 30px;justify-content: space-evenly;">
+                    <div class="weather-card almanac-card" style="padding: 10px;transition: transform 0.3s ease, box-shadow 0.3s ease;height: fit-content;width: 600px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 1.1em;">Weather Station Almanac</h3>
+                        <div id="almanac-content" style="text-align: center;">
+                            <p>Loading almanac data...</p>
+                        </div>
+                    </div>
+                    <div class="weather-card satellite-card" style="width: 600px;padding: 10px;transition: transform 0.3s ease, box-shadow 0.3s ease;">
                         <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Latest Satellite Image</h3>
                         <img id="radar-image" src="https://github.com/JesseWx2011/Lightning-Map/blob/master/docs/satelliteimgs/Florida.png?raw=true" style="width: 100%; height: auto; border-radius: 5px;">
-                                            </div>
                     </div>
-
-            </div>
+                </div>
 
             <!-- Credits Section -->
             <div class="credits" style="margin-top: 50px;">

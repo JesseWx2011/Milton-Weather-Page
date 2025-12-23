@@ -665,6 +665,71 @@ function formatTimeDifference(timestamp) {
     }
 }
 
+// Function to add holiday emoji to period name
+function addHolidayEmoji(name) {
+    const holidays = {
+        'Thanksgiving Day': '🦃',
+        'Christmas Day': '🎄',
+        'St. Patrick\'s Day': '🍀',
+        'New Year\'s Day': '🎉',
+        'Valentine\'s Day': '❤️',
+        'Martin Luther King Jr. Day': '✊',
+        'Independence Day': '🎆',
+        'Washington\'s Birthday': '🗽'
+    };
+    for (const [holiday, emoji] of Object.entries(holidays)) {
+        if (name.includes(holiday)) {
+            return `${name} ${emoji}`;
+        }
+    }
+    return name;
+}
+
+// Function to check if it's Christmas Eve or Christmas Day in GMT-6
+function checkForChristmasSnow() {
+    const now = new Date();
+    const centralTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Chicago"}));
+    const month = centralTime.getMonth();
+    const day = centralTime.getDate();
+    if (month === 11 && (day === 23 || day === 24 || day === 25)) {
+        createSnowEffect();
+    }
+}
+
+// Function to create the snow effect
+function createSnowEffect() {
+    const snowContainer = document.createElement('div');
+    snowContainer.id = 'snow-container';
+    snowContainer.style.position = 'fixed';
+    snowContainer.style.top = '0';
+    snowContainer.style.left = '0';
+    snowContainer.style.width = '100%';
+    snowContainer.style.height = '100%';
+    snowContainer.style.pointerEvents = 'none';
+    snowContainer.style.zIndex = '9999';
+    snowContainer.style.opacity = '1';
+    snowContainer.style.transition = 'opacity 1s ease-out';
+    document.body.appendChild(snowContainer);
+
+    for (let i = 0; i < 50; i++) {
+        const snowflake = document.createElement('div');
+        snowflake.className = 'snowflake';
+        snowflake.style.left = Math.random() * 100 + '%';
+        snowflake.style.animationDelay = Math.random() * 5 + 's';
+        snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        snowContainer.appendChild(snowflake);
+    }
+
+    setTimeout(() => {
+        snowContainer.style.opacity = '0';
+        setTimeout(() => {
+            if (document.body.contains(snowContainer)) {
+                document.body.removeChild(snowContainer);
+            }
+        }, 1000);
+    }, 5000); // show for 5 seconds, then fade
+}
+
 // Function to update the weather data
 async function updateWeather() {
     showLoadingMessages(); // Show loading messages when starting to update weather
@@ -747,7 +812,7 @@ async function updateWeather() {
                     }
 
                     if (oneHourAgo === null || typeof currentData.tempf === 'undefined' || currentData.tempf === null) {
-                        if (tempHourEl) tempHourEl.textContent = '(If nothing displays here within the next 15 seconds, past hour data couldn\'t fetch.)';
+                        if (tempHourEl) tempHourEl.textContent = '()';
                         return;
                     }
 
@@ -1109,7 +1174,7 @@ try {
                 const temp = useMetric ? fahrenheitToCelsius(period.temperature) : period.temperature;
                 const windSpeed = useMetric ? mphToKmh(parseFloat(period.windSpeed)) : period.windSpeed;
                 forecastDay.innerHTML = `
-                    <h3>${period.name}</h3>
+                    <h3>${addHolidayEmoji(period.name)}</h3>
                     <img src="${period.icon}" alt="${period.shortForecast}" style="width: 50px; height: 50px; border-radius: 8px;">
                     <p class="forecast-temp">${Math.round(temp)}${useMetric ? '°C' : '°F'}</p>
                     <p class="forecast-condition">${period.shortForecast}</p>
@@ -1238,7 +1303,7 @@ async function getExtraData(useMetric) { // ONLY accept useMetric
         ? mphToKmh(stationData.lastData.hl.windspeedmph.h) 
         : stationData.lastData.hl.windspeedmph.h;
 
-    const maxDailyGustTimeunix = stationData.lastData.hl.windspeedmph.ht;
+    const maxDailyGustTimeunix = stationData.lastData.hl.windgustmph.ht;
     const closestLightning = stationData.lastData.hl.lightning_distance.h;
     const ColdestFeelsLike = stationData.lastData.hl.feelsLike.l;
     const ColdestFeelsLikeunix = stationData.lastData.hl.feelsLike.lt;
@@ -1889,6 +1954,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Start checking for alerts when the page loads
     startAlertChecking();
+
+    // Check for Christmas snow effect
+    checkForChristmasSnow();
 });
 
 // Make closeGraph function globally available
@@ -3384,3 +3452,123 @@ if (document.readyState === 'loading') {
 }
 // Optionally, poll every 5 minutes:
 setInterval(fetchStatusAlerts, 5 * 60 * 1000);
+
+// Function to fetch and display almanac data
+async function updateAlmanacData() {
+    const almanacContent = document.getElementById('almanac-content');
+    if (!almanacContent) return;
+
+    try {
+        // Get current date
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1; // 1-12
+        const currentDay = today.getDate();
+
+        // Format date as MMDD (e.g., "1223" for December 23rd)
+        const dateString = `${String(currentMonth).padStart(2, '0')}${String(currentDay).padStart(2, '0')}`;
+
+        // Station started operating on July 26th, 2024
+        const stationStartDate = new Date(2024, 6, 26); // July 26, 2024 (months are 0-indexed)
+        const currentDate = new Date(currentYear, currentMonth - 1, currentDay);
+
+        // Determine which years to fetch based on station operation date
+        const years = [];
+        if (currentYear >= 2024) {
+            years.push(currentYear); // Current year
+        }
+        if (currentDate >= stationStartDate) {
+            years.push(2024); // 2024 data is available if we're past July 26th
+        }
+        // Don't fetch 2023 or earlier
+
+        const allHighs = [];
+        const allLows = [];
+        const yearLabels = { highs: {}, lows: {} };
+
+        // Fetch data for each available year
+        for (const year of years) {
+            try {
+                const yearDateString = `${year}${dateString}`;
+                const response = await fetch(`https://api.weather.com/v2/pws/history/hourly?stationId=KFLMILTO379&format=json&units=m&date=${yearDateString}&apiKey=6ae12de8a830419ca12de8a830319c40`);
+
+                if (!response.ok) {
+                    console.warn(`No data available for ${year}-${dateString}`);
+                    continue; // Skip this year if data not available
+                }
+
+                const data = await response.json();
+
+                if (data.observations && data.observations.length > 0) {
+                    // Extract temperature highs and lows (in Celsius)
+                    const highs = data.observations.map(obs => obs.metric.tempHigh).filter(h => h !== null && h !== -1);
+                    const lows = data.observations.map(obs => obs.metric.tempLow).filter(l => l !== null && l !== -1);
+
+                    if (highs.length > 0) {
+                        const yearHigh = Math.max(...highs);
+                        allHighs.push(yearHigh);
+                        yearLabels.highs[yearHigh] = year;
+                    }
+
+                    if (lows.length > 0) {
+                        const yearLow = Math.min(...lows);
+                        allLows.push(yearLow);
+                        yearLabels.lows[yearLow] = year;
+                    }
+                }
+            } catch (error) {
+                console.warn(`Error fetching data for ${year}:`, error);
+            }
+        }
+
+        if (allHighs.length === 0 || allLows.length === 0) {
+            almanacContent.innerHTML = '<p>No valid temperature data available for this date.</p>';
+            return;
+        }
+
+        // Find absolute record high and low across all years
+        const recordHighC = Math.max(...allHighs);
+        const recordLowC = Math.min(...allLows);
+
+        // Convert to Fahrenheit
+        const recordHighF = Math.round(celsiusToFahrenheit(recordHighC));
+        const recordLowF = Math.round(celsiusToFahrenheit(recordLowC));
+
+        // Get the years for the records
+        const recordHighYear = yearLabels.highs[recordHighC];
+        const recordLowYear = yearLabels.lows[recordLowC];
+
+        // Calculate averages from available data
+        const avgHighC = allHighs.reduce((sum, val) => sum + val, 0) / allHighs.length;
+        const avgLowC = allLows.reduce((sum, val) => sum + val, 0) / allLows.length;
+
+        const avgHighF = Math.round(celsiusToFahrenheit(avgHighC));
+        const avgLowF = Math.round(celsiusToFahrenheit(avgLowC));
+
+        // Display the data
+        almanacContent.innerHTML = `
+            <div class="almanac-item record-high">
+                <p><strong>Record High:</strong> ${recordHighF}°F, ${recordHighYear}</p>
+            </div>
+            <div class="almanac-item record-low">
+                <p><strong>Record Low:</strong> ${recordLowF}°F, ${recordLowYear}</p>
+            </div>
+            <div class="almanac-item average-high">
+                <p><strong>Average High:</strong> ${avgHighF}°F</p>
+            </div>
+            <div class="almanac-item average-low">
+                <p><strong>Average Low:</strong> ${avgLowF}°F</p>
+            </div>
+        `;
+    } catch (error) {
+        console.error('Error fetching almanac data:', error);
+        almanacContent.innerHTML = '<p>Error loading almanac data.</p>';
+    }
+}
+
+// Call on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateAlmanacData);
+} else {
+    updateAlmanacData();
+}

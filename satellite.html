@@ -177,6 +177,29 @@
             border-bottom: 2px solid #ddd;
             padding-bottom: 5px;
         }
+
+        .button-group {
+            margin-bottom: 20px;
+        }
+
+        .button-group button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            background: #3498db;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .button-group button:hover {
+            background: #2980b9;
+        }
+
+        .button-group button.active {
+            background: #2980b9;
+        }
     </style>
 </head>
 
@@ -185,6 +208,11 @@
 
     <div class="container">
         <h1>Satellite Imagery</h1>
+        <div class="button-group">
+            <button id="goes-btn" class="active">GOES Imagery (Americas)</button>
+            <button id="himawari-btn">Himawari Imagery (Asia & Oceania)</button>
+        </div>
+        <div id="goes-section">
         <div class="grid">
 
             <h2 class="category-header">Mesoscale</h2>
@@ -1031,6 +1059,125 @@
             </div>
             <!-- End of Cards -->
         </div>
+        </div>
+        <div id="himawari-section" style="display:none">
+        <div class="grid">
+            <h2 class="category-header">Himawari Imagery (Asia & Oceania)</h2>
+            <p style="grid-column: 1 / -1; text-align: left; margin-bottom: 10px;">Source: <a href="https://www.data.jma.go.jp/mscweb/data/himawari/" target="_blank">Meteorological Satellite Center of JMA</a></p>
+            <div class="card">
+                <h2>Himawari-9 Full Disk</h2>
+                <img class="satellite-image" data-base="https://www.data.jma.go.jp/mscweb/data/himawari/img/fd_/fd__{CHAN}_{HHMM}.jpg" alt="Himawari-9 Full Disk">
+                <select class="channel-select">
+                    <option value="b13" selected>b13 — Infrared</option>
+                    <option value="snd">snd — Sandwhich</option>
+                    <option value="b03">b03 — Visible</option>
+                    <option value="b08">b08 — Water Vapor</option>
+                    <option value="b07">b07 — Short Wave Infrared</option>
+                    <option value="irv">irv — Visible & Infrared</option>
+                    <option value="arm">arm — Airmass</option>
+                    <option value="dst">dst — Dust RGB</option>
+                    <option value="trm">trm — True Color Reproduction</option>
+                    <option value="tre">tre — True Color Enhanced</option>
+                </select>
+            </div>
+            <div class="card">
+                <h2>Australia</h2>
+                <img class="satellite-image" data-base="https://www.data.jma.go.jp/mscweb/data/himawari/img/aus/aus_{CHAN}_{HHMM}.jpg" alt="Australia">
+                <select class="channel-select">
+                    <option value="b13" selected>b13 — Infrared</option>
+                    <option value="snd">snd — Sandwhich</option>
+                    <option value="b03">b03 — Visible</option>
+                    <option value="b08">b08 — Water Vapor</option>
+                    <option value="b07">b07 — Short Wave Infrared</option>
+                    <option value="irv">irv — Visible & Infrared</option>
+                    <option value="arm">arm — Airmass</option>
+                    <option value="dst">dst — Dust RGB</option>
+                    <option value="trm">trm — True Color Reproduction</option>
+                    <option value="tre">tre — True Color Enhanced</option>
+                </select>
+            </div>
+            <div class="card">
+                <h2>New Zealand</h2>
+                <img class="satellite-image" data-base="https://www.data.jma.go.jp/mscweb/data/himawari/img/nzl/nzl_{CHAN}_{HHMM}.jpg" alt="New Zealand">
+                <select class="channel-select">
+                    <option value="b13" selected>b13 — Infrared</option>
+                    <option value="snd">snd — Sandwhich</option>
+                    <option value="b03">b03 — Visible</option>
+                    <option value="b08">b08 — Water Vapor</option>
+                    <option value="b07">b07 — Short Wave Infrared</option>
+                    <option value="irv">irv — Visible & Infrared</option>
+                    <option value="arm">arm — Airmass</option>
+                    <option value="dst">dst — Dust RGB</option>
+                    <option value="trm">trm — True Color Reproduction</option>
+                    <option value="tre">tre — True Color Enhanced</option>
+                </select>
+            </div>
+       <div class="card">
+                <h2>Japan</h2>
+                <img class="satellite-image" data-base="https://www.data.jma.go.jp/mscweb/data/himawari/img/jpn/jpn_{CHAN}_{HHMM}.jpg" alt="Japan">
+                <select class="channel-select">
+                    <option value="b13" selected>b13 — Infrared</option>
+                    <option value="snd">snd — Sandwhich</option>
+                    <option value="b03">b03 — Visible</option>
+                    <option value="b08">b08 — Water Vapor</option>
+                    <option value="b07">b07 — Short Wave Infrared</option>
+                    <option value="irv">irv — Visible & Infrared</option>
+                    <option value="arm">arm — Airmass</option>
+                    <option value="dst">dst — Dust RGB</option>
+                    <option value="trm">trm — True Color Reproduction</option>
+                    <option value="tre">tre — True Color Enhanced</option>
+                </select>
+            </div>
+            <div class="card">
+                <h2>South Asia</h2>
+                <img class="satellite-image" data-base="https://www.data.jma.go.jp/mscweb/data/himawari/img/se4/se4_{CHAN}_{HHMM}.jpg" alt="South Asia">
+                <select class="channel-select">
+                    <option value="b13" selected>b13 — Infrared</option>
+                    <option value="snd">snd — Sandwhich</option>
+                    <option value="b03">b03 — Visible</option>
+                    <option value="b08">b08 — Water Vapor</option>
+                    <option value="b07">b07 — Short Wave Infrared</option>
+                    <option value="irv">irv — Visible & Infrared</option>
+                    <option value="arm">arm — Airmass</option>
+                    <option value="dst">dst — Dust RGB</option>
+                    <option value="trm">trm — True Color Reproduction</option>
+                    <option value="tre">tre — True Color Enhanced</option>
+                </select>
+            </div>
+            <div class="card">
+                <h2>Phillipines & Taiwan</h2>
+                <img class="satellite-image" data-base="https://www.data.jma.go.jp/mscweb/data/himawari/img/se2/se2_{CHAN}_{HHMM}.jpg" alt="Phillipines & Taiwan">
+                <select class="channel-select">
+                    <option value="b13" selected>b13 — Infrared</option>
+                    <option value="snd">snd — Sandwhich</option>
+                    <option value="b03">b03 — Visible</option>
+                    <option value="b08">b08 — Water Vapor</option>
+                    <option value="b07">b07 — Short Wave Infrared</option>
+                    <option value="irv">irv — Visible & Infrared</option>
+                    <option value="arm">arm — Airmass</option>
+                    <option value="dst">dst — Dust RGB</option>
+                    <option value="trm">trm — True Color Reproduction</option>
+                    <option value="tre">tre — True Color Enhanced</option>
+                </select>
+            </div>
+            <div class="card">
+                <h2>Indonesia</h2>
+                <img class="satellite-image" data-base="https://www.data.jma.go.jp/mscweb/data/himawari/img/se3/se3_{CHAN}_{HHMM}.jpg" alt="Indonesia">
+                <select class="channel-select">
+                    <option value="b13" selected>b13 — Infrared</option>
+                    <option value="snd">snd — Sandwhich</option>
+                    <option value="b03">b03 — Visible</option>
+                    <option value="b08">b08 — Water Vapor</option>
+                    <option value="b07">b07 — Short Wave Infrared</option>
+                    <option value="irv">irv — Visible & Infrared</option>
+                    <option value="arm">arm — Airmass</option>
+                    <option value="dst">dst — Dust RGB</option>
+                    <option value="trm">trm — True Color Reproduction</option>
+                    <option value="tre">tre — True Color Enhanced</option>
+                </select>
+            </div>
+        </div>
+        </div>
     </div>
 
     <!-- Modal -->
@@ -1073,17 +1220,45 @@
                 for (const card of imageCards) {
                     const img = card.querySelector('.satellite-image');
                     const ts = card.querySelector('.timestamp');
-                    const baseUrl = img.dataset.base;
+                    let baseUrl = img.dataset.base;
+
+                    // Himawari images use {HHMM} and {CHAN} in the filename — do not use last-modified logic
+                    if (baseUrl && baseUrl.includes('{HHMM}')) {
+                        const now = new Date();
+                        const utcHour = now.getUTCHours();
+                        const utcMin = now.getUTCMinutes();
+                        const roundedMin = Math.floor(utcMin / 10) * 10;
+                        const hhmm = String(utcHour).padStart(2, '0') + String(roundedMin).padStart(2, '0');
+                        baseUrl = baseUrl.replace('{HHMM}', hhmm);
+
+                        // replace {CHAN} with selected channel or default
+                        if (baseUrl.includes('{CHAN}')) {
+                            const sel = card.querySelector('.channel-select');
+                            const chan = sel ? sel.value : 'b13';
+                            baseUrl = baseUrl.replace('{CHAN}', chan);
+                        }
+
+                        img.src = baseUrl + "?t=" + Date.now();
+                        // Himawari: no freshness/timestamp indicators
+                        if (ts) ts.textContent = "";
+                        continue;
+                    }
+
+                    // Default (GOES) behavior: fetch Last-Modified and update freshness
                     const lastModified = await fetchLastModified(baseUrl);
                     if (lastModified) {
                         lastModifiedMap.set(img, lastModified);
                         img.src = baseUrl + "?t=" + Date.now();
-                        const { text, color } = formatFreshness(lastModified);
-                        ts.textContent = text;
-                        ts.style.color = color;
+                        if (ts) {
+                            const { text, color } = formatFreshness(lastModified);
+                            ts.textContent = text;
+                            ts.style.color = color;
+                        }
                     } else {
-                        ts.textContent = "Unable to fetch timestamp";
-                        ts.style.color = "gray";
+                        if (ts) {
+                            ts.textContent = "Unable to fetch timestamp";
+                            ts.style.color = "gray";
+                        }
                     }
                 }
             }
@@ -1102,19 +1277,37 @@
                 }
             }, 2000);
 
-            // Channel select change
+            // Channel select change — supports GOES (folder-based) and Himawari (filename-based)
             document.querySelectorAll('.card').forEach(card => {
                 const img = card.querySelector('.satellite-image');
                 const select = card.querySelector('.channel-select');
-                select.addEventListener('change', async () => {
-                    const baseParts = img.dataset.base.split('/');       // split URL into parts
-                    baseParts[baseParts.length - 2] = select.value;       // replace the channel folder
-                    const newUrl = baseParts.join('/')
-                    img.src = newUrl;
+                if (select && img) {
+                    select.addEventListener('change', async () => {
+                        let base = img.dataset.base;
 
-                    const lm = await fetchLastModified(newUrl);
-                    if (lm) lastModifiedMap.set(img, lm);
-                });
+                        // Himawari filename pattern
+                        if (base && base.includes('{CHAN}')) {
+                            // compute HHMM for immediate URL
+                            const now = new Date();
+                            const utcHour = now.getUTCHours();
+                            const utcMin = now.getUTCMinutes();
+                            const roundedMin = Math.floor(utcMin / 10) * 10;
+                            const hhmm = String(utcHour).padStart(2, '0') + String(roundedMin).padStart(2, '0');
+                            let newUrl = base.replace('{CHAN}', select.value).replace('{HHMM}', hhmm);
+                            img.src = newUrl + "?t=" + Date.now();
+                            return;
+                        }
+
+                        // GOES: channel is a folder in the path
+                        const baseParts = img.dataset.base.split('/');       // split URL into parts
+                        baseParts[baseParts.length - 2] = select.value;       // replace the channel folder
+                        const newUrl = baseParts.join('/')
+                        img.src = newUrl;
+
+                        const lm = await fetchLastModified(newUrl);
+                        if (lm) lastModifiedMap.set(img, lm);
+                    });
+                }
             });
 
             // Modal logic
@@ -1124,6 +1317,29 @@
             closeButton.addEventListener('click', () => modal.classList.remove('show'));
             modal.addEventListener('click', () => modal.classList.remove('show'));
             document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('show'); });
+
+            // GOES / Himawari button toggles
+            const goesBtn = document.getElementById('goes-btn');
+            const himawariBtn = document.getElementById('himawari-btn');
+            const goesSection = document.getElementById('goes-section');
+            const himawariSection = document.getElementById('himawari-section');
+
+            function showSection(name) {
+                if (name === 'goes') {
+                    if (goesSection) goesSection.style.display = '';
+                    if (himawariSection) himawariSection.style.display = 'none';
+                    if (goesBtn) goesBtn.classList.add('active');
+                    if (himawariBtn) himawariBtn.classList.remove('active');
+                } else if (name === 'himawari') {
+                    if (goesSection) goesSection.style.display = 'none';
+                    if (himawariSection) himawariSection.style.display = '';
+                    if (goesBtn) goesBtn.classList.remove('active');
+                    if (himawariBtn) himawariBtn.classList.add('active');
+                }
+            }
+
+            if (goesBtn) goesBtn.addEventListener('click', () => showSection('goes'));
+            if (himawariBtn) himawariBtn.addEventListener('click', () => showSection('himawari'));
 
             // Initial load + 10-min refresh
             refreshImages();
