@@ -9,8 +9,8 @@ const CAMERA_CONFIG = {
         },
         {
             id: 'camera2',
-            name: 'Pensacola - South View',
-            url: 'https://streaming.myescambia.com:8083/video.mjpg',
+            name: 'Milton Webcam',
+            url: 'https://panhandlewx.altervista.org/wp-content/Latest.jpg?' + new Date().getTime(),
             type: 'image'
         }
     ]
