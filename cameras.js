@@ -10,7 +10,7 @@ const CAMERA_CONFIG = {
         {
             id: 'camera2',
             name: 'Milton Webcam',
-            url: 'https://panhandlewx.altervista.org/wp-content/Latest.jpg?' + new Date().getTime(),
+            url: 'https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/Latest.jpg',
             type: 'image'
         }
     ]
