@@ -5,25 +5,26 @@
         "January": 2.18,
         "February": 2.89,
         "March": 8.73,
-        "April": 2.82,
-        "May": 12.34,
-        "June": 13.1,
-        "July": 10.19,
-        "August": 10.35,
-        "September": 3.51,
-        "October": 0.00,
-        "November": 6.40,
-        "December": 5.56
+        "April": 2.58,
+        "May": 8.26,
+        "June": 9.52,
+        "July": 6.68,
+        "August": 10.75,
+        "September": 3.71,
+        "October": 6.37,
+        "November": 0.57,
+        "December": 9.04
     },
     "yearly": {
-       "average": "66"
+       "average": "75.23"
     },
     "metadata": {
         "source": "Wunderground, Ambient Weather",
         "period": "Station-start",
-        "lastUpdated": "2025-09-20",
-        "notes": "October 2024 was a dry month, more offical data will come overtime. On August 22nd 2024, the station glitched with an etreme rainfall amount."
+        "lastUpdated": "2026-01-10",
+        "notes": ""
     }
 
 } 
+
 
