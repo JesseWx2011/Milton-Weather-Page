@@ -14,7 +14,7 @@
         <meta name="author" content="JesseLikesWeather">
         <meta name="keywords"
             content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl. weather milton florida, milton weather ranch, milton fl weather radar, milton fl weather forecast, milton weather weather alerts, milton fl climate, milton fl historical weather, milton fl temperature, milton fl humidity, milton fl wind, milton fl precipitation, milton fl sunrise sunset, jesselikesweather, jessewx2011, 31522 awkeas, MILTONWEATHERRANCH PWSWeather">
-        <meta name="date" content="2026-01-01">
+        <meta name="date" content="2026-01-10">
 
         <!--- Social Media Tags -->
 
@@ -35,7 +35,7 @@
         <!-- Language Targeting -->
         <meta http-equiv="Content-Language" content="en-US">
         
-        <meta name="copyright" content="©2025 JesseLikesWeather. All Rights Reserved."/>
+        <meta name="copyright" content="©2026 JesseLikesWeather. All Rights Reserved."/>
         <!-- Mobile Support -->
 
         <link rel="preload" href="script.js" as="script">
@@ -44,7 +44,6 @@
         <!-- Favicon & App Icons -->
         <link rel="icon" href="/Favicon.png" type="image/x-icon">
         <link rel="apple-touch-icon" href="/Favicon.png">
-        <meta name="google-site-verification" content="RwKifrRbfjdTBg1L_Th0LeVMm5jANT6tcZL2BlW9FDg" />
 
         <style>
             /* --- Dark Mode Styles --- */
@@ -2583,6 +2582,99 @@
         transform: translateY(100vh);
     }
 }
+
+.forecast-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 0.75rem 1rem;
+    border-radius: 25px;
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    backdrop-filter: blur(8px);
+}
+
+.forecast-nav-btn {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.05));
+    border: 2px solid #2196F3;
+    color: #2196F3;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1.2em;
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
+}
+
+.forecast-nav-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.4), rgba(33, 150, 243, 0.2));
+    transform: scale(1.15) translateY(-2px);
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.35);
+    border-color: #1976D2;
+    color: #fff;
+}
+
+.forecast-nav-btn:active:not(:disabled) {
+    transform: scale(1.05) translateY(0);
+}
+
+.forecast-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #999;
+    color: #999;
+    width: 40px;
+}
+
+.forecast-nav-btn.forecast-prev {
+    order: 1;
+}
+
+.forecast-nav-btn.forecast-next {
+    order: 3;
+}
+
+.forecast-nav-btn.forecast-prev:hover:not(:disabled) {
+    animation: slideLeft 0.4s ease-in-out;
+}
+
+.forecast-nav-btn.forecast-next:hover:not(:disabled) {
+    animation: slideRight 0.4s ease-in-out;
+}
+
+@keyframes slideLeft {
+    0%, 100% { transform: translateX(0) scale(1.15) translateY(-2px); }
+    50% { transform: translateX(-4px) scale(1.15) translateY(-2px); }
+}
+
+@keyframes slideRight {
+    0%, 100% { transform: translateX(0) scale(1.15) translateY(-2px); }
+    50% { transform: translateX(4px) scale(1.15) translateY(-2px); }
+}
+
+.forecast-slide-counter {
+    color: #333;
+    font-weight: 700;
+    min-width: 90px;
+    text-align: center;
+    font-size: 0.9em;
+    padding: 0.5rem 1rem;
+    background: rgba(33, 150, 243, 0.1);
+    border-radius: 12px;
+    letter-spacing: 0.5px;
+}
+
+.forecast-carousel {
+    overflow: hidden;
+    width: 100%;
+    border-radius: 8px;
+}
+
         </style>
     </head>
 
@@ -2911,9 +3003,18 @@
             </div>
 
             <div class="forecast-section">
-                <h2 class="forecast-title">Weather Forecast</h2>
-                <div class="forecast">
-                    <!-- Forecast cards will be dynamically added here -->
+                <div class="forecast-header">
+                    <h2 class="forecast-title">Weather Forecast</h2>
+                    <div class="forecast-nav">
+                        <button class="forecast-nav-btn" id="forecastPrev" title="Previous forecast period">◀</button>
+                        <span class="forecast-slide-counter" id="forecastCounter"></span>
+                        <button class="forecast-nav-btn" id="forecastNext" title="Next forecast period">▶</button>
+                    </div>
+                </div>
+                <div class="forecast-carousel" id="forecastCarousel">
+                    <div class="forecast">
+                        <!-- Forecast cards will be dynamically added here -->
+                    </div>
                 </div>
             </div>
 
@@ -2970,7 +3071,7 @@
                     <div class="weather-card rip-current"
                         style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
                         <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Rip Current Risk</h3>
-                        <img src="http://www.weather.gov/images//mob/graphicast/image9.png" alt="Rip Current Risk"
+                        <img src="http://www.weather.gov/images//mob/graphicast/image30.png" alt="Rip Current Risk"
                             style="width: 100%; height: auto; border-radius: 5px;" />
                         <p style="text-align: center; font-size: 0.8em; margin: 5px 0 0 0;">Graphic provided by National
                             Weather Service at Mobile, AL</p>

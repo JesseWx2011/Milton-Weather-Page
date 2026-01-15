@@ -50,6 +50,135 @@ const SEASON_DATES = {
     winter: { month: 11, day: 21 }  // December 21
 };
 
+// ===== CACHING SYSTEM FOR NWS AND VISUALCROSSING APIS =====
+const CACHE_CONFIG = {
+    NWS: { prefix: 'cache_nws_', duration: 6 * 60 * 60 * 1000 }, // 6 hours in milliseconds
+    VISUALCROSSING: { prefix: 'cache_vc_', duration: 6 * 60 * 60 * 1000 } // 6 hours in milliseconds
+};
+
+/**
+ * Generate a cache key from a URL
+ * @param {string} url - The API URL
+ * @returns {string} - The cache key
+ */
+function generateCacheKey(url) {
+    return btoa(url); // Base64 encode the URL to create a unique key
+}
+
+/**
+ * Check if a URL belongs to NWS API
+ * @param {string} url - The API URL
+ * @returns {boolean}
+ */
+function isNWSUrl(url) {
+    return url.includes('api.weather.gov');
+}
+
+/**
+ * Check if a URL belongs to VisualCrossing API
+ * @param {string} url - The API URL
+ * @returns {boolean}
+ */
+function isVisualCrossingUrl(url) {
+    return url.includes('weather.visualcrossing.com');
+}
+
+/**
+ * Get cache configuration for a URL
+ * @param {string} url - The API URL
+ * @returns {object|null} - Cache config or null if URL is not cacheable
+ */
+function getCacheConfig(url) {
+    if (isNWSUrl(url)) return CACHE_CONFIG.NWS;
+    if (isVisualCrossingUrl(url)) return CACHE_CONFIG.VISUALCROSSING;
+    return null;
+}
+
+/**
+ * Retrieve cached data if valid
+ * @param {string} url - The API URL
+ * @returns {object|null} - Cached data or null if not found/expired
+ */
+function getFromCache(url) {
+    const cacheConfig = getCacheConfig(url);
+    if (!cacheConfig) return null;
+
+    const cacheKey = cacheConfig.prefix + generateCacheKey(url);
+    const cachedItem = localStorage.getItem(cacheKey);
+
+    if (!cachedItem) return null;
+
+    try {
+        const { data, timestamp } = JSON.parse(cachedItem);
+        const now = Date.now();
+        const age = now - timestamp;
+
+        // Check if cache is still valid (not expired)
+        if (age < cacheConfig.duration) {
+            console.log(`[Cache HIT] ${isNWSUrl(url) ? 'NWS' : 'VisualCrossing'} API - ${url.substring(0, 50)}...`);
+            return data;
+        } else {
+            // Cache expired, remove it
+            localStorage.removeItem(cacheKey);
+            console.log(`[Cache EXPIRED] ${isNWSUrl(url) ? 'NWS' : 'VisualCrossing'} API - ${url.substring(0, 50)}...`);
+            return null;
+        }
+    } catch (error) {
+        console.error('[Cache Error] Failed to parse cached data:', error);
+        return null;
+    }
+}
+
+/**
+ * Store data in cache
+ * @param {string} url - The API URL
+ * @param {object} data - The data to cache
+ */
+function saveToCache(url, data) {
+    const cacheConfig = getCacheConfig(url);
+    if (!cacheConfig) return;
+
+    try {
+        const cacheKey = cacheConfig.prefix + generateCacheKey(url);
+        const cacheItem = {
+            data: data,
+            timestamp: Date.now()
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(cacheItem));
+        console.log(`[Cache STORED] ${isNWSUrl(url) ? 'NWS' : 'VisualCrossing'} API - ${url.substring(0, 50)}...`);
+    } catch (error) {
+        console.error('[Cache Error] Failed to store cache:', error);
+    }
+}
+
+/**
+ * Clear cache for a specific API
+ * @param {string} apiType - 'NWS' or 'VISUALCROSSING'
+ */
+function clearCacheByType(apiType) {
+    const prefix = apiType === 'NWS' ? CACHE_CONFIG.NWS.prefix : CACHE_CONFIG.VISUALCROSSING.prefix;
+    const keysToRemove = [];
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith(prefix)) {
+            keysToRemove.push(key);
+        }
+    }
+
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    console.log(`[Cache CLEARED] ${apiType} cache - ${keysToRemove.length} items removed`);
+}
+
+/**
+ * Clear all cache
+ */
+function clearAllCache() {
+    clearCacheByType('NWS');
+    clearCacheByType('VISUALCROSSING');
+}
+// ===== END CACHING SYSTEM =====
+
 // Function to format values, handling null or undefined
 function formatValue(value, unit = '', precision = 1) {
     if (value === null || typeof value === 'undefined' || value === 'N/A' || isNaN(value)) {
@@ -549,6 +678,160 @@ async function fetchWithRetry(url, options = {}, retries = 5, initialDelay = 100
     throw new Error('Max retries reached');
 }
 
+/**
+ * Wrapper for fetchWithRetry that adds caching support for NWS and VisualCrossing APIs
+ * @param {string} url - The API URL
+ * @param {object} options - Fetch options
+ * @param {number} retries - Number of retries
+ * @param {number} initialDelay - Initial delay for retries
+ * @returns {object} - The API response data
+ */
+async function fetchWithCache(url, options = {}, retries = 5, initialDelay = 1000) {
+    // Check cache first for supported APIs
+    const cacheConfig = getCacheConfig(url);
+    if (cacheConfig) {
+        const cachedData = getFromCache(url);
+        if (cachedData !== null) {
+            return cachedData;
+        }
+    }
+
+    // Cache miss or unsupported API - use regular fetchWithRetry
+    const data = await fetchWithRetry(url, options, retries, initialDelay);
+
+    // Store in cache if supported
+    if (cacheConfig) {
+        saveToCache(url, data);
+    }
+
+    return data;
+}
+
+// ===== FORECAST CAROUSEL FUNCTIONS =====
+// Forecast carousel variables
+let forecastCarouselState = {
+    allPeriods: [],
+    slides: [],
+    currentSlide: 0
+};
+
+/**
+ * Calculate 60-hour forecast slides
+ * @param {Array} periods - All forecast periods
+ * @returns {Array} - Array of slides, each containing periods for ~60 hours
+ */
+function calculateForecastSlides(periods) {
+    const slides = [];
+    let currentSlideHours = 0;
+    let currentSlide = [];
+    
+    for (let i = 0; i < periods.length; i++) {
+        const period = periods[i];
+        currentSlide.push(period);
+        
+        // Each period is roughly 12 hours (day/night cycles)
+        currentSlideHours += 12;
+        
+        // When we reach ~60 hours (5 periods), start a new slide
+        if (currentSlideHours >= 60 || i === periods.length - 1) {
+            slides.push([...currentSlide]);
+            currentSlide = [];
+            currentSlideHours = 0;
+        }
+    }
+    
+    return slides.filter(slide => slide.length > 0);
+}
+
+/**
+ * Update forecast carousel display
+ */
+function updateForecastCarousel() {
+    const state = forecastCarouselState;
+    if (state.slides.length === 0) return;
+    
+    const forecastContainer = document.querySelector('.forecast');
+    if (!forecastContainer) return;
+    
+    forecastContainer.innerHTML = '';
+    const currentPeriods = state.slides[state.currentSlide];
+    
+    currentPeriods.forEach(period => {
+        const forecastDay = document.createElement('div');
+        forecastDay.className = 'forecast-day';
+        const temp = useMetric ? fahrenheitToCelsius(period.temperature) : period.temperature;
+        const windSpeed = useMetric ? mphToKmh(parseFloat(period.windSpeed)) : period.windSpeed;
+        forecastDay.innerHTML = `
+            <h3>${addHolidayEmoji(period.name)}</h3>
+            <img src="${period.icon}" alt="${period.shortForecast}" style="width: 50px; height: 50px; border-radius: 8px;">
+            <p class="forecast-temp">${Math.round(temp)}${useMetric ? '°C' : '°F'}</p>
+            <p class="forecast-condition">${period.shortForecast}</p>
+            <div class="forecast-details">
+                <p class="forecast-precip">
+                    <i class="fas fa-tint"></i> 
+                    Precip Chance: ${period.probabilityOfPrecipitation?.value || 0}%
+                </p>
+                <p class="forecast-wind">
+                    <i class="fas fa-wind"></i> 
+                    ${windSpeed} ${period.windDirection}
+                </p>
+            </div>
+        `;
+        forecastContainer.appendChild(forecastDay);
+    });
+    
+    // Update navigation buttons and counter
+    updateForecastNavigationState();
+}
+
+/**
+ * Update forecast navigation button states and counter display
+ */
+function updateForecastNavigationState() {
+    const state = forecastCarouselState;
+    const prevBtn = document.getElementById('forecastPrev');
+    const nextBtn = document.getElementById('forecastNext');
+    const counter = document.getElementById('forecastCounter');
+    
+    if (!prevBtn || !nextBtn || !counter) return;
+    
+    // Update button disabled states
+    prevBtn.disabled = state.currentSlide === 0;
+    nextBtn.disabled = state.currentSlide === state.slides.length - 1;
+    
+    // Update counter text
+    const hoursStart = state.currentSlide * 60;
+    const hoursEnd = Math.min((state.currentSlide + 1) * 60, state.slides[state.currentSlide].length * 12);
+    counter.textContent = `Page ${state.currentSlide + 1} of ${state.slides.length}`;
+}
+
+/**
+ * Navigate forecast carousel
+ * @param {number} direction - 1 for next, -1 for previous
+ */
+function navigateForecastCarousel(direction) {
+    const state = forecastCarouselState;
+    const newSlide = state.currentSlide + direction;
+    
+    if (newSlide >= 0 && newSlide < state.slides.length) {
+        state.currentSlide = newSlide;
+        updateForecastCarousel();
+        
+        // Add visual feedback - highlight the navigation buttons briefly
+        const btn = direction > 0 
+            ? document.getElementById('forecastNext')
+            : document.getElementById('forecastPrev');
+        
+        if (btn) {
+            btn.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                btn.style.transform = '';
+            }, 200);
+        }
+    }
+}
+// ===== END FORECAST CAROUSEL FUNCTIONS =====
+
 // Function to get Beaufort scale description based on wind speed
 function getBeaufortScale(windSpeed) {
     if (windSpeed < 1) return "Calm";
@@ -734,11 +1017,11 @@ function createSnowEffect() {
 async function updateWeather() {
     showLoadingMessages(); // Show loading messages when starting to update weather
     try {
-        // Get NWS forecast data
-        const nwsData = await fetchWithRetry(`${NWS_API_BASE_URL}/points/30.6319,-87.0372199`);
+        // Get NWS forecast data (cached)
+        const nwsData = await fetchWithCache(`${NWS_API_BASE_URL}/points/30.6319,-87.0372199`);
         
-        // Get forecast data
-        const forecastData = await fetchWithRetry(nwsData.properties.forecast);
+        // Get forecast data (cached)
+        const forecastData = await fetchWithCache(nwsData.properties.forecast);
 
         // Get current conditions from NWS with fallback stations
         let currentConditions = null;
@@ -746,7 +1029,7 @@ async function updateWeather() {
         
         for (const station of stations) {
             try {
-                const response = await fetchWithRetry(`${NWS_API_BASE_URL}/stations/${station}/observations/latest`);
+                const response = await fetchWithCache(`${NWS_API_BASE_URL}/stations/${station}/observations/latest`);
                 
                 if (response && response.properties) {
                     // Check if the observation is recent (within 2 hours)
@@ -1131,8 +1414,8 @@ try {
 
             const latitude = 30.6319;
             const longitude = -87.0372199;
-            // Check for alerts
-            const alertsData = await fetchWithRetry(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
+            // Check for alerts (cached)
+            const alertsData = await fetchWithCache(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
             
             const alertsContainer = document.getElementById('alerts');
             const currentTime = new Date().getTime("en-US", {timezone: "America/Chicago"});
@@ -1163,34 +1446,16 @@ try {
 
         }
 
-        // Update forecast
+// Update forecast
         const forecastContainer = document.querySelector('.forecast');
         if (forecastContainer) {
-            forecastContainer.innerHTML = ''; // Clear existing forecast
-
-            forecastData.properties.periods.slice(0, 5).forEach(period => {
-                const forecastDay = document.createElement('div');
-                forecastDay.className = 'forecast-day';
-                const temp = useMetric ? fahrenheitToCelsius(period.temperature) : period.temperature;
-                const windSpeed = useMetric ? mphToKmh(parseFloat(period.windSpeed)) : period.windSpeed;
-                forecastDay.innerHTML = `
-                    <h3>${addHolidayEmoji(period.name)}</h3>
-                    <img src="${period.icon}" alt="${period.shortForecast}" style="width: 50px; height: 50px; border-radius: 8px;">
-                    <p class="forecast-temp">${Math.round(temp)}${useMetric ? '°C' : '°F'}</p>
-                    <p class="forecast-condition">${period.shortForecast}</p>
-                    <div class="forecast-details">
-                        <p class="forecast-precip">
-                            <i class="fas fa-tint"></i> 
-                            Precip Chance: ${period.probabilityOfPrecipitation?.value || 0}%
-                        </p>
-                        <p class="forecast-wind">
-                            <i class="fas fa-wind"></i> 
-                            ${windSpeed} ${period.windDirection}
-                        </p>
-                    </div>
-                `;
-                forecastContainer.appendChild(forecastDay);
-            });
+            // Calculate slides for carousel (60-hour chunks)
+            forecastCarouselState.allPeriods = forecastData.properties.periods;
+            forecastCarouselState.slides = calculateForecastSlides(forecastData.properties.periods);
+            forecastCarouselState.currentSlide = 0;
+            
+            // Render the carousel
+            updateForecastCarousel();
         }
 
         // Update last update time
@@ -1216,8 +1481,8 @@ try {
 
         const latitude = 30.6319;
         const longitude = -87.0372199;
-        // Check for alerts
-        const alertsData = await fetchWithRetry(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
+        // Check for alerts (cached)
+        const alertsData = await fetchWithCache(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
         
         const alertsContainer = document.getElementById('alerts');
         const currentTime = new Date().getTime("en-US", {timezone: "America/Chicago"});
@@ -1880,6 +2145,45 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Add forecast carousel navigation event listeners
+    const forecastPrevBtn = document.getElementById('forecastPrev');
+    const forecastNextBtn = document.getElementById('forecastNext');
+    
+    if (forecastPrevBtn && forecastNextBtn) {
+        forecastPrevBtn.addEventListener('click', () => {
+            navigateForecastCarousel(-1);
+        });
+        
+        forecastNextBtn.addEventListener('click', () => {
+            navigateForecastCarousel(1);
+        });
+        
+        // Enable touch/swipe navigation for mobile
+        let touchStartX = 0;
+        const forecastCarousel = document.getElementById('forecastCarousel');
+        if (forecastCarousel) {
+            forecastCarousel.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+            
+            forecastCarousel.addEventListener('touchend', (e) => {
+                const touchEndX = e.changedTouches[0].screenX;
+                const diff = touchStartX - touchEndX;
+                
+                // Swipe threshold: 50px
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) {
+                        navigateForecastCarousel(1); // Swipe left = next
+                    } else {
+                        navigateForecastCarousel(-1); // Swipe right = previous
+                    }
+                }
+            }, false);
+        }
+    } else {
+        console.warn('Forecast navigation buttons not found in DOM');
+    }
+    
     // Initial weather update
     updateWeather();
 
@@ -1986,12 +2290,12 @@ function formatDifference(value1, value2, unit = '') {
 // Function to get nearby METAR stations
 async function getNearbyStations(latitude, longitude) {
     try {
-        // First get the grid endpoint for the location
-        const gridResponse = await fetchWithRetry(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
+        // First get the grid endpoint for the location (cached)
+        const gridResponse = await fetchWithCache(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
         const gridData = gridResponse;
         
-        // Then get the stations for that grid
-        const stationsResponse = await fetchWithRetry(`${NWS_API_BASE_URL}/gridpoints/${gridData.properties.gridId}/${gridData.properties.gridX},${gridData.properties.gridY}/stations`);
+        // Then get the stations for that grid (cached)
+        const stationsResponse = await fetchWithCache(`${NWS_API_BASE_URL}/gridpoints/${gridData.properties.gridId}/${gridData.properties.gridX},${gridData.properties.gridY}/stations`);
         const stationsData = stationsResponse;
         
         // Filter stations to only include those with current observations and within 40 miles
@@ -2034,7 +2338,7 @@ async function getNearbyStations(latitude, longitude) {
 // Function to get METAR data for a station
 async function getMetarData(stationId) {
     try {
-        const response = await fetchWithRetry(`${NWS_API_BASE_URL}/stations/${stationId}/observations/latest`);
+        const response = await fetchWithCache(`${NWS_API_BASE_URL}/stations/${stationId}/observations/latest`);
         const data = response;
         return data;
     } catch (error) {
@@ -2421,6 +2725,9 @@ function updateGraphUnits() {
             chart.update();
         }
     });
+    
+    // Update forecast carousel with new units
+    updateForecastCarousel();
 }
 
 // Initialize unit buttons
@@ -2544,11 +2851,20 @@ async function updateAstroData() {
     const moonPhasesTable = document.getElementById('moon-phases-table');
     
     try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+        // Check cache first
+        let data = getFromCache(apiUrl);
+        
+        if (!data) {
+            // Cache miss or expired - fetch from API
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+            data = await response.json();
+            
+            // Store in cache
+            saveToCache(apiUrl, data);
         }
-        const data = await response.json();
 
         moonPhasesTable.innerHTML = ''; // Clear existing content
 
