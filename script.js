@@ -547,11 +547,54 @@ function calculateDayLength(sunrise, sunset) {
     return `${hours}:${minutes.toString().padStart(2, '0')}`;
 }
 
+// Function to check if it's night and convert icon to nighttime version
+function convertToNighttimeIconIfNeeded(iconUrl, sunsetTimeParam) {
+    if (!iconUrl) return iconUrl;
+    
+    const sunsetTime = sunsetTimeParam || window.sunsetTime;
+    if (!sunsetTime) return iconUrl;
+    
+    // Check if sunset time has passed + 30 minutes
+    const now = new Date();
+    const sunsetDate = new Date(sunsetTime);
+    const thirtyMinutesAfterSunset = new Date(sunsetDate.getTime() + 30 * 60 * 1000);
+    
+    // Only convert if it's past sunset + 30 minutes
+    if (now < thirtyMinutesAfterSunset) {
+        return iconUrl;
+    }
+    
+    // Check if the icon already has the "n" prefix (nighttime)
+    if (iconUrl.includes('/n') || iconUrl.match(/\/n[a-z]{2,}(?:\?|$|\.)/)) {
+        return iconUrl; // Already a nighttime icon
+    }
+    
+    // Convert daytime icon to nighttime by adding "n" prefix
+    // Example: https://forecast.weather.gov/images/wtf/large/few.png -> https://forecast.weather.gov/images/wtf/large/nfew.png
+    try {
+        const match = iconUrl.match(/^(.+\/)((?!n)[a-z]{2,})(\?.*)?(\.[^.]+)?$/);
+        if (match) {
+            // match[1] = everything up to and including the last /
+            // match[2] = the icon code without 'n' prefix
+            // match[3] = query string if present
+            // match[4] = file extension if present
+            return match[1] + 'n' + match[2] + (match[3] || '') + (match[4] || '');
+        }
+    } catch (e) {
+        console.warn('Error converting to nighttime icon:', e);
+    }
+    
+    return iconUrl;
+}
+
 // Function to update sunrise/sunset times
 function updateSunTimes(sunrise, sunset) {
     const sunriseTimeElement = document.getElementById('sunrise-time');
     const sunsetTimeElement = document.getElementById('sunset-time');
     const dayLengthElement = document.getElementById('day-length');
+    
+    // Store sunset time globally for weather icon conversion
+    window.sunsetTime = sunset;
     
     if (sunriseTimeElement) {
         const sunriseTime = formatSunTime(new Date(sunrise));
@@ -1374,8 +1417,12 @@ try {
                 const suffix = descriptors.length ? ' — ' + descriptors.join(', ') : '';
 
                 // Render icon: prefer local ./alert-images/<code>.png, fallback to NWS icon URL, then NA.jpg
-                const imgSrc = localIconPath || nwsIconUrl || './NA.jpg';
-                const fallbackSrc = nwsIconUrl || './NA.jpg';
+                let imgSrc = localIconPath || nwsIconUrl || './NA.jpg';
+                let fallbackSrc = nwsIconUrl || './NA.jpg';
+                
+                // Convert to nighttime icon if it's after sunset + 30 minutes
+                imgSrc = convertToNighttimeIconIfNeeded(imgSrc, window.sunsetTime);
+                fallbackSrc = convertToNighttimeIconIfNeeded(fallbackSrc, window.sunsetTime);
 
                 // Use onerror on the <img> to fall back if local file is missing
                 weatherIcon.innerHTML = `
@@ -2189,6 +2236,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add compare stations button event listener
     document.getElementById('compare-stations').addEventListener('click', showCompareModal);
+
+    // Clear cache button functionality
+    const clearCacheBtn = document.getElementById('clear-cache-btn');
+    if (clearCacheBtn) {
+        clearCacheBtn.addEventListener('click', function() {
+            clearAllCache();
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        });
+    }
+
+    // Ctrl+C keyboard shortcut to clear cache and reload
+    document.addEventListener('keydown', function(event) {
+        if (event.ctrlKey && event.key === 'c') {
+            event.preventDefault();
+            clearAllCache();
+            console.log('Cache cleared via Ctrl+C. Reloading page...');
+            location.reload();
+        }
+    });
 
     // Close modal when clicking outside
     window.addEventListener('click', function(event) {

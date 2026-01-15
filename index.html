@@ -2670,9 +2670,45 @@
 }
 
 .forecast-carousel {
-    overflow: hidden;
     width: 100%;
     border-radius: 8px;
+}
+
+.clear-cache-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    position: absolute;
+    top: 150px;
+    right: 20px;
+    padding: 0.5rem 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #ff6b6b;
+    border-radius: 20px;
+    color: #ff6b6b;
+    font-family: 'Verdana', sans-serif;
+    font-weight: bold;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 999;
+}
+
+.clear-cache-btn:hover {
+    background: #ff6b6b;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    transform: translateY(-2px);
+}
+
+.clear-cache-btn:active {
+    transform: translateY(0);
+}
+
+.clear-cache-btn svg {
+    width: 20px;
+    height: 20px;
 }
 
         </style>
@@ -2847,6 +2883,12 @@
                         <span class="slider round"></span>
                     </label>
                 </div>
+                <button id="clear-cache-btn" class="clear-cache-btn" title="Click to clear cache (Ctrl+C to clear & reload)">
+                    <svg viewBox="0 0 24 24" width="20" height="20">
+                        <path fill="currentColor" d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 18H8v-14h6v14zm8-18h-4V4c0-.55-.45-1-1-1h-4c-.55 0-1 .45-1 1v1H5v2h14V3z"/>
+                    </svg>
+                    <span>Clear Cache</span>
+                </button>
                 <button id="compare-stations" class="compare-button">Compare Nearby Stations</button>
                 <p id="loading-message">Loading...</p>
             </div>

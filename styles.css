@@ -643,6 +643,19 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
+
+[data-theme='dark'] .clear-cache-btn {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: #ff6b6b;
+    color: #ff7a7a;
+}
+
+[data-theme='dark'] .clear-cache-btn:hover {
+    background: rgba(255, 107, 107, 0.8);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+}
+
 [data-theme='dark'] body {
     background-color: #121212;
     color: #ffffff;
