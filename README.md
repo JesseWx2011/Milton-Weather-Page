@@ -5,5 +5,5 @@
   </center>
 </div>
 <div>
-      <img src="Banner.jpg">
+      <img src="https://github.com/JesseWx2011/Milton-Weather-Page/blob/master/Banner.jpg?raw=true">
 </div>
