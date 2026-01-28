@@ -10,7 +10,7 @@ const CAMERA_CONFIG = {
         {
             id: 'camera2',
             name: 'Milton Webcam',
-            url: 'https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/Latest.jpg',
+            url: 'https://mistrtoothless-sat-images.hf.space/latest.jpg',
             type: 'image'
         }
     ]
