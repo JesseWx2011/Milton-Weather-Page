@@ -9,7 +9,7 @@ if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         try {
             const registration = await navigator.serviceWorker.register('/service-worker.js');
-            
+
             // Check if notifications are supported
             if ('Notification' in window) {
             } else {
@@ -41,6 +41,10 @@ const updateInterval = 90000; // 1 minute & 30 seconds in milliseconds
 // Add this at the top of the file with other constants
 const RATE_LIMIT_DELAY = 60000; // 60 seconds delay between requests
 let lastLightningUpdate = 0;
+
+// Global variables for hourly temperature change calculation
+let lastHourlyCurrentTemp = null; // Current temp in Fahrenheit
+let lastHourlyPreviousTemp = null; // Previous temp (1 hour ago) in Fahrenheit
 
 // Add these constants at the top of the file
 const SEASON_DATES = {
@@ -193,7 +197,7 @@ function formatValue(value, unit = '', precision = 1) {
 // Function to convert degrees to compass direction
 function degreesToCompass(degrees) {
     const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
-                      'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+        'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
     const index = Math.round(degrees / 22.5) % 16;
     return directions[index];
 }
@@ -236,23 +240,23 @@ function getTempFeel(temp) {
     if (temp < 95) return "Hot";
     if (temp < 99) return "Very Hot";
     return "Extremely Hot";
-}   
+}
 
 // Function to determine text color based on temperature (RETAINED AS IS)
 // NOTE: This function is not used for the background color, but I'll keep it.
 function getTempTextColor(temp) {
-    if (temp < 0) return "#1a237e"; 
-    if (temp < 15) return "#3949ab"; 
-    if (temp < 25) return "#5c6bc0"; 
-    if (temp < 32) return "#7986cb"; 
-    if (temp < 43) return "#90caf9"; 
-    if (temp < 55) return "#bbdefb"; 
-    if (temp < 66) return "#e3f2fd"; 
-    if (temp < 79) return "#fff3e0"; 
-    if (temp < 87) return "#ffccbc"; 
-    if (temp < 95) return "#ffab91"; 
-    if (temp < 99) return "#ff7043"; 
-    return "#d32f2f"; 
+    if (temp < 0) return "#1a237e";
+    if (temp < 15) return "#3949ab";
+    if (temp < 25) return "#5c6bc0";
+    if (temp < 32) return "#7986cb";
+    if (temp < 43) return "#90caf9";
+    if (temp < 55) return "#bbdefb";
+    if (temp < 66) return "#e3f2fd";
+    if (temp < 79) return "#fff3e0";
+    if (temp < 87) return "#ffccbc";
+    if (temp < 95) return "#ffab91";
+    if (temp < 99) return "#ff7043";
+    return "#d32f2f";
 }
 
 // Function to interpolate between two colors (RETAINED AS IS)
@@ -266,21 +270,21 @@ function interpolateColor(color1, color2, factor) {
             b: parseInt(result[3], 16)
         } : null;
     };
-    
+
     // Convert RGB to hex
     const rgbToHex = (r, g, b) => {
         return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
     };
-    
+
     const rgb1 = hexToRgb(color1);
     const rgb2 = hexToRgb(color2);
-    
+
     if (!rgb1 || !rgb2) return color1;
-    
+
     const r = Math.round(rgb1.r + (rgb2.r - rgb1.r) * factor);
     const g = Math.round(rgb1.g + (rgb2.g - rgb1.g) * factor);
     const b = Math.round(rgb1.b + (rgb2.b - rgb1.b) * factor);
-    
+
     return rgbToHex(r, g, b);
 }
 
@@ -292,20 +296,20 @@ function getColorForTemp(temp) {
     const tempF = useMetric ? celsiusToFahrenheit(temp) : temp;
 
     // Use approximate Fahrenheit breakpoints derived from the Celsius scale:
-    if (tempF > 129.2) return "#BA1928"; 
-    if (tempF > 113) return "#E02538"; 
-    if (tempF > 102.2) return "#E178A1"; 
-    if (tempF > 84.2) return "#CC6633"; 
-    if (tempF > 78.8) return "#CC9933"; 
-    if (tempF > 60.8) return "#C6EF8C"; 
-    if (tempF > 46.4) return "#89B2EA"; 
-    if (tempF > 30.2) return "#6699FF"; 
-    if (tempF > 15.8) return "#3366FF"; 
-    if (tempF > -0.4) return "#806AF9"; 
+    if (tempF > 129.2) return "#BA1928";
+    if (tempF > 113) return "#E02538";
+    if (tempF > 102.2) return "#E178A1";
+    if (tempF > 84.2) return "#CC6633";
+    if (tempF > 78.8) return "#CC9933";
+    if (tempF > 60.8) return "#C6EF8C";
+    if (tempF > 46.4) return "#89B2EA";
+    if (tempF > 30.2) return "#6699FF";
+    if (tempF > 15.8) return "#3366FF";
+    if (tempF > -0.4) return "#806AF9";
     if (tempF > -18.4) return "#91ACFF";
-    
+
     // Default for extremely cold (<= -18.4 F)
-    return "#91ACFF"; 
+    return "#91ACFF";
 }
 
 // Function to get the color range for a temperature (for interpolation)
@@ -330,32 +334,32 @@ function getColorRangeForTemp(temp) {
 
     // Case 1: Below the lowest breakpoint
     if (tempF <= breakpoints[0].temp) {
-        return { 
+        return {
             min: breakpoints[0].temp - 10, // Create a range below the lowest point
-            max: breakpoints[0].temp, 
+            max: breakpoints[0].temp,
             minColor: "#6184ff", // Slightly darker/different shade for visual effect
-            maxColor: breakpoints[0].color 
+            maxColor: breakpoints[0].color
         };
     }
 
     // Case 2: Between breakpoints
     for (let i = 0; i < breakpoints.length - 1; i++) {
-        if (tempF > breakpoints[i].temp && tempF <= breakpoints[i+1].temp) {
+        if (tempF > breakpoints[i].temp && tempF <= breakpoints[i + 1].temp) {
             return {
                 min: breakpoints[i].temp,
-                max: breakpoints[i+1].temp,
+                max: breakpoints[i + 1].temp,
                 minColor: breakpoints[i].color,
-                maxColor: breakpoints[i+1].color
+                maxColor: breakpoints[i + 1].color
             };
         }
     }
 
     // Case 3: Above the highest breakpoint
     const lastBreakpoint = breakpoints[breakpoints.length - 1];
-    return { 
-        min: lastBreakpoint.temp, 
+    return {
+        min: lastBreakpoint.temp,
         max: lastBreakpoint.temp + 10, // Create a range above the highest point
-        minColor: lastBreakpoint.color, 
+        minColor: lastBreakpoint.color,
         maxColor: "#9e0018" // Slightly darker/different shade for visual effect
     };
 }
@@ -369,44 +373,44 @@ function animateTemperature(element, targetTemp, duration = 2000) {
 
     // Extract the numeric value from the target temperature
     const targetValue = parseFloat(targetTemp);
-    
+
     // Get the current displayed temperature
     const currentDisplayedTemp = parseFloat(element.textContent);
     const startValue = isNaN(currentDisplayedTemp) ? 0 : currentDisplayedTemp;
-    
+
     // Get initial color
     const initialColor = getColorForTemp(startValue);
     element.style.color = initialColor;
-    
+
     // Start the animation
-    const startTime = Date.now("en-US", {timezone: 'America/Chicago'});
-    
+    const startTime = Date.now("en-US", { timezone: 'America/Chicago' });
+
     function updateTemperature() {
-        const elapsedTime = Date.now("en-US", {timezone: 'America/Chicago'}) - startTime;
+        const elapsedTime = Date.now("en-US", { timezone: 'America/Chicago' }) - startTime;
         const progress = Math.min(elapsedTime / duration, 1);
-        
+
         // Use easing function to slow down as we approach the target
         const easedProgress = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
-        
+
         // Calculate current value based on eased progress
         const currentValue = startValue + (targetValue - startValue) * easedProgress;
-        
+
         // Update the element with the appropriate unit
         const unit = useMetric ? '°C' : '°F';
         element.textContent = `${currentValue.toFixed(1)}${unit}`;
-        
+
         // Get the color range for the current temperature
         const colorRange = getColorRangeForTemp(currentValue);
-        
+
         // Calculate how far we are within this range
         const rangeProgress = Math.min(Math.max((currentValue - colorRange.min) / (colorRange.max - colorRange.min), 0), 1);
-        
+
         // Interpolate between the min and max colors for this range
         const currentColor = interpolateColor(colorRange.minColor, colorRange.maxColor, rangeProgress);
-        
+
         // Apply the interpolated color
         element.style.color = currentColor;
-        
+
         // Continue animation if not complete
         if (progress < 1) {
             element.animationFrame = requestAnimationFrame(updateTemperature);
@@ -417,15 +421,15 @@ function animateTemperature(element, targetTemp, duration = 2000) {
             element.animationFrame = null;
         }
     }
-    
+
     // Start the animation
     element.animationFrame = requestAnimationFrame(updateTemperature);
 }
 
 // Function to check if data is outdated (more than 10 minutes old)
 function isDataOutdated(lastUpdateTime) {
-    const now = new Date("en-US", {timezone: 'America/Chicago'});
-    const lastUpdate = new Date(lastUpdateTime, "en-US", {timeZone: 'America/Chicago'});
+    const now = new Date("en-US", { timezone: 'America/Chicago' });
+    const lastUpdate = new Date(lastUpdateTime, "en-US", { timeZone: 'America/Chicago' });
     const diffInMinutes = (now - lastUpdate) / (1000 * 60);
     return diffInMinutes > 10;
 }
@@ -445,14 +449,14 @@ function showNotification() {
 function checkTemperatureRecord(currentTempF) {
     const CITY_RECORD_TEMP = 108; // Milton, FL record high temperature
     const MIN_TEMP_THRESHOLD = 104; // Only show alert if 104°F or hotter
-    
+
     if (currentTempF >= MIN_TEMP_THRESHOLD) {
         const degreeDifference = CITY_RECORD_TEMP - currentTempF;
-        
+
         if (degreeDifference > 0) {
             // Convert to Celsius for display
             const degreeDifferenceC = ((degreeDifference * 5) / 9).toFixed(1);
-            
+
             // Create and show the alert
             const recordAlert = document.createElement('div');
             recordAlert.className = 'record-alert';
@@ -463,16 +467,16 @@ function checkTemperatureRecord(currentTempF) {
                 </div>
                 <button class="record-alert-close" onclick="this.parentElement.remove()">×</button>
             `;
-            
+
             // Add to document
             document.body.appendChild(recordAlert);
-            
+
             // Force a reflow to ensure the transition works
             recordAlert.offsetHeight;
-            
+
             // Add the visible class to trigger the animation
             recordAlert.classList.add('visible');
-            
+
             // Remove after 10 seconds
             setTimeout(() => {
                 recordAlert.classList.remove('visible');
@@ -499,14 +503,14 @@ function formatTimeRemaining(milliseconds) {
     const seconds = Math.floor((milliseconds / 1000) % 60);
     const minutes = Math.floor((milliseconds / 1000 / 60) % 60);
     const hours = Math.floor((milliseconds / 1000 / 60 / 60) % 24);
-    
+
     return `${hours > 0 ? hours + 'h ' : ''}${minutes}m ${seconds}s`;
 }
 
 // Function to update temperature difference
 function updateTemperatureDifference(currentTemp) {
     const tempChangeElement = document.getElementById('temp-change');
-    
+
     if (lastTemperature === null) {
         if (tempChangeElement) {
             tempChangeElement.textContent = 'Temperature change: --°F';
@@ -515,17 +519,17 @@ function updateTemperatureDifference(currentTemp) {
         lastTemperature = currentTemp;
         return;
     }
-    
+
     const tempDiff = currentTemp - lastTemperature;
     const sign = tempDiff > 0 ? '+' : '';
     if (tempChangeElement) {
         tempChangeElement.textContent = `Temperature change: ${sign}${tempDiff.toFixed(1)}°F`;
-        
+
         // Update class for color
-        tempChangeElement.className = 'temp-change ' + 
+        tempChangeElement.className = 'temp-change ' +
             (tempDiff > 0 ? 'positive' : tempDiff < 0 ? 'negative' : 'neutral');
     }
-    
+
     lastTemperature = currentTemp;
 }
 
@@ -550,25 +554,25 @@ function calculateDayLength(sunrise, sunset) {
 // Function to check if it's night and convert icon to nighttime version
 function convertToNighttimeIconIfNeeded(iconUrl, sunsetTimeParam) {
     if (!iconUrl) return iconUrl;
-    
+
     const sunsetTime = sunsetTimeParam || window.sunsetTime;
     if (!sunsetTime) return iconUrl;
-    
+
     // Check if sunset time has passed + 30 minutes
     const now = new Date();
     const sunsetDate = new Date(sunsetTime);
     const thirtyMinutesAfterSunset = new Date(sunsetDate.getTime() + 30 * 60 * 1000);
-    
+
     // Only convert if it's past sunset + 30 minutes
     if (now < thirtyMinutesAfterSunset) {
         return iconUrl;
     }
-    
+
     // Check if the icon already has the "n" prefix (nighttime)
     if (iconUrl.includes('/n') || iconUrl.match(/\/n[a-z]{2,}(?:\?|$|\.)/)) {
         return iconUrl; // Already a nighttime icon
     }
-    
+
     // Convert daytime icon to nighttime by adding "n" prefix
     // Example: https://forecast.weather.gov/images/wtf/large/few.png -> https://forecast.weather.gov/images/wtf/large/nfew.png
     try {
@@ -583,7 +587,7 @@ function convertToNighttimeIconIfNeeded(iconUrl, sunsetTimeParam) {
     } catch (e) {
         console.warn('Error converting to nighttime icon:', e);
     }
-    
+
     return iconUrl;
 }
 
@@ -592,10 +596,10 @@ function updateSunTimes(sunrise, sunset) {
     const sunriseTimeElement = document.getElementById('sunrise-time');
     const sunsetTimeElement = document.getElementById('sunset-time');
     const dayLengthElement = document.getElementById('day-length');
-    
+
     // Store sunset time globally for weather icon conversion
     window.sunsetTime = sunset;
-    
+
     if (sunriseTimeElement) {
         const sunriseTime = formatSunTime(new Date(sunrise));
         sunriseTimeElement.textContent = sunriseTime;
@@ -609,24 +613,24 @@ function updateSunTimes(sunrise, sunset) {
     if (dayLengthElement) {
         dayLengthElement.textContent = `Day length: ${calculateDayLength(sunrise, sunset)}`;
     }
-    
+
     // Update timeline bar position based on current time
     const now = new Date();
-    
+
     // The sunrise and sunset times from the API are in UTC
     // Do all calculations in UTC for accuracy, then convert display times to Chicago timezone
-    
+
     // Convert sunrise and sunset to Date objects (they're already UTC from the API)
     const sunriseUTC = new Date(sunrise);
     const sunsetUTC = new Date(sunset);
-    
+
     // Calculate the total day length in milliseconds (in UTC)
     const totalDayLength = sunsetUTC.getTime() - sunriseUTC.getTime();
-    
+
     // Calculate how much time has passed since sunrise (in UTC)
     const timeSinceSunrise = now.getTime() - sunriseUTC.getTime();
-    
-    
+
+
     // Calculate progress (0 = sunrise, 1 = sunset)
     let progress;
     if (timeSinceSunrise < 0) {
@@ -639,26 +643,26 @@ function updateSunTimes(sunrise, sunset) {
         // During the day
         progress = timeSinceSunrise / totalDayLength;
     }
-    
+
     const timelineBar = document.querySelector('.timeline-bar');
     if (timelineBar) {
         timelineBar.style.width = `${progress * 100}%`;
-        
+
 
     } else {
         console.error('Timeline bar element not found');
     }
-    
+
     // Check if it's past sunset (using UTC times)
     if (now > sunsetUTC) {
         // Calculate time until next sunrise
         const nextSunrise = new Date(sunriseUTC);
         nextSunrise.setDate(nextSunrise.getDate() + 1); // Set to next day
-        
+
         const timeUntilSunrise = nextSunrise - now;
         const hoursUntilSunrise = Math.floor(timeUntilSunrise / (1000 * 60 * 60));
         const minutesUntilSunrise = Math.floor((timeUntilSunrise % (1000 * 60 * 60)) / (1000 * 60));
-        
+
         // Create or update the sunset message
         let sunsetMessage = document.getElementById('sunset-message');
         if (!sunsetMessage) {
@@ -670,7 +674,7 @@ function updateSunTimes(sunrise, sunset) {
                 dayLengthElement.after(sunsetMessage);
             }
         }
-        
+
         sunsetMessage.textContent = `Sunset has already occurred today. Sunrise is in ${hoursUntilSunrise} hrs & ${minutesUntilSunrise} mins`;
     } else {
         // Remove the sunset message if it exists
@@ -684,11 +688,11 @@ function updateSunTimes(sunrise, sunset) {
 // Function to retry fetching data until successful
 async function fetchWithRetry(url, options = {}, retries = 5, initialDelay = 1000) {
     let delay = initialDelay;
-    
+
     for (let i = 0; i < retries; i++) {
         try {
             const response = await fetch(url, options);
-            
+
             // Handle rate limiting
             if (response.status === 429) {
                 const retryAfter = response.headers.get('Retry-After');
@@ -700,15 +704,15 @@ async function fetchWithRetry(url, options = {}, retries = 5, initialDelay = 100
                 await new Promise(res => setTimeout(res, delay));
                 continue;
             }
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             return await response.json();
         } catch (error) {
             console.error(`Fetch attempt ${i + 1} failed: ${error.message}`);
-            
+
             if (i < retries - 1) {
                 // Exponential backoff with jitter
                 const jitter = Math.random() * 0.1 * delay;
@@ -717,7 +721,7 @@ async function fetchWithRetry(url, options = {}, retries = 5, initialDelay = 100
             }
         }
     }
-    
+
     throw new Error('Max retries reached');
 }
 
@@ -767,14 +771,14 @@ function calculateForecastSlides(periods) {
     const slides = [];
     let currentSlideHours = 0;
     let currentSlide = [];
-    
+
     for (let i = 0; i < periods.length; i++) {
         const period = periods[i];
         currentSlide.push(period);
-        
+
         // Each period is roughly 12 hours (day/night cycles)
         currentSlideHours += 12;
-        
+
         // When we reach ~60 hours (5 periods), start a new slide
         if (currentSlideHours >= 60 || i === periods.length - 1) {
             slides.push([...currentSlide]);
@@ -782,7 +786,7 @@ function calculateForecastSlides(periods) {
             currentSlideHours = 0;
         }
     }
-    
+
     return slides.filter(slide => slide.length > 0);
 }
 
@@ -792,13 +796,13 @@ function calculateForecastSlides(periods) {
 function updateForecastCarousel() {
     const state = forecastCarouselState;
     if (state.slides.length === 0) return;
-    
+
     const forecastContainer = document.querySelector('.forecast');
     if (!forecastContainer) return;
-    
+
     forecastContainer.innerHTML = '';
     const currentPeriods = state.slides[state.currentSlide];
-    
+
     currentPeriods.forEach(period => {
         const forecastDay = document.createElement('div');
         forecastDay.className = 'forecast-day';
@@ -822,7 +826,7 @@ function updateForecastCarousel() {
         `;
         forecastContainer.appendChild(forecastDay);
     });
-    
+
     // Update navigation buttons and counter
     updateForecastNavigationState();
 }
@@ -835,13 +839,13 @@ function updateForecastNavigationState() {
     const prevBtn = document.getElementById('forecastPrev');
     const nextBtn = document.getElementById('forecastNext');
     const counter = document.getElementById('forecastCounter');
-    
+
     if (!prevBtn || !nextBtn || !counter) return;
-    
+
     // Update button disabled states
     prevBtn.disabled = state.currentSlide === 0;
     nextBtn.disabled = state.currentSlide === state.slides.length - 1;
-    
+
     // Update counter text
     const hoursStart = state.currentSlide * 60;
     const hoursEnd = Math.min((state.currentSlide + 1) * 60, state.slides[state.currentSlide].length * 12);
@@ -855,16 +859,16 @@ function updateForecastNavigationState() {
 function navigateForecastCarousel(direction) {
     const state = forecastCarouselState;
     const newSlide = state.currentSlide + direction;
-    
+
     if (newSlide >= 0 && newSlide < state.slides.length) {
         state.currentSlide = newSlide;
         updateForecastCarousel();
-        
+
         // Add visual feedback - highlight the navigation buttons briefly
-        const btn = direction > 0 
+        const btn = direction > 0
             ? document.getElementById('forecastNext')
             : document.getElementById('forecastPrev');
-        
+
         if (btn) {
             btn.style.transform = 'scale(0.95)';
             setTimeout(() => {
@@ -941,20 +945,20 @@ function showLoadingMessages() {
 // Function to format time difference
 function formatTimeDifference(timestamp) {
     if (!timestamp) return 'No recent strikes';
-    
+
     try {
         const now = new Date();
         const strikeTime = new Date(timestamp);
-        
+
         // Check if the date is valid
         if (isNaN(strikeTime.getTime())) {
             console.error('Invalid timestamp:', timestamp);
             return 'Invalid timestamp';
         }
-        
+
         const diffInHours = (now - strikeTime) / (1000 * 60 * 60);
         const isSameYear = now.getFullYear() === strikeTime.getFullYear();
-        
+
         if (diffInHours < 24) {
             // Within last 24 hours, show time only
             return strikeTime.toLocaleTimeString('en-US', {
@@ -1014,7 +1018,7 @@ function addHolidayEmoji(name) {
 // Function to check if it's Christmas Eve or Christmas Day in GMT-6
 function checkForChristmasSnow() {
     const now = new Date();
-    const centralTime = new Date(now.toLocaleString("en-US", {timeZone: "America/Chicago"}));
+    const centralTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Chicago" }));
     const month = centralTime.getMonth();
     const day = centralTime.getDate();
     if (month === 11 && (day === 23 || day === 24 || day === 25)) {
@@ -1056,32 +1060,118 @@ function createSnowEffect() {
     }, 5000); // show for 5 seconds, then fade
 }
 
+// Global function to update hourly temperature change
+// This function uses stored temperature values and recalculates based on current unit setting
+async function updateHourlyChange() {
+    const tempHourEl = document.getElementById('temp-hour-change');
+    if (!tempHourEl) return;
+
+    try {
+        // If we don't have stored values, fetch them
+        if (lastHourlyCurrentTemp === null || lastHourlyPreviousTemp === null) {
+            const hist = await getHistoricalData('temp');
+            let oneHourAgoRaw = null;
+
+            if (hist && Array.isArray(hist.values) && hist.values.length >= 2) {
+                oneHourAgoRaw = hist.values[hist.values.length - 2];
+            }
+
+            if (oneHourAgoRaw === null) {
+                tempHourEl.textContent = '()';
+                return;
+            }
+
+            // Store the raw Fahrenheit values
+            lastHourlyPreviousTemp = parseFloat(oneHourAgoRaw);
+        }
+
+        if (lastHourlyCurrentTemp === null || lastHourlyPreviousTemp === null) {
+            tempHourEl.textContent = '()';
+            return;
+        }
+
+        // 1. We have the source data in Fahrenheit
+        let current = parseFloat(lastHourlyCurrentTemp);
+        let previous = parseFloat(lastHourlyPreviousTemp);
+
+        if (isNaN(current) || isNaN(previous)) {
+            tempHourEl.textContent = '()';
+            return;
+        }
+
+        // 2. CONVERT ABSOLUTE VALUES FIRST to the current unit
+        // This moves both numbers to the same scale (C or F) before subtracting.
+        if (useMetric) {
+            current = (current - 32) * 5 / 9;
+            previous = (previous - 32) * 5 / 9;
+        }
+
+        // 3. NOW calculate the difference
+        // If current is 10C and previous was 12C, diff is -2.0C.
+        const diff = current - previous;
+
+        // 4. Thresholds (Now mapped directly to the active unit)
+        const significantThreshold = useMetric ? 1.7 : 3; 
+        const minorThreshold = useMetric ? 0.6 : 1;
+
+        let message = 'Temperatures have been steady in the last hour';
+        let color = '#666';
+
+        if (diff <= -significantThreshold) {
+            message = 'There has been a significant cooldown in the last hour';
+            color = '#2e00acff';
+        } else if (diff < -minorThreshold) {
+            message = 'It has cooled off some in the last hour';
+            color = '#001e64ff';
+        } else if (diff >= significantThreshold) {
+            message = 'There has been a significant warmup in the last hour';
+            color = '#b71c1c';
+        } else if (diff > minorThreshold) {
+            message = 'It has warmed up in the last hour';
+            color = '#d32f2f';
+        }
+
+        // 5. Formatting
+        const unitSymbol = useMetric ? '°C' : '°F';
+        // Add a '+' only if the number is positive. 
+        // Negative numbers automatically get a '-' from toFixed().
+        const sign = diff > 0 ? '+' : ''; 
+        const formattedDelta = sign + diff.toFixed(1) + unitSymbol;
+
+        tempHourEl.textContent = `${message} (${formattedDelta})`;
+        tempHourEl.style.color = color;
+
+    } catch (e) {
+        console.warn('Error computing hourly temp change:', e);
+    }
+}
+
 // Function to update the weather data
 async function updateWeather() {
     showLoadingMessages(); // Show loading messages when starting to update weather
     try {
         // Get NWS forecast data (cached)
         const nwsData = await fetchWithCache(`${NWS_API_BASE_URL}/points/30.6319,-87.0372199`);
-        
+
         // Get forecast data (cached)
         const forecastData = await fetchWithCache(nwsData.properties.forecast);
 
         // Get current conditions from NWS with fallback stations
         let currentConditions = null;
         const stations = ['KNDZ', 'KNSE', 'KPNS'];
-        
+
         for (const station of stations) {
             try {
                 const response = await fetchWithCache(`${NWS_API_BASE_URL}/stations/${station}/observations/latest`);
-                
+
                 if (response && response.properties) {
                     // Check if the observation is recent (within 2 hours)
                     const observationTime = new Date(response.properties.timestamp);
                     const currentTime = new Date();
                     const timeDifference = currentTime - observationTime;
                     const twoHoursInMs = 2 * 60 * 60 * 1000;
-                    
-                    
+
+
                     if (timeDifference <= twoHoursInMs) {
                         currentConditions = response;
                         break;
@@ -1097,13 +1187,13 @@ async function updateWeather() {
 
         // Get sunrise/sunset data
         const sunData = await fetchWithRetry(`https://api.sunrise-sunset.org/json?lat=30.6319&lng=-87.0372199&formatted=0`);
-        
+
         if (sunData.status === 'OK') {
             const sunrise = new Date(sunData.results.sunrise);
             const sunset = new Date(sunData.results.sunset);
             updateSunTimes(sunrise, sunset);
         }
-        
+
         const loadingMessage = document.getElementById('loading-message');
         if (loadingMessage) {
             loadingMessage.remove();
@@ -1114,79 +1204,24 @@ async function updateWeather() {
             const currentData = ambientData[0].lastData;
 
             const currentTemp = currentData.tempf;
-            
+
             // Check if temperature is close to city record
             checkTemperatureRecord(currentTemp);
-            
+
             // Update temperature difference
             updateTemperatureDifference(currentTemp);
-            
+
             // Animate the temperature
             const tempElement = document.getElementById('current-temp');
             const displayTemp = useMetric ? fahrenheitToCelsius(currentTemp) : currentTemp;
             animateTemperature(tempElement, displayTemp);
 
-            // Update the hourly temperature-change message based on current temp vs ~1 hour ago.
-            (async () => {
-                const tempHourEl = document.getElementById('temp-hour-change');
-                try {
-                    const hist = await getHistoricalData('temp');
-                    let oneHourAgo = null;
-                    if (hist && Array.isArray(hist.values) && hist.values.length >= 2) {
-                        // hist.values is oldest->newest, so take second-to-last as ~1 hour ago
-                        oneHourAgo = hist.values[hist.values.length - 2];
-                    }
+            // Store the current temperature for hourly change calculation
+            lastHourlyCurrentTemp = currentTemp;
 
-                    if (oneHourAgo === null || typeof currentData.tempf === 'undefined' || currentData.tempf === null) {
-                        if (tempHourEl) tempHourEl.textContent = '()';
-                        return;
-                    }
+            // Update hourly temperature change
+            await updateHourlyChange();
 
-                    const currentF = parseFloat(currentData.tempf);
-                    const prevF = parseFloat(oneHourAgo);
-                    if (isNaN(currentF) || isNaN(prevF)) {
-                        if (tempHourEl) tempHourEl.textContent = '(If nothing displays here within the next 15 seconds, past hour data couldn\'t fetch.)';
-                        return;
-                    }
-
-                    // Compute difference in preferred units (respect user preference)
-                    const diffF = currentF - prevF;
-                    const diff = useMetric ? (diffF * 5 / 9) : diffF;
-
-                    // Thresholds: small change vs significant change
-                    const significantThreshold = useMetric ? 1.7 : 3; // ~3°F == ~1.7°C
-                    const minorThreshold = useMetric ? 0.6 : 1; // ~1°F == ~0.6°C
-
-                    let message = 'Temperatures have been steady in the last hour';
-                    // Default neutral color
-                    let color = '#666';
-
-                    if (diff <= -significantThreshold) {
-                        message = 'There has been a significant cooldown in the last hour';
-                        color = '#2e00acff'; // dark green
-                    } else if (diff < -minorThreshold) {
-                        message = 'It has cooled off some in the last hour';
-                        color = '#001e64ff'; // green
-                    } else if (diff >= significantThreshold) {
-                        message = 'There has been a significant warmup in the last hour';
-                        color = '#b71c1c'; // dark red
-                    } else if (diff > minorThreshold) {
-                        message = 'It has warmed up in the last hour';
-                        color = '#d32f2f'; // red
-                    }
-
-                    if (tempHourEl) {
-                        // Append formatted delta (use user's preferred units)
-                        const unitSymbol = useMetric ? '°C' : '°F';
-                        const formattedDelta = (diff >= 0 ? '+' : '-') + Math.abs(diff).toFixed(1) + unitSymbol;
-                        tempHourEl.textContent = `${message} (${formattedDelta})`;
-                        tempHourEl.style.color = color;
-                    }
-                } catch (e) {
-                    console.warn('Error computing hourly temp change:', e);
-                }
-            })();
-            
             // Update other elements
             const tempFeelElement = document.getElementById('temp-feel');
             if (tempFeelElement) {
@@ -1234,7 +1269,7 @@ async function updateWeather() {
                 console.error('Error fetching Wunderground History API data:', error);
                 dailySummaryData = null;
             }
-           
+
             // Update high and low temperatures
             const highTempElement = document.getElementById('high-temp');
             const lowTempElement = document.getElementById('low-temp');
@@ -1301,7 +1336,7 @@ async function updateWeather() {
             if (uvIndexElement) {
                 const uvIndex = currentData.uv;
                 const uvLevel = getUVIndexLevel(uvIndex);
-                
+
                 const uvLevelElement = document.createElement('span');
                 uvLevelElement.textContent = uvLevel;
                 uvLevelElement.className = `uv-level ${uvLevel.toLowerCase()}`;
@@ -1336,12 +1371,12 @@ async function updateWeather() {
             // Update lightning data
             const strikesElement = document.getElementById('lightning-strikes');
             const lastStrikeElement = document.getElementById('last-lightning');
-            
+
             if (strikesElement) {
                 const strikesToday = currentData.lightning_day;
                 strikesElement.textContent = strikesToday !== undefined ? strikesToday : '0';
             }
-            
+
             if (lastStrikeElement) {
                 const lastStrike = currentData.lightning_time;
                 if (lastStrike) {
@@ -1355,7 +1390,7 @@ async function updateWeather() {
 
             // Add current weather condition from NWS
             const weatherIcon = document.getElementById('weather-icon');
-            
+
             if (currentConditions && currentConditions.properties) {
                 const baseCondition = typeof currentConditions.properties.textDescription === 'string'
                     ? currentConditions.properties.textDescription
@@ -1363,19 +1398,19 @@ async function updateWeather() {
                 const nwsIconUrl = currentConditions.properties.icon || '';
 
                 // Try to extract the short icon code (e.g. "bkn" from ".../land/day/bkn?size=medium")
-// Try to extract the short icon code (e.g. "bkn" from ".../land/day/bkn?size=medium")
-let iconCode = null;
-try {
-    const lastSegment = nwsIconUrl.split('/').pop() || '';
-    iconCode = lastSegment.split('?')[0].split('.')[0] || null;
+                // Try to extract the short icon code (e.g. "bkn" from ".../land/day/bkn?size=medium")
+                let iconCode = null;
+                try {
+                    const lastSegment = nwsIconUrl.split('/').pop() || '';
+                    iconCode = lastSegment.split('?')[0].split('.')[0] || null;
 
-    // Exception remapping
-    if (iconCode === "rain") {
-        iconCode = "ra";
-    }
-} catch (e) {
-    iconCode = null;
-}
+                    // Exception remapping
+                    if (iconCode === "rain") {
+                        iconCode = "ra";
+                    }
+                } catch (e) {
+                    iconCode = null;
+                }
 
                 // Local icon path (expects files like ./alert-images/bkn.png, sct.png, few.png, etc.)
                 const localIconPath = iconCode ? `https://forecast.weather.gov/images/wtf/large/${iconCode}.png` : null;
@@ -1419,7 +1454,7 @@ try {
                 // Render icon: prefer local ./alert-images/<code>.png, fallback to NWS icon URL, then NA.jpg
                 let imgSrc = localIconPath || nwsIconUrl || './NA.jpg';
                 let fallbackSrc = nwsIconUrl || './NA.jpg';
-                
+
                 // Convert to nighttime icon if it's after sunset + 30 minutes
                 imgSrc = convertToNighttimeIconIfNeeded(imgSrc, window.sunsetTime);
                 fallbackSrc = convertToNighttimeIconIfNeeded(fallbackSrc, window.sunsetTime);
@@ -1438,12 +1473,12 @@ try {
             }
 
             // Call the new function to fetch graph data and create graphs
- 
+
             // Update last update time using the timestamp from Ambient Weather API
             const lastUpdateElement = document.getElementById('last-update');
             if (lastUpdateElement && currentData.date) {
                 // Debug logs for timezone handling
-                
+
                 const stationTime = new Date(currentData.date);
                 const stationTimeZone = currentData.tz || 'America/Chicago';
                 const formatter = new Intl.DateTimeFormat('en-US', {
@@ -1463,16 +1498,16 @@ try {
             const longitude = -87.0372199;
             // Check for alerts (cached)
             const alertsData = await fetchWithCache(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
-            
+
             const alertsContainer = document.getElementById('alerts');
-            const currentTime = new Date().getTime("en-US", {timezone: "America/Chicago"});
-            
+            const currentTime = new Date().getTime("en-US", { timezone: "America/Chicago" });
+
             if (alertsData.features && alertsData.features.length > 0) {
                 const activeAlerts = alertsData.features.filter(alert => {
                     const endTime = new Date(alert.properties.expires).getTime();
                     return endTime > currentTime;
                 });
-                
+
                 if (activeAlerts.length > 0) {
                     alertsContainer.innerHTML = activeAlerts.map(alert => `
                         <div class="alert-item">
@@ -1493,14 +1528,14 @@ try {
 
         }
 
-// Update forecast
+        // Update forecast
         const forecastContainer = document.querySelector('.forecast');
         if (forecastContainer) {
             // Calculate slides for carousel (60-hour chunks)
             forecastCarouselState.allPeriods = forecastData.properties.periods;
             forecastCarouselState.slides = calculateForecastSlides(forecastData.properties.periods);
             forecastCarouselState.currentSlide = 0;
-            
+
             // Render the carousel
             updateForecastCarousel();
         }
@@ -1513,7 +1548,7 @@ try {
             const chicagoTime = new Date(lastUpdateTime.toLocaleString("en-US", {
                 timeZone: 'America/Chicago'
             }));
-            
+
             const formattedLastUpdateTime = chicagoTime.toLocaleString("en-US", {
                 timeZone: 'America/Chicago',
                 month: 'short',
@@ -1530,16 +1565,16 @@ try {
         const longitude = -87.0372199;
         // Check for alerts (cached)
         const alertsData = await fetchWithCache(`${NWS_API_BASE_URL}/alerts?point=${latitude},${longitude}`);
-        
+
         const alertsContainer = document.getElementById('alerts');
-        const currentTime = new Date().getTime("en-US", {timezone: "America/Chicago"});
-        
+        const currentTime = new Date().getTime("en-US", { timezone: "America/Chicago" });
+
         if (alertsData.features && alertsData.features.length > 0) {
             const activeAlerts = alertsData.features.filter(alert => {
                 const endTime = new Date(alert.properties.expires).getTime();
                 return endTime > currentTime;
             });
-            
+
             if (activeAlerts.length > 0) {
                 alertsContainer.innerHTML = activeAlerts.map(alert => `
                     <div class="alert-item">
@@ -1581,25 +1616,25 @@ try {
 function getLast12HoursLabels() {
     const labels = [];
     const now = new Date();
-    
+
     for (let i = 11; i >= 0; i--) {
         const time = new Date(now);
         time.setHours(now.getHours() - i);
-        labels.push(time.toLocaleTimeString('en-US', { 
-            hour: '2-digit', 
+        labels.push(time.toLocaleTimeString('en-US', {
+            hour: '2-digit',
             minute: '2-digit',
             timeZone: 'America/Chicago'
         }));
     }
-    
+
     return labels;
 }
 
 async function getExtraData(useMetric) { // ONLY accept useMetric
     const extrasUrl = 'https://lightning.ambientweather.net/devices?public.slug=6d86c574d69e27a7084ace4c66aa4435'
     const response = await fetch(extrasUrl);
-    const responseData = await response.json(); 
-    
+    const responseData = await response.json();
+
     // Updated check for the new structure
     if (!responseData || !responseData.data || responseData.data.length === 0) {
         console.error('No data returned from Ambient Weather API for extra data');
@@ -1609,10 +1644,10 @@ async function getExtraData(useMetric) { // ONLY accept useMetric
     const stationData = responseData.data[0];
 
     // The rest of your code...
-    
+
     // Calculation uses the passed-in useMetric
-    const maxDailyGust = useMetric 
-        ? mphToKmh(stationData.lastData.hl.windspeedmph.h) 
+    const maxDailyGust = useMetric
+        ? mphToKmh(stationData.lastData.hl.windspeedmph.h)
         : stationData.lastData.hl.windspeedmph.h;
 
     const maxDailyGustTimeunix = stationData.lastData.hl.windgustmph.ht;
@@ -1639,7 +1674,7 @@ async function getExtraData(useMetric) { // ONLY accept useMetric
     ColdestFeelsLikeElement.textContent = `${ColdestFeelsLike.toFixed(1)}°F at ${new Date(ColdestFeelsLikeunix).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', timeStyle: 'short' })}`;
 
     HottestFeelsLikeElement.textContent = `${HottestFeelsLike.toFixed(1)}°F at ${new Date(HottestFeelsLikeunix).toLocaleTimeString('en-US', { timeZone: 'America/Chicago', timeStyle: 'short' })}`;
-}   
+}
 getExtraData();
 // Function to get historical data for a metric
 async function getHistoricalData(metric) {
@@ -1939,11 +1974,11 @@ function getChartConfig(metric, values, labels) {
                     mode: 'index',
                     intersect: false,
                     callbacks: {
-                        label: function(context) {
+                        label: function (context) {
                             let value = context.raw;
                             let unit = '';
-                            
-                            switch(metric) {
+
+                            switch (metric) {
                                 case 'temp':
                                     unit = useMetric ? '°C' : '°F';
                                     break;
@@ -1969,7 +2004,7 @@ function getChartConfig(metric, values, labels) {
                                     unit = ' W/m²';
                                     break;
                             }
-                            
+
                             return `${context.dataset.label}: ${value}${unit}`;
                         }
                     }
@@ -2005,21 +2040,21 @@ function positionGraphs() {
     const graphWidth = 400;
     const graphHeight = 300;
     const padding = 20;
-    
+
     graphs.forEach((graph, index) => {
         const row = Math.floor(index / 3);
         const col = index % 3;
-        
+
         const left = padding + (col * (graphWidth + padding));
         const top = padding + (row * (graphHeight + padding));
-        
+
         // Ensure graphs don't go off screen
         if (left + graphWidth > screenWidth) {
             graph.style.left = (screenWidth - graphWidth - padding) + 'px';
         } else {
             graph.style.left = left + 'px';
         }
-        
+
         if (top + graphHeight > screenHeight) {
             graph.style.top = (screenHeight - graphHeight - padding) + 'px';
         } else {
@@ -2032,18 +2067,18 @@ function positionGraphs() {
 function showWeatherGraph(event) {
     const metric = event.currentTarget.dataset.metric;
     const graphDiv = document.getElementById(`${metric === 'dew-point' ? 'dewPoint' : metric}Graph`);
-    
+
     if (!graphDiv) {
         console.error(`Graph element for metric ${metric} not found`);
         return;
     }
-    
+
     if (!activeGraphs.has(metric)) {
         graphDiv.style.display = 'block';
         createWeatherGraph(metric);
         activeGraphs.add(metric);
         event.currentTarget.classList.add('active');
-        
+
         setTimeout(() => {
             graphDiv.classList.add('visible');
             positionGraphs();
@@ -2072,13 +2107,13 @@ function createWeatherGraph(metric) {
     }
 
     const ctx = document.getElementById(canvasId).getContext('2d');
-    
+
     // Destroy existing chart if it exists
     if (charts[metric]) {
         charts[metric].destroy();
         charts[metric] = null;
     }
-    
+
     // Get historical data
     getHistoricalData(metric).then(data => {
         if (!data || !data.values || !data.labels) {
@@ -2096,24 +2131,24 @@ function createWeatherGraph(metric) {
 function closeGraph(metric) {
     const graphDiv = document.getElementById(`${metric === 'dew-point' ? 'dewPoint' : metric}Graph`);
     const detailItem = document.querySelector(`[data-metric="${metric}"]`);
-    
+
     if (!graphDiv) {
         console.error(`Graph element for metric ${metric} not found`);
         return;
     }
-    
+
     // Destroy the chart before closing
     if (charts[metric]) {
         charts[metric].destroy();
         charts[metric] = null;
     }
-    
+
     graphDiv.classList.remove('visible');
     activeGraphs.delete(metric);
     if (detailItem) {
         detailItem.classList.remove('active');
     }
-    
+
     setTimeout(() => {
         graphDiv.style.display = 'none';
         positionGraphs();
@@ -2130,28 +2165,28 @@ document.querySelectorAll('.detail-item').forEach(item => {
 window.addEventListener('resize', positionGraphs);
 
 // Initialize the application
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
-    
+
     // Initialize lastUpdateTime
     lastUpdateTime = new Date();
-    
+
     // Update weather every 1.5 minutes
     setInterval(updateWeather, updateInterval);
-    
+
     // Update countdown every second
     setInterval(updateCountdown, 1000);
-    
+
     // Initial update
     updateCountdown();
-    
+
     // Check for outdated data every minute
     setInterval(() => {
         const lastUpdateElement = document.getElementById('last-update');
         if (lastUpdateElement) {
             const lastUpdateText = lastUpdateElement.textContent;
             const lastUpdateTime = new Date(lastUpdateText.replace('Last updated: ', ''));
-            
+
             if (isDataOutdated(lastUpdateTime)) {
                 showNotification();
             }
@@ -2162,7 +2197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const unitToggle = document.getElementById('unit-toggle');
     if (unitToggle) {
         // Add event listener for the unit toggle
-        unitToggle.addEventListener('change', function() {
+        unitToggle.addEventListener('change', function () {
             const isMetric = unitToggle.checked; // true if metric is selected
             updateDisplayedUnits(isMetric); // Call a function to update the displayed units
         });
@@ -2176,13 +2211,13 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.error('Unit toggle element not found!');
     }
-    
+
     // Add reload button event listener
     const reloadButton = document.getElementById('reload-weather');
-    reloadButton.addEventListener('click', function() {
+    reloadButton.addEventListener('click', function () {
         // Add a spinning animation class
         this.classList.add('spinning');
-        
+
         // Update the weather
         updateWeather().finally(() => {
             // Remove the spinning animation after a short delay
@@ -2191,20 +2226,20 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 1000);
         });
     });
-    
+
     // Add forecast carousel navigation event listeners
     const forecastPrevBtn = document.getElementById('forecastPrev');
     const forecastNextBtn = document.getElementById('forecastNext');
-    
+
     if (forecastPrevBtn && forecastNextBtn) {
         forecastPrevBtn.addEventListener('click', () => {
             navigateForecastCarousel(-1);
         });
-        
+
         forecastNextBtn.addEventListener('click', () => {
             navigateForecastCarousel(1);
         });
-        
+
         // Enable touch/swipe navigation for mobile
         let touchStartX = 0;
         const forecastCarousel = document.getElementById('forecastCarousel');
@@ -2212,11 +2247,11 @@ document.addEventListener('DOMContentLoaded', function() {
             forecastCarousel.addEventListener('touchstart', (e) => {
                 touchStartX = e.changedTouches[0].screenX;
             }, false);
-            
+
             forecastCarousel.addEventListener('touchend', (e) => {
                 const touchEndX = e.changedTouches[0].screenX;
                 const diff = touchStartX - touchEndX;
-                
+
                 // Swipe threshold: 50px
                 if (Math.abs(diff) > 50) {
                     if (diff > 0) {
@@ -2230,7 +2265,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } else {
         console.warn('Forecast navigation buttons not found in DOM');
     }
-    
+
     // Initial weather update
     updateWeather();
 
@@ -2240,7 +2275,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear cache button functionality
     const clearCacheBtn = document.getElementById('clear-cache-btn');
     if (clearCacheBtn) {
-        clearCacheBtn.addEventListener('click', function() {
+        clearCacheBtn.addEventListener('click', function () {
             clearAllCache();
             setTimeout(() => {
                 location.reload();
@@ -2249,7 +2284,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Ctrl+C keyboard shortcut to clear cache and reload
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if (event.ctrlKey && event.key === 'c') {
             event.preventDefault();
             clearAllCache();
@@ -2259,13 +2294,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Close modal when clicking outside
-    window.addEventListener('click', function(event) {
+    window.addEventListener('click', function (event) {
         const modal = document.getElementById('compare-stations-modal');
         if (event.target === modal) {
             closeCompareModal();
         }
     });
-    
+
     // Menu functionality
     const menuButton = document.getElementById('menu-button');
     const menuPopup = document.getElementById('menu-popup');
@@ -2311,7 +2346,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listener for the close button
     const closeAlert = document.getElementById('close-alert');
     if (closeAlert) {
-        closeAlert.addEventListener('click', function() {
+        closeAlert.addEventListener('click', function () {
             const mobileAlert = document.getElementById('mobile-alert');
             const checkbox = document.getElementById('dont-show-again');
 
@@ -2339,11 +2374,11 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
     const R = 3959; // Earth's radius in miles
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-        Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 }
 
@@ -2361,41 +2396,41 @@ async function getNearbyStations(latitude, longitude) {
         // First get the grid endpoint for the location (cached)
         const gridResponse = await fetchWithCache(`${NWS_API_BASE_URL}/points/${latitude},${longitude}`);
         const gridData = gridResponse;
-        
+
         // Then get the stations for that grid (cached)
         const stationsResponse = await fetchWithCache(`${NWS_API_BASE_URL}/gridpoints/${gridData.properties.gridId}/${gridData.properties.gridX},${gridData.properties.gridY}/stations`);
         const stationsData = stationsResponse;
-        
+
         // Filter stations to only include those with current observations and within 40 miles
         const activeStations = stationsData.features.filter(station => {
             if (!station.properties.stationIdentifier || !station.properties.name) {
                 return false;
             }
-            
+
             const stationLat = station.geometry.coordinates[1];
             const stationLon = station.geometry.coordinates[0];
             const distance = calculateDistance(latitude, longitude, stationLat, stationLon);
-            
+
             return distance <= 40;
         });
-        
+
         // Sort stations by distance
         activeStations.sort((a, b) => {
             const distA = calculateDistance(
-                latitude, 
-                longitude, 
-                a.geometry.coordinates[1], 
+                latitude,
+                longitude,
+                a.geometry.coordinates[1],
                 a.geometry.coordinates[0]
             );
             const distB = calculateDistance(
-                latitude, 
-                longitude, 
-                b.geometry.coordinates[1], 
+                latitude,
+                longitude,
+                b.geometry.coordinates[1],
                 b.geometry.coordinates[0]
             );
             return distA - distB;
         });
-        
+
         return activeStations;
     } catch (error) {
         console.error('Error fetching nearby stations:', error);
@@ -2444,13 +2479,13 @@ async function loadNearbyStations() {
         try {
             // Get nearby stations using fixed coordinates
             const stations = await getNearbyStations(targetCoords.latitude, targetCoords.longitude);
-            
+
             if (stations.length === 0 && retryCount < maxRetries) {
                 retryCount++;
                 await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2 seconds before retry
                 return attemptLoad();
             }
-            
+
             // Create HTML for each station
             const stationsHTML = await Promise.all(stations.map(async station => {
                 try {
@@ -2466,10 +2501,10 @@ async function loadNearbyStations() {
 
                     // Convert temperature from Celsius to Fahrenheit
                     const tempF = celsiusToFahrenheit(metarData.properties.temperature.value);
-                    
+
                     // Convert wind speed from m/s to mph
                     const windMph = metarData.properties.windSpeed.value * 2.23694;
-                    
+
                     // Convert visibility from meters to miles
                     const visibilityMiles = metarData.properties.visibility.value * 0.000621371;
 
@@ -2490,7 +2525,7 @@ async function loadNearbyStations() {
 
             // Filter out null values and join the HTML
             const validStations = stationsHTML.filter(html => html !== null);
-            stationsList.innerHTML = validStations.length > 0 
+            stationsList.innerHTML = validStations.length > 0
                 ? validStations.join('')
                 : '<p>No active weather stations found nearby after multiple attempts.</p>';
 
@@ -2510,11 +2545,11 @@ async function loadNearbyStations() {
 
 // Unit conversion functions
 function fahrenheitToCelsius(f) {
-    return (f - 32) * 5/9;
+    return (f - 32) * 5 / 9;
 }
 
 function celsiusToFahrenheit(c) {
-    return (c * 9/5) + 32;
+    return (c * 9 / 5) + 32;
 }
 
 function mphToKmh(mph) {
@@ -2549,7 +2584,7 @@ function updateDisplayedUnits() {
     // Update button states
     const imperialBtn = document.getElementById('imperial-btn');
     const metricBtn = document.getElementById('metric-btn');
-    
+
     if (imperialBtn && metricBtn) {
         imperialBtn.classList.toggle('active', !useMetric);
         metricBtn.classList.toggle('active', useMetric);
@@ -2582,14 +2617,14 @@ function updateDisplayedUnits() {
         // the animateTemperature function handles the unit based on useMetric.
         // Instead, we just ensure the correct unit is displayed if no animation is running.
         const currentValue = parseFloat(tempElement.textContent); // Get current numeric value displayed
-         if (!isNaN(currentValue)) {
+        if (!isNaN(currentValue)) {
             const displayTemp = useMetric ? fahrenheitToCelsius(currentValue) : celsiusToFahrenheit(currentValue); // Convert the *displayed* value if units don't match
-             const unit = useMetric ? '°C' : '°F';
-             tempElement.textContent = `${displayTemp.toFixed(1)}${unit}`;
-         } else {
-             // If current value is '--', just set the unit
-             tempElement.textContent = `--${useMetric ? '°C' : '°F'}`;
-         }
+            const unit = useMetric ? '°C' : '°F';
+            tempElement.textContent = `${displayTemp.toFixed(1)}${unit}`;
+        } else {
+            // If current value is '--', just set the unit
+            tempElement.textContent = `--${useMetric ? '°C' : '°F'}`;
+        }
     }
 
     const feelsLikeElement = document.getElementById('feels-like');
@@ -2599,30 +2634,30 @@ function updateDisplayedUnits() {
     }
 
     const highTempElement = document.getElementById('high-temp');
-     if (highTempElement) {
+    if (highTempElement) {
         const isCurrentlyFahrenheit = highTempElement.textContent.includes('°F');
         const convertedText = convertTemp(highTempElement.textContent, isCurrentlyFahrenheit);
         // Ensure the ↑ symbol is included and handle cases where conversion might result in NaN
         const match = convertedText.match(/([+-]?\d+(?:\.\d+)?)/);
         if (match) {
             highTempElement.textContent = `↑ ${match[0]}${useMetric ? '°C' : '°F'}`;
-         } else if (highTempElement.textContent.includes('--')) {
-              highTempElement.textContent = `↑ --${useMetric ? '°C' : '°F'}`;
-         }
-     }
+        } else if (highTempElement.textContent.includes('--')) {
+            highTempElement.textContent = `↑ --${useMetric ? '°C' : '°F'}`;
+        }
+    }
 
     const lowTempElement = document.getElementById('low-temp');
-     if (lowTempElement) {
+    if (lowTempElement) {
         const isCurrentlyFahrenheit = lowTempElement.textContent.includes('°F');
         const convertedText = convertTemp(lowTempElement.textContent, isCurrentlyFahrenheit);
-         // Ensure the ↓ symbol is included and handle cases where conversion might result in NaN
+        // Ensure the ↓ symbol is included and handle cases where conversion might result in NaN
         const match = convertedText.match(/([+-]?\d+(?:\.\d+)?)/);
-         if (match) {
+        if (match) {
             lowTempElement.textContent = `↓ ${match[0]}${useMetric ? '°C' : '°F'}`;
-         } else if (lowTempElement.textContent.includes('--')) {
-              lowTempElement.textContent = `↓ --${useMetric ? '°C' : '°F'}`;
-         }
-     }
+        } else if (lowTempElement.textContent.includes('--')) {
+            lowTempElement.textContent = `↓ --${useMetric ? '°C' : '°F'}`;
+        }
+    }
 
     // Wind speed conversion
     const windElement = document.getElementById('wind');
@@ -2633,7 +2668,7 @@ function updateDisplayedUnits() {
             const windSpeed = parseFloat(speedMatch[1]);
             const isCurrentlyMph = windElement.textContent.includes('mph');
             const directionMatch = windElement.textContent.match(/[A-Z]{1,3}/); // Match compass direction
-             const beaufortMatch = windElement.textContent.match(/\((.*?)\)/); // Match Beaufort scale
+            const beaufortMatch = windElement.textContent.match(/\((.*?)\)/); // Match Beaufort scale
 
             let displaySpeed = windSpeed;
             let unit = useMetric ? 'km/h' : 'mph';
@@ -2641,8 +2676,8 @@ function updateDisplayedUnits() {
             if (useMetric && isCurrentlyMph) {
                 displaySpeed = mphToKmh(windSpeed);
             } else if (!useMetric && !isCurrentlyMph) { // Convert from km/h back to mph if necessary
-                 displaySpeed = kmhToMph(windSpeed);
-                 unit = 'mph';
+                displaySpeed = kmhToMph(windSpeed);
+                unit = 'mph';
             }
 
             const direction = directionMatch ? directionMatch[0] : '--';
@@ -2651,13 +2686,13 @@ function updateDisplayedUnits() {
 
             windElement.textContent = `⠀${direction} ${displaySpeed.toFixed(1)} ${unit} ⠀(${beaufortScale})  `;
         } else if (windElement.textContent.includes('--')) {
-             // Handle case where initial value was '-- mph'
-             const directionMatch = windElement.textContent.match(/[A-Z]{1,3}/); // Match compass direction
-             const beaufortMatch = windElement.textContent.match(/\((.*?)\)/); // Match Beaufort scale
-             const direction = directionMatch ? directionMatch[0] : '--';
-             const beaufortScale = beaufortMatch ? beaufortMatch[1] : '--';
-        const unit = useMetric ? 'km/h' : 'mph';
-             windElement.textContent = `⠀${direction} -- ${unit} ⠀(${beaufortScale})  `;
+            // Handle case where initial value was '-- mph'
+            const directionMatch = windElement.textContent.match(/[A-Z]{1,3}/); // Match compass direction
+            const beaufortMatch = windElement.textContent.match(/\((.*?)\)/); // Match Beaufort scale
+            const direction = directionMatch ? directionMatch[0] : '--';
+            const beaufortScale = beaufortMatch ? beaufortMatch[1] : '--';
+            const unit = useMetric ? 'km/h' : 'mph';
+            windElement.textContent = `⠀${direction} -- ${unit} ⠀(${beaufortScale})  `;
 
         }
     }
@@ -2675,13 +2710,13 @@ function updateDisplayedUnits() {
             if (useMetric && isCurrentlyInHg) {
                 displayPressure = inHgToHpa(pressure);
             } else if (!useMetric && !isCurrentlyInHg) { // Convert from hPa back to inHg if necessary
-                 displayPressure = hpaToInHg(pressure);
-                 unit = 'inHg';
+                displayPressure = hpaToInHg(pressure);
+                unit = 'inHg';
             }
             pressureElement.textContent = `${displayPressure.toFixed(2)} ${unit}`;
         } else if (pressureElement.textContent.includes('--')) {
-        const unit = useMetric ? 'hPa' : 'inHg';
-             pressureElement.textContent = `-- ${unit}`;
+            const unit = useMetric ? 'hPa' : 'inHg';
+            pressureElement.textContent = `-- ${unit}`;
         }
     }
 
@@ -2704,13 +2739,13 @@ function updateDisplayedUnits() {
             if (useMetric && isCurrentlyInches) {
                 displayRain = inchesToMm(rain);
             } else if (!useMetric && !isCurrentlyInches) { // Convert from mm back to inches
-                 displayRain = mmToInches(rain);
-                 unit = 'in';
+                displayRain = mmToInches(rain);
+                unit = 'in';
             }
             rainElement.textContent = `${displayRain.toFixed(2)} ${unit}`;
         } else if (rainElement.textContent.includes('--')) {
-        const unit = useMetric ? 'mm' : 'in';
-              rainElement.textContent = `-- ${unit}`;
+            const unit = useMetric ? 'mm' : 'in';
+            rainElement.textContent = `-- ${unit}`;
         }
     }
 
@@ -2724,26 +2759,29 @@ function updateDisplayedUnits() {
             const isCurrentlyFahrenheitChange = tempChangeElement.textContent.includes('°F'); // Check current unit
 
             let displayChange = change;
-        let unit = useMetric ? '°C' : '°F';
+            let unit = useMetric ? '°C' : '°F';
 
             if (useMetric && isCurrentlyFahrenheitChange) {
                 // Convert temperature *difference*: F diff to C diff (multiply by 5/9)
                 displayChange = change * 5 / 9;
             } else if (!useMetric && !isCurrentlyFahrenheitChange) {
-                 // Convert temperature *difference*: C diff to F diff (multiply by 9/5)
-                 displayChange = change * 9 / 5;
-                 unit = '°F';
+                // Convert temperature *difference*: C diff to F diff (multiply by 9/5)
+                displayChange = change * 9 / 5;
+                unit = '°F';
             }
 
-        const sign = displayChange >= 0 ? '+' : '';
-        tempChangeElement.textContent = `Temperature change: ${sign}${displayChange.toFixed(1)}${unit}`;
+            const sign = displayChange >= 0 ? '+' : '';
+            tempChangeElement.textContent = `Temperature change: ${sign}${displayChange.toFixed(1)}${unit}`;
 
         } else if (tempChangeElement.textContent.includes('--')) {
-             // Handle case where initial value was '--°F'
-         const unit = useMetric ? '°C' : '°F';
-         tempChangeElement.textContent = `Temperature change: --${unit}`;
+            // Handle case where initial value was '--°F'
+            const unit = useMetric ? '°C' : '°F';
+            tempChangeElement.textContent = `Temperature change: --${unit}`;
         }
     }
+
+    // Update hourly temperature change for unit switch
+    updateHourlyChange().catch(e => console.warn('Error updating hourly change on unit toggle:', e));
 
     // Update graphs
     updateGraphUnits();
@@ -2779,21 +2817,21 @@ function updateGraphUnits() {
         if (chart && graphConfigs[metric]) {
             const config = graphConfigs[metric];
             const data = chart.data.datasets[0].data;
-            
+
             // Convert data points
             chart.data.datasets[0].data = data.map(config.convert);
-            
+
             // Update y-axis label and title
             const newConfig = getChartConfig(metric, chart.data.datasets[0].data, chart.data.labels);
             if (newConfig) {
                 chart.options = newConfig.options;
             }
-            
+
             // Update the chart
             chart.update();
         }
     });
-    
+
     // Update forecast carousel with new units
     updateForecastCarousel();
 }
@@ -2849,11 +2887,11 @@ document.addEventListener('DOMContentLoaded', () => {
 function formatTime(timeString) {
     // Only use the hour and minute parts
     const [hour, minute] = timeString.split(':');
-    
+
     // Create a temporary Date object to use its localization capabilities
     const date = new Date();
     date.setHours(parseInt(hour), parseInt(minute));
-    
+
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
@@ -2889,7 +2927,7 @@ function getMoonPhaseInfo(phaseValue) {
     else if (phaseValue > 0.5 && phaseValue < 0.75) name = "Waning Gibbous", icon = "waning-gibbous.png";
     else if (phaseValue === 0.75) name = "Last Quarter", icon = "last-quarter.png";
     else if (phaseValue > 0.75 && phaseValue < 1) name = "Waning Crescent", icon = "waning-crescent.png";
-    
+
     return { name, path: `./images/moon/${icon}` };
 }
 
@@ -2899,7 +2937,7 @@ async function updateAstroData() {
     const LOCATION = "east milton,fl";
     const API_KEY = "E659GRSHB3RLKRMPTFT3GWQ3Z"; // Your Visual Crossing API key
     // ---------------------------
-    
+
     // 1. Calculate the START (yesterday) and END dates
     const today = new Date();
     // Subtract one day to include yesterday (handles month/year rollover automatically)
@@ -2911,17 +2949,17 @@ async function updateAstroData() {
     const endDate = new Date(today); // Clone today's date
     endDate.setMonth(today.getMonth() + 1);
     const endDateString = formatDateForApi(endDate);
-    
+
     // 2. Construct the API URL with the date range
     // URL format: /LOCATION/START_DATE/END_DATE
     const apiUrl = `https://corsproxy.io/?url=https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${encodeURIComponent(LOCATION)}/${startDateString}/${endDateString}?unitGroup=us&key=${API_KEY}&contentType=json&elements=datetime,moonphase,sunrise,sunset`;
-    
+
     const moonPhasesTable = document.getElementById('moon-phases-table');
-    
+
     try {
         // Check cache first
         let data = getFromCache(apiUrl);
-        
+
         if (!data) {
             // Cache miss or expired - fetch from API
             const response = await fetch(apiUrl);
@@ -2929,7 +2967,7 @@ async function updateAstroData() {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
             data = await response.json();
-            
+
             // Store in cache
             saveToCache(apiUrl, data);
         }
@@ -3026,30 +3064,30 @@ async function updateAstroData() {
                 console.warn('Error rendering current moon phase row:', e);
             }
         }
-        
+
         // 3. Filter for the next four MAJOR moon phases
         const mainPhases = data.days.filter(day => {
             const phase = day.moonphase;
             // Check for New Moon (0), First Quarter (0.25), Full Moon (0.5), Last Quarter (0.75)
             // Use a small tolerance (e.g., 0.02) to catch near-exact values, as API data might not be precisely 0.25.
-            return Math.abs(phase - 0) < 0.02 || 
-                   Math.abs(phase - 0.25) < 0.02 || 
-                   Math.abs(phase - 0.5) < 0.02 || 
-                   Math.abs(phase - 0.75) < 0.02;
+            return Math.abs(phase - 0) < 0.02 ||
+                Math.abs(phase - 0.25) < 0.02 ||
+                Math.abs(phase - 0.5) < 0.02 ||
+                Math.abs(phase - 0.75) < 0.02;
         });
-        
+
         // Use only the next four main phases found
         const nextFourPhases = mainPhases.slice(0, 4);
 
         if (nextFourPhases.length === 0) {
-             moonPhasesTable.innerHTML = `<tr><td colspan="2">No major moon phases found in the next month.</td></tr>`;
-             return; 
+            moonPhasesTable.innerHTML = `<tr><td colspan="2">No major moon phases found in the next month.</td></tr>`;
+            return;
         }
 
         // 4. Populate the HTML table
         nextFourPhases.forEach((day, index) => {
             const phaseInfo = getMoonPhaseInfo(day.moonphase);
-            
+
             // Calculate illumination
             let illumination = Math.round((1 - 2 * Math.abs(0.5 - day.moonphase)) * 100);
             illumination = Math.max(0, Math.min(100, illumination)); // Constrain to 0-100
@@ -3210,11 +3248,11 @@ function formatTime(date) {
 function updateLastUpdateTime(timestamp) {
     const lastUpdate = document.getElementById('last-update');
     const nextUpdate = document.getElementById('next-update');
-        if (lastUpdate && timestamp) {
+    if (lastUpdate && timestamp) {
         const date = new Date(timestamp);
         lastUpdate.textContent = `Last updated: ${formatTime(date)}`;
     }
-    
+
     if (nextUpdate) {
         const nextDate = new Date(timestamp + 300000); // 5 minutes from last update
         nextUpdate.textContent = `Next update in: ${formatTime(nextDate)}`;
@@ -3231,7 +3269,7 @@ function updateAllTimeDisplays() {
         if (element.id === 'sunrise-time' || element.id === 'sunset-time') {
             return;
         }
-        
+
         const timestamp = element.getAttribute('data-time');
         if (timestamp) {
             const date = new Date(timestamp);
@@ -3367,13 +3405,13 @@ notificationSound.load();
 
 // Function to show test notification
 function showTestNotification() {
-    
+
     // Play notification sound
     notificationSound.currentTime = 0; // Reset the audio to start
     notificationSound.volume = 1.0;
     notificationSound.play().catch(error => {
     });
-    
+
     // Create notification element
     const notification = document.createElement('div');
     notification.className = 'notification';
@@ -3387,10 +3425,10 @@ function showTestNotification() {
 
     // Add to document
     document.body.appendChild(notification);
-    
+
     // Force a reflow to ensure the transition works
     notification.offsetHeight;
-    
+
     // Add the visible class to trigger the animation
     notification.classList.add('visible');
 
@@ -3404,7 +3442,7 @@ function showTestNotification() {
 }
 
 // Add event listener for test notification button
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const testNotificationBtn = document.getElementById('test-notification');
     if (testNotificationBtn) {
         testNotificationBtn.addEventListener('click', showTestNotification);
@@ -3429,7 +3467,7 @@ window.toggleDevMode = toggleDevMode;
 
 // Function to show test notification
 async function showTestNotification() {
-    
+
     try {
         // Check if service worker is supported
         if (!('serviceWorker' in navigator)) {
@@ -3473,7 +3511,7 @@ async function showTestNotification() {
 }
 
 // Add event listener for test notification button
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const testNotificationBtn = document.getElementById('test-notification');
     if (testNotificationBtn) {
         testNotificationBtn.addEventListener('click', showTestNotification);
@@ -3498,7 +3536,7 @@ async function checkWeatherAlerts() {
     try {
         const response = await fetch('https://api.weather.gov/alerts?zone=FLZ203,FLZ204');
         const data = await response.json();
-        
+
         if (!data.features || !Array.isArray(data.features)) {
             console.error('Invalid alert data received');
             return;
@@ -3507,7 +3545,7 @@ async function checkWeatherAlerts() {
         // Get current alerts and stored alerts
         const currentAlertIds = new Set();
         const lastAlertIds = getStoredAlertIds();
-        
+
         // Process each alert
         for (const alert of data.features) {
             const alertId = alert.id;
@@ -3516,7 +3554,7 @@ async function checkWeatherAlerts() {
             // If this is a new alert we haven't seen before
             if (!lastAlertIds.has(alertId)) {
                 const properties = alert.properties;
-                
+
                 // Create notification message
                 const notificationTitle = `${properties.event} - ${properties.severity}`;
                 const notificationBody = `${properties.headline}\n\n${properties.description}`;
@@ -3553,7 +3591,7 @@ async function checkWeatherAlerts() {
 function startAlertChecking() {
     // Check immediately on start
     checkWeatherAlerts();
-    
+
     // Then check every 2 minutes
     setInterval(checkWeatherAlerts, 2 * 60 * 1000);
 }
@@ -3702,18 +3740,18 @@ function switchRadarImage(radarId) {
 }
 
 // Set up event listeners when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const kmobBtn = document.getElementById('kmob-radar-btn');
     const kevxBtn = document.getElementById('kevx-radar-btn');
 
     if (kmobBtn) {
-        kmobBtn.addEventListener('click', function() {
+        kmobBtn.addEventListener('click', function () {
             switchRadarImage('kmob');
         });
     }
 
     if (kevxBtn) {
-        kevxBtn.addEventListener('click', function() {
+        kevxBtn.addEventListener('click', function () {
             switchRadarImage('kevx');
         });
     }
