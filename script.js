@@ -3734,7 +3734,7 @@ function switchRadarImage(radarId) {
         radarImage.src = "https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/MOB.gif";
         kmobBtn.classList.add('active');
     } else if (radarId === 'kevx') {
-        radarImage.src = "https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/EVX.gif";
+        radarImage.src = "https://huggingface.co/spaces/mistrtoothless/radar-image/resolve/main/docs/radar_maps/EVX.gif";
         kevxBtn.classList.add('active');
     }
 }
