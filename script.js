@@ -1069,7 +1069,8 @@ async function updateHourlyChange() {
     try {
         // If we don't have stored values, fetch them
         if (lastHourlyCurrentTemp === null || lastHourlyPreviousTemp === null) {
-            const hist = await getHistoricalData('temp');
+            // Always fetch raw Fahrenheit so delta is correct after unit switch and reload
+            const hist = await getHistoricalData('temp', { rawUnits: true });
             let oneHourAgoRaw = null;
 
             if (hist && Array.isArray(hist.values) && hist.values.length >= 2) {
@@ -1677,7 +1678,10 @@ async function getExtraData(useMetric) { // ONLY accept useMetric
 }
 getExtraData();
 // Function to get historical data for a metric
-async function getHistoricalData(metric) {
+async function getHistoricalData(metric, options = {}) {
+    // When rawUnits is true, values are returned in API/imperial units (e.g. °F for temp).
+    // Used by updateHourlyChange so it always has Fahrenheit for delta calculation.
+    const useMetricForFetch = options.rawUnits ? false : useMetric;
     try {
         // Primary 1-day observations
         const response = await fetch('https://api.weather.com/v2/pws/observations/all/1day?stationId=KFLMILTO379&format=json&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909');
@@ -1803,8 +1807,8 @@ async function getHistoricalData(metric) {
                 const afterTime = new Date(afterObs.obsTimeUtc);
                 const ratio = (targetTime - beforeTime) / (afterTime - beforeTime);
 
-                const beforeValue = getValueFromObservation(beforeObs, metric, useMetric);
-                const afterValue = getValueFromObservation(afterObs, metric, useMetric);
+                const beforeValue = getValueFromObservation(beforeObs, metric, useMetricForFetch);
+                const afterValue = getValueFromObservation(afterObs, metric, useMetricForFetch);
 
                 if (metric === 'pressure') {
                     if (beforeValue !== null && afterValue !== null) {
@@ -1823,9 +1827,9 @@ async function getHistoricalData(metric) {
                     value = b + (a - b) * ratio;
                 }
             } else if (beforeObs) {
-                value = getValueFromObservation(beforeObs, metric, useMetric);
+                value = getValueFromObservation(beforeObs, metric, useMetricForFetch);
             } else if (afterObs) {
-                value = getValueFromObservation(afterObs, metric, useMetric);
+                value = getValueFromObservation(afterObs, metric, useMetricForFetch);
             } else {
                 value = lastValidValue;
             }
@@ -3731,10 +3735,10 @@ function switchRadarImage(radarId) {
     kevxBtn.classList.remove('active');
 
     if (radarId === 'kmob') {
-        radarImage.src = "https://huggingface.co/spaces/mistrtoothless/radar-mob/resolve/main/docs/radar_maps/MOB.gif";
+        radarImage.src = "https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/MOB.gif";
         kmobBtn.classList.add('active');
     } else if (radarId === 'kevx') {
-        radarImage.src = "https://huggingface.co/spaces/mistrtoothless/radar-image/resolve/main/docs/radar_maps/EVX.gif";
+        radarImage.src = "https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/radar_maps/EVX.gif";
         kevxBtn.classList.add('active');
     }
 }

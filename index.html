@@ -15,7 +15,7 @@
     <meta name="author" content="JesseLikesWeather">
     <meta name="keywords"
         content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl. weather milton florida, milton weather ranch, milton fl weather radar, milton fl weather forecast, milton weather weather alerts, milton fl climate, milton fl historical weather, milton fl temperature, milton fl humidity, milton fl wind, milton fl precipitation, milton fl sunrise sunset, jesselikesweather, jessewx2011, 31522 awkeas, MILTONWEATHERRANCH PWSWeather">
-    <meta name="date" content="2026-02-21">
+    <meta name="date" content="2026-01-30">
 
     <!--- Social Media Tags -->
 
@@ -1302,6 +1302,46 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        /* Mobile: cards container and card rows stack as single column, no horizontal overflow */
+        @media screen and (max-width: 767px) {
+            .cards-container {
+                width: 100% !important;
+                max-width: 100%;
+                margin-left: auto !important;
+                margin-right: auto !important;
+                padding: 0 10px;
+                box-sizing: border-box;
+            }
+
+            .cards-container .row {
+                flex-direction: column !important;
+                display: flex !important;
+                gap: 20px;
+                margin-bottom: 20px !important;
+                align-items: stretch;
+            }
+
+            .cards-container .weather-card,
+            .cards-container .row .weather-card {
+                width: 100% !important;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+        }
+
+        /* Row 3 (almanac + satellite) - stack on mobile */
+        @media screen and (max-width: 767px) {
+            .row.weather-cards-row-3 {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+
+            .row.weather-cards-row-3 .weather-card {
+                width: 100% !important;
+                max-width: 100%;
+            }
         }
 
         /* Mobile styles for camera modal */
@@ -3161,7 +3201,7 @@
             </div>
         </div>
         <!-- Cards Container -->
-        <div style="width: 1276px; margin: 30px auto;">
+        <div class="cards-container" style="width: 1276px; margin: 30px auto;">
             <!-- Row 1 -->
             <div class="row" style="margin-bottom: 30px; display: flex; justify-content: space-between;">
                 <!-- Rip Current Risk Card -->
@@ -3307,7 +3347,7 @@
         </div>
 
         <!-- Row 3 -->
-        <div class="row"
+        <div class="row weather-cards-row-3"
             style="display: grid;grid-template-columns: 1fr 1fr;gap: 60px;margin-bottom: 30px;justify-content: space-evenly;">
             <div class="weather-card almanac-card"
                 style="padding: 10px;transition: transform 0.3s ease, box-shadow 0.3s ease;height: fit-content;width: 600px;">
