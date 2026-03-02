@@ -77,7 +77,7 @@
 
         .location-selector {
             text-align: center;
-            margin: 20px 0;
+            margin: 20px 0 10px 0;
         }
 
         #location-dropdown {
@@ -85,19 +85,65 @@
             font-size: 16px;
             border: 2px solid #e0e0e0;
             border-radius: 25px;
-            background-color: white;
+            background-color: #ffffff;
             cursor: pointer;
-            min-width: 250px;
-            transition: all 0.3s;
+            min-width: 260px;
+            transition: box-shadow 0.25s ease, border-color 0.25s ease, background-color 0.25s ease, transform 0.1s ease;
             appearance: none;
             background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: right 15px center;
             background-size: 15px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
         }
 
-        #location-dropdown:hover {
+        #location-dropdown:hover,
+        #location-dropdown:focus {
             border-color: var(--secondary-color);
+            outline: 2px dashed rgba(52, 152, 219, 0.7);
+            outline-offset: 3px;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.12);
+            background-color: #f8fbff;
+        }
+
+        #location-dropdown:active {
+            transform: scale(0.99);
+        }
+
+        .source-selector {
+            margin-top: 8px;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 14px;
+        }
+
+        .source-option {
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .source-option input {
+            display: none;
+        }
+
+        .source-option span {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px dashed #cbd5e1;
+            background-color: #ffffff;
+            color: var(--primary-color);
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .source-option input:checked+span {
+            border-style: solid;
+            border-color: var(--secondary-color);
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
         }
 
         .forecast-container {
@@ -268,6 +314,16 @@
                     </optgroup>
                 </select>
             </div>
+            <div class="source-selector" aria-label="Forecast data source">
+                <label class="source-option">
+                    <input type="radio" name="forecast-source" value="nws" checked>
+                    <span>NWS</span>
+                </label>
+                <label class="source-option">
+                    <input type="radio" name="forecast-source" value="twn">
+                    <span>The Weather Channel</span>
+                </label>
+            </div>
             <p id="last-update"><a href="https://www.weather.gov/glossary/index.php?word=Last+update" class="nws-link"><b>Last Update: </b></a>3:14 pm CDT Apr 21, 2025</p>
         </div>
 
@@ -328,6 +384,9 @@
             'Tallahassee,FL': { lat: 30.44, lon: 84.28, grid: 'TAE/115,91', office: 'Tallahassee' }
         };
 
+        // Active forecast source: 'nws' (National Weather Service) or 'twn' (The Weather Channel)
+        let currentSource = 'nws';
+
         // Function to get NWS office URL
         function getNwsOfficeUrl(office) {
             const officeUrls = {
@@ -337,11 +396,20 @@
             return officeUrls[office] || 'https://www.weather.gov';
         }
 
-        // Function to fetch the weather forecast
+        // Function to fetch the weather forecast from the active source
         async function fetchForecast(location) {
             const coordinates = locationCoordinates[location];
             if (!coordinates) return;
 
+            if (currentSource === 'nws') {
+                await fetchNwsForecast(coordinates, location);
+            } else {
+                await fetchWeatherChannelForecast(coordinates, location);
+            }
+        }
+
+        // Fetch forecast from NWS
+        async function fetchNwsForecast(coordinates, locationKey) {
             const apiUrl = `https://api.weather.gov/gridpoints/${coordinates.grid}/forecast`;
 
             try {
@@ -349,18 +417,39 @@
                 if (!response.ok) {
                     throw new Error('Network response was not ok. API Response: ' + response.status);
                 } else {
-                    console.log('API Fetch was successful! Displaying API Data...');
+                    console.log('NWS API fetch was successful! Displaying API data...');
                 }
                 const data = await response.json();
-                displayForecast(data, coordinates.office);
+                displayNwsForecast(data, coordinates.office);
                 console.log(data);
             } catch (error) {
-                console.error('There was a problem with the fetch operation:', error);
+                console.error('There was a problem with the NWS fetch operation:', error);
             }
         }
 
-        // Function to display the forecast data
-        function displayForecast(data, nwsOffice) {
+        // Fetch forecast from The Weather Channel
+        async function fetchWeatherChannelForecast(coordinates, locationKey) {
+            const lat = coordinates.lat;
+            const lon = -Math.abs(coordinates.lon); // Convert W longitudes to negative values for API
+            const apiUrl = `https://api.weather.com/v3/aggcommon/v3-wx-forecast-daily-7day?geocode=${lat},${lon}&format=json&language=en-US&units=e&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909`;
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok. API Response: ' + response.status);
+                } else {
+                    console.log('Weather Channel API fetch was successful! Displaying API data...');
+                }
+                const data = await response.json();
+                console.log('Weather Channel raw response:', data);
+                displayWeatherChannelForecast(data, locationKey);
+            } catch (error) {
+                console.error('There was a problem with the Weather Channel fetch operation:', error);
+            }
+        }
+
+        // Function to display the NWS forecast data
+        function displayNwsForecast(data, nwsOffice) {
             const daytimeContainer = document.querySelector('.daytime .forecast');
             const nighttimeContainer = document.querySelector('.nighttime .forecast');
             daytimeContainer.innerHTML = ''; // Clear existing content
@@ -453,8 +542,74 @@
             }
         }
 
+        // Function to display Weather Channel forecast data
+        function displayWeatherChannelForecast(apiData, locationKey) {
+            const daytimeContainer = document.querySelector('.daytime .forecast');
+            const nighttimeContainer = document.querySelector('.nighttime .forecast');
+            daytimeContainer.innerHTML = ''; // Clear existing content
+            nighttimeContainer.innerHTML = ''; // Clear existing content
+
+            const forecast = apiData['v3-wx-forecast-daily-7day'] || apiData;
+            if (!forecast || !Array.isArray(forecast.dayOfWeek)) {
+                const fallback = document.createElement('li');
+                fallback.className = 'forecast-tombstone';
+                fallback.innerHTML = `
+                    <div>
+                        <p class="txt-ctr-caps">Forecast unavailable</p>
+                        <p>Unable to parse Weather Channel forecast data. Please try again later or switch back to NWS.</p>
+                    </div>
+                `;
+                daytimeContainer.appendChild(fallback);
+                console.warn('Unexpected Weather Channel forecast structure:', apiData);
+            } else {
+                const days = forecast.dayOfWeek;
+                const highs = forecast.temperatureMax || forecast.calendarDayTemperatureMax || [];
+                const lows = forecast.temperatureMin || forecast.calendarDayTemperatureMin || [];
+                const narratives = forecast.narrative || [];
+
+                days.forEach((dayName, index) => {
+                    const high = highs[index];
+                    const low = lows[index];
+                    const narrative = narratives[index] || '';
+
+                    const highText = (high !== undefined && high !== null) ? `${high} °F` : '--';
+                    const lowText = (low !== undefined && low !== null) ? `${low} °F` : '--';
+
+
+                    const li = document.createElement('li');
+                    li.className = 'forecast-tombstone';
+                    li.innerHTML = `
+                        <div>
+                            <p class="txt-ctr-caps">${dayName}</p>
+                            <p class="point-forecast-icons-high">High: ${highText}</p>
+                            <p class="point-forecast-icons-low">Low: ${lowText}</p>
+                            <p>${narrative}</p>
+                        </div>
+                    `;
+                    daytimeContainer.appendChild(li);
+                });
+            }
+
+            const lastUpdateElement = document.getElementById('last-update');
+            if (lastUpdateElement) {
+                lastUpdateElement.innerHTML = `<b>Last Update: </b>--`;
+            }
+
+            const selectedLocation = document.getElementById('location-dropdown').value || locationKey;
+            if (selectedLocation) {
+                const coordinates = locationCoordinates[selectedLocation];
+                if (coordinates) {
+                    const [city, state] = selectedLocation.split(',');
+                    const coordinatesElement = document.getElementById('coordinates');
+                    if (coordinatesElement) {
+                        coordinatesElement.innerHTML = `${city}, ${state}<br>${coordinates.lat.toFixed(2)}°N ${coordinates.lon.toFixed(2)}°W (Elev. 66 ft)`;
+                    }
+                }
+            }
+        }
+
         // Add event listener for location dropdown
-        document.getElementById('location-dropdown').addEventListener('change', function(e) {
+        document.getElementById('location-dropdown').addEventListener('change', function (e) {
             const selectedLocation = e.target.value;
             if (selectedLocation) {
                 const [city, state] = selectedLocation.split(',');
@@ -463,8 +618,21 @@
             }
         });
 
+        // Source selector: switch between NWS and Weather Channel
+        const sourceRadios = document.querySelectorAll('input[name="forecast-source"]');
+        sourceRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentSource = e.target.value === 'twn' ? 'twn' : 'nws';
+                const dropdown = document.getElementById('location-dropdown');
+                const selectedLocation = dropdown.value || 'Milton,FL';
+                const [city, state] = selectedLocation.split(',');
+                document.getElementById('location-name').textContent = `${city}, ${state}`;
+                fetchForecast(selectedLocation);
+            });
+        });
+
         // Initial load with default location
-        window.onload = function() {
+        window.onload = function () {
             const defaultLocation = 'Milton,FL';
             const [city, state] = defaultLocation.split(',');
             document.getElementById('location-dropdown').value = defaultLocation;
