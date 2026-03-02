@@ -1,1 +1,71 @@
-TEST
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 Error</title>
+
+    <meta name="description" content="404 Error"/>
+</head>
+
+<style>
+    body {
+        font-family: Verdana, Geneva, Tahoma, sans-serif, sans-serif;
+        background-color: #f7f7f8;
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 48px;
+        margin-bottom: 16px;
+    }
+
+    p {
+        font-size: 18px;
+    }
+</style>
+<body>
+
+    <h1>404 - Page Not Found</h1>
+
+    <br>
+
+
+    <p>The page you were looking for could not be found. You will automatically be redirected in:</p>
+
+    <br>
+
+
+    <h1 id="countdownseconds">5</h1>
+    <p id="secondPlural">Seconds</p>
+    
+    <script>
+        var seconds = 5;
+        var countdownElement = document.getElementById('countdownseconds');
+        var pluralElement = document.getElementById('secondPlural');
+
+        var countdownInterval = setInterval(function() {
+            seconds--;
+            countdownElement.textContent = seconds;
+
+            if (seconds === 1) {
+                pluralElement.textContent = 'Second';
+            } else {
+                pluralElement.textContent = 'Seconds';
+            }
+
+            if (seconds <= 0) {
+                clearInterval(countdownInterval);
+                window.location.href = './'; // Redirect to homepage
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
