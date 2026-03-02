@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TropixTracker - Historical Data</title>
+    <meta charset="UTF-8" />
+    <meta name="author" content="JesseLikesWeather" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="banner">
+        <div class="page-title">TropixTracker</div>
+        <div class="utc-tz" id="utc-tz">Loading...</div>
+        <div class="local-tz" id="local-tz">Loading...</div>
+        
+        <nav class="navigation" id="dynamic-nav"></nav>
+    </div>
+
+    <div class="Page-Welcome" id="page-welcome">Historical TC Data</div>
+    
+<div class="filter-container">
+    <div class="filter-label">Select Season Group:</div>
+    <div class="filter-pagination" id="season-pagination">
+        </div>
+    <div class="filter-buttons" id="year-buttons-container">
+        <select id="season-dropdown" class="filter-dropdown" onchange="loadSeason(this.value)"> 
+            <!-- Years 1995-2025 -->
+            <option value="2025" selected>2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+            <option value="2021">2021</option>
+            <option value="2020">2020</option>
+            <option value="2019">2019</option>
+            <option value="2018">2018</option>
+            <option value="2017">2017</option>
+            <option value="2016">2016</option>
+            <option value="2015">2015</option>
+            <option value="2014">2014</option>
+            <option value="2013">2013</option>
+            <option value="2012">2012</option>
+            <option value="2011">2011</option>
+            <option value="2010">2010</option>
+            <option value="2009">2009</option>
+            <option value="2008">2008</option>
+            <option value="2007">2007</option>
+            <option value="2006">2006</option>
+            <option value="2005">2005</option>
+            <option value="2004">2004</option>
+            <option value="2003">2003</option>
+            <option value="2002">2002</option>
+            <option value="2001">2001</option>
+            <option value="2000">2000</option>
+            <option value="1999">1999</option>
+            <option value="1998">1998</option>
+            <option value="1997">1997</option>
+            <option value="1996">1996</option>
+            <option value="1995">1995</option>
+        </select>
+        </div>
+</div>
+    </div>
+    <div class="line-seperator"></div>
+
+    <div class="history-container">
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Storms</h3>
+                <div class="stat-value" id="total-storms">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Hurricanes</h3>
+                <div class="stat-value" id="total-hurricanes">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Major Hurricanes</h3>
+                <div class="stat-value" id="total-major">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Strongest Storm</h3>
+                <div class="stat-value" id="strongest-storm">-</div>
+            </div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-wrapper">
+                <h3>Intensity Distribution (Count)</h3>
+                <canvas id="barChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <h3>Pressure vs. Wind (Scatter)</h3>
+                <canvas id="scatterChart"></canvas>
+            </div>
+            <div class="chart-wrapper full-width">
+                <h3>Season Intensity Timeline</h3>
+                <canvas id="lineChart"></canvas>
+            </div>
+         </div>
+
+        <div class="table-wrapper">
+                    <div class="season-stats-wrapper">
+                        <h3 class="table-title">Season Stats</h3>
+                        <div class="season-stats-grid">
+                            <div class="season-stat"><span class="stat-label">Most Storms Active:</span> <span id="stat-most-active">-</span></div>
+                            <div class="season-stat"><span class="stat-label">Lowest Pressure:</span> <span id="stat-lowest-pressure">-</span></div>
+                            <div class="season-stat"><span class="stat-label">Highest Wind:</span> <span id="stat-highest-wind">-</span></div>
+                            <div class="season-stat"><span class="stat-label">Landfalling Storms:</span> <span id="stat-landfalling">-</span></div>
+                            <div class="season-stat"><span class="stat-label">US Landfalling Storms:</span> <span id="stat-us-landfalling">-</span></div>
+                            <div class="season-stat"><span class="stat-label">Costliest Storm:</span> <span id="stat-costliest">-</span></div>
+                            <div class="season-stat"><span class="stat-label">Highest Latitude Storm:</span> <span id="stat-highest-lat">-</span></div>
+                            <div class="season-stat"><span class="stat-label">Lowest Latitude Storm:</span> <span id="stat-lowest-lat">-</span></div>
+                            <div class="season-stat"><span class="stat-label">Worst Damaged Country:</span> <span id="stat-worst-country">-</span></div>
+                            <div class="season-stat"><span class="stat-label">Number of Retired Storms:</span> <span id="stat-retired">-</span></div>
+                        </div>
+                    </div>
+            <h3 class="table-title">Season Summary</h3>
+            <table class="storm-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Dates Active</th>
+                        <th>Max Wind</th>
+                        <th>Min Pressure</th>
+                        <th>Category</th>
+                    </tr>
+                </thead>
+                <tbody id="storm-table-body">
+                    <!-- Storm rows will be injected by script.js. For Greek letter storms, add a span with class 'greek-indicator' next to the name. -->
+                    <!-- Example row for Greek letter storm: -->
+                    <!-- <tr><td>Alpha <span class="greek-indicator">&#x0391;</span></td> ... </tr> -->
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+    <div class="site-footer" style="margin-top:28px;padding:18px 12px;background:#f7f7f8;border-top:1px solid #e0e0e0;color:#333;font-size:13px;text-align:center;">
+        ©2023-2026 JesseLikesWeather, All Rights Reserved.
+        <br>
+        <span style="display:block;margin-top:8px;color:#b33;font-weight:600;">This is a hobbyist website, and while important information can be referenced here, <strong>this website should not be used for live-saving decisions.</strong></span>
+        <div class="badges" style="margin-top:8px;display:inline-flex;gap:8px;align-items:center;">
+            <a href="https://usaweatherfinder.com" target="_blank" rel="noopener noreferrer"><img class="badge" src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder"></a>
+            <a href="https://usaweatherfinder.com" target="_blank" rel="noopener noreferrer">USA Weather Finder</a>
+            <a href="https://usaweatherfinder.com" style="margin-left:12px;" target="_blank" rel="noopener noreferrer"><img class="badge" src="https://s05.flagcounter.com/count2_US/lQOw/bg_FFFFFF/txt_000000/border_CCCCCC/columns_5/maxflags_15/viewers_Visitors+of+this+Website/labels_1/pageviews_1/flags_0/percent_0/" alt="Visitor Counter"></a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>TropixTracker - Satellite Imagery</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="JesseLikesWeather" />
+    <meta name="date" content="2026-02-23" />
+    <meta name="description" content="GOES satellite imagery from NOAA STAR. View GEOCOLOR, bands, and specialty products by sector." />
+    <meta name="copyright" content="©2026 JesseLikesWeather" />
+    <meta name="keywords" content="TropixTracker, GOES, satellite, NOAA, GEOCOLOR, tropical weather" />
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+    <div class="banner">
+        <div class="page-title">TropixTracker</div>
+        <div class="utc-tz" id="utc-tz">Loading...</div>
+        <div class="local-tz" id="local-tz">Loading...</div>
+        <nav class="navigation">
+            <div class="btn-nav-header" data-link="index.html">Home</div>
+            <div class="btn-nav-header active" data-link="satellite.html">Satellite Imagery</div>
+            <div class="btn-nav-header" data-link="sst-anomalies.html">SST Anomalies</div>
+        </nav>
+    </div>
+
+    <div class="Page-Welcome" id="page-welcome">GOES Satellite Imagery</div>
+    <p class="satellite-subtitle">Imagery from NOAA STAR CDN. Select satellite, sector, product, and timeframe.</p>
+
+    <div class="satellite-controls">
+        <div class="satellite-control-row">
+            <label class="satellite-label" for="goes-satellite">Satellite</label>
+            <select id="goes-satellite" class="satellite-select">
+                <option value="GOES19">GOES-19</option>
+                <option value="GOES18">GOES-18</option>
+                <option value="GOES16">GOES-16</option>
+            </select>
+        </div>
+        <div class="satellite-control-row">
+            <label class="satellite-label" for="goes-sector">Sector</label>
+            <select id="goes-sector" class="satellite-select">
+                <option value="SE" selected>Southeast (SE)</option>
+                <option value="EUS">Eastern US (EUS)</option>
+                <option value="CAM">Caribbean & Mexico (CAM)</option>
+                <option value="CAR">Caribbean (CAR)</option>
+                <option value="CGL">Central Gulf (CGL)</option>
+                <option value="GA">Gulf of Alaska (GA)</option>
+                <option value="MEX">Mexico (MEX)</option>
+                <option value="NA">North America (NA)</option>
+                <option value="NE">Northeast (NE)</option>
+                <option value="NR">Northern Rockies (NR)</option>
+                <option value="NSA">Northern South America (NSA)</option>
+                <option value="PNW">Pacific Northwest (PNW)</option>
+                <option value="PR">Puerto Rico (PR)</option>
+                <option value="PSW">Pacific Southwest (PSW)</option>
+                <option value="SMV">Southern Mississippi Valley (SMV)</option>
+                <option value="SP">South Pacific (SP)</option>
+                <option value="SR">Southern Rockies (SR)</option>
+                <option value="SSA">Southern South America (SSA)</option>
+                <option value="TAW">Tropical Atlantic West (TAW)</option>
+                <option value="UMV">Upper Mississippi Valley (UMV)</option>
+                <option value="CAN">Canada (CAN)</option>
+                <option value="EEP">Eastern Pacific (EEP)</option>
+            </select>
+        </div>
+        <div class="satellite-control-row">
+            <label class="satellite-label" for="goes-product">Product</label>
+            <select id="goes-product" class="satellite-select">
+                <option value="GEOCOLOR" selected>GEOCOLOR</option>
+                <option value="01">Band 01</option>
+                <option value="02">Band 02</option>
+                <option value="03">Band 03</option>
+                <option value="04">Band 04</option>
+                <option value="05">Band 05</option>
+                <option value="06">Band 06</option>
+                <option value="07">Band 07</option>
+                <option value="08">Band 08</option>
+                <option value="09">Band 09</option>
+                <option value="10">Band 10</option>
+                <option value="11">Band 11</option>
+                <option value="12">Band 12</option>
+                <option value="13">Band 13</option>
+                <option value="14">Band 14</option>
+                <option value="15">Band 15</option>
+                <option value="16">Band 16</option>
+                <option value="AirMass">Air Mass</option>
+                <option value="DustRGB">Dust RGB</option>
+                <option value="FireTemperature">Fire Temperature</option>
+                <option value="Sandwich">Sandwich</option>
+            </select>
+        </div>
+        <div class="satellite-control-row">
+            <label class="satellite-label" for="goes-size">Size</label>
+            <select id="goes-size" class="satellite-select">
+                <option value="2400x2400" selected>2400×2400</option>
+                <option value="1200x1200">1200×1200</option>
+                <option value="600x600">600×600</option>
+            </select>
+        </div>
+        <div class="satellite-control-actions">
+            <button type="button" class="filter-btn satellite-refresh-btn" id="satellite-refresh">Refresh image</button>
+            <button type="button" class="filter-btn satellite-copy-btn" id="satellite-copy">Copy image</button>
+            <button type="button" class="filter-btn satellite-add-view-btn" id="satellite-add-view">Add to multi-view</button>
+            <label class="satellite-auto-refresh">
+                <input type="checkbox" id="satellite-auto-refresh" />
+                <span>Auto-refresh (5 min)</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="line-seperator"></div>
+
+    <div class="satellite-timeline">
+        <div class="satellite-control-row timeline-header">
+            <label class="satellite-label" for="goes-time-slider">Last 24 hours</label>
+            <select id="goes-frame-interval" class="satellite-select satellite-interval-select">
+                <option value="10">Every 10 minutes</option>
+                <option value="30" selected>Every 30 minutes</option>
+                <option value="60">Every 60 minutes</option>
+            </select>
+            <span id="goes-time-label" class="satellite-time-label">Most recent frame</span>
+        </div>
+        <input type="range" id="goes-time-slider" class="satellite-slider" min="0" max="0" value="0" />
+    </div>
+
+    <div class="satellite-image-wrapper">
+        <img id="goes-image" class="satellite-image" src="" alt="GOES satellite imagery" />
+        <div id="goes-loading" class="satellite-loading">Loading image…</div>
+        <div id="goes-error" class="satellite-error" style="display: none;">Failed to load image. Check sector/product availability.</div>
+        <p class="satellite-caption" id="goes-caption">GOES-19 · SE · GEOCOLOR</p>
+        <p class="satellite-updated" id="goes-updated">Last updated: --</p>
+        <p class="satellite-status" id="goes-status" aria-live="polite"></p>
+    </div>
+
+    <div class="satellite-multi-section">
+        <div class="satellite-multi-header">
+            <h2>Multi-view</h2>
+            <p class="satellite-multi-subtitle">Pin up to four configurations for side-by-side comparison.</p>
+        </div>
+        <div id="satellite-multi-grid" class="satellite-multi-grid">
+            <p class="satellite-multi-empty">No saved views yet. Use “Add to multi-view” to pin the current image.</p>
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+    <script>
+        (function() {
+            const BASE = 'https://cdn.star.nesdis.noaa.gov';
+            const satelliteEl = document.getElementById('goes-satellite');
+            const sectorEl = document.getElementById('goes-sector');
+            const productEl = document.getElementById('goes-product');
+            const sizeEl = document.getElementById('goes-size');
+            const imgEl = document.getElementById('goes-image');
+            const loadingEl = document.getElementById('goes-loading');
+            const errorEl = document.getElementById('goes-error');
+            const captionEl = document.getElementById('goes-caption');
+            const refreshBtn = document.getElementById('satellite-refresh');
+            const autoRefreshEl = document.getElementById('satellite-auto-refresh');
+            const updatedEl = document.getElementById('goes-updated');
+            const statusEl = document.getElementById('goes-status');
+            const copyBtn = document.getElementById('satellite-copy');
+            const addViewBtn = document.getElementById('satellite-add-view');
+            const multiGrid = document.getElementById('satellite-multi-grid');
+            const timeSlider = document.getElementById('goes-time-slider');
+            const intervalSelect = document.getElementById('goes-frame-interval');
+            const timeLabel = document.getElementById('goes-time-label');
+
+            const pinnedViews = [];
+            const MAX_VIEWS = 4;
+            const missingFrames = new Set();
+
+            function buildUrl() {
+                const sat = satelliteEl.value;
+                const sector = sectorEl.value.toLowerCase();
+                const product = productEl.value;
+                const size = sizeEl.value;
+                const url = `${BASE}/${sat}/ABI/SECTOR/${sector}/${product}/${size}.jpg`;
+                return url;
+            }
+
+            function setCaption() {
+                captionEl.textContent = `${satelliteEl.value} · ${sectorEl.value} · ${productEl.value}`;
+            }
+
+            function setUpdatedNow(labelPrefix = 'Last updated') {
+                const now = new Date();
+                const timeStr = now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+                updatedEl.textContent = `${labelPrefix}: ${timeStr}`;
+            }
+
+            function showStatus(message) {
+                if (!statusEl) return;
+                statusEl.textContent = message;
+                if (!message) return;
+                setTimeout(() => {
+                    if (statusEl.textContent === message) statusEl.textContent = '';
+                }, 3500);
+            }
+
+            function loadImage() {
+                const url = buildUrl() + '?t=' + Date.now();
+                setCaption();
+                loadingEl.style.display = 'block';
+                errorEl.style.display = 'none';
+                imgEl.style.display = 'none';
+
+                imgEl.onload = function() {
+                    loadingEl.style.display = 'none';
+                    errorEl.style.display = 'none';
+                    imgEl.style.display = 'block';
+                    setUpdatedNow('Last updated');
+                    updateSliderMeta();
+                    precheckTimeline();
+                };
+                imgEl.onerror = function() {
+                    loadingEl.style.display = 'none';
+                    errorEl.style.display = 'block';
+                    imgEl.style.display = 'none';
+                };
+                imgEl.src = url;
+            }
+
+            function buildArchiveUrl(date) {
+                const sat = satelliteEl.value;
+                const sector = sectorEl.value.toLowerCase();
+                const product = productEl.value;
+                const size = sizeEl.value;
+
+                const year = date.getUTCFullYear();
+                const startOfYear = new Date(Date.UTC(year, 0, 1));
+                const doy = Math.floor((date - startOfYear) / 86400000) + 1;
+
+                const hour = date.getUTCHours();
+                const minute = date.getUTCMinutes();
+
+                const hh = String(hour).padStart(2, '0');
+                const mm = String(minute).padStart(2, '0');
+                const yStr = String(year);
+                const doyStr = String(doy).padStart(3, '0');
+                const stamp = `${yStr}${doyStr}${hh}${mm}`;
+
+                // Archived filenames include the sector code (e.g., "se") instead of "reg"
+                const filename = `${stamp}_${sat}-ABI-${sector}-${product}-${size}.jpg`;
+                return `${BASE}/${sat}/ABI/SECTOR/${sector}/${product}/${filename}`;
+            }
+
+            function loadArchiveFrame(index, attemptsLeft = 8) {
+                index = Math.max(0, index);
+                if (missingFrames.has(index) && attemptsLeft <= 0) {
+                    errorEl.style.display = 'block';
+                    imgEl.style.display = 'none';
+                    return;
+                }
+
+                const intervalMinutes = parseInt(intervalSelect.value, 10) || 30;
+                const now = new Date();
+                const offsetMinutes = index * intervalMinutes;
+                const target = new Date(now.getTime() - offsetMinutes * 60 * 1000);
+                const url = buildArchiveUrl(target);
+
+                const displayTime = target.toLocaleString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    timeZone: 'UTC',
+                    timeZoneName: 'short'
+                });
+                timeLabel.textContent = index === 0 ? 'Most recent frame' : `Approx: ${displayTime}`;
+
+                loadingEl.style.display = 'block';
+                errorEl.style.display = 'none';
+                imgEl.style.display = 'none';
+
+                imgEl.onload = function() {
+                    loadingEl.style.display = 'none';
+                    errorEl.style.display = 'none';
+                    imgEl.style.display = 'block';
+                    updatedEl.textContent = `Archive frame: ${displayTime}`;
+                };
+                imgEl.onerror = function() {
+                    loadingEl.style.display = 'none';
+                    imgEl.style.display = 'none';
+                    missingFrames.add(index);
+
+                    if (attemptsLeft > 0 && index > 0) {
+                        const nextIndex = index - 1;
+                        timeSlider.value = String(nextIndex);
+                        loadArchiveFrame(nextIndex, attemptsLeft - 1);
+                    } else {
+                        errorEl.style.display = 'block';
+                    }
+                };
+
+                imgEl.src = url + '?t=' + Date.now();
+            }
+
+            function updateSliderMeta() {
+                const intervalMinutes = parseInt(intervalSelect.value, 10) || 30;
+                const frames = Math.floor((24 * 60) / intervalMinutes);
+                timeSlider.max = Math.max(frames - 1, 0);
+                missingFrames.clear();
+                if (parseInt(timeSlider.value, 10) > parseInt(timeSlider.max, 10)) {
+                    timeSlider.value = '0';
+                }
+                if (timeSlider.value === '0') {
+                    timeLabel.textContent = 'Most recent frame';
+                }
+            }
+
+            function checkArchiveFrame(index) {
+                return new Promise((resolve) => {
+                    const intervalMinutes = parseInt(intervalSelect.value, 10) || 30;
+                    const now = new Date();
+                    const offsetMinutes = index * intervalMinutes;
+                    const target = new Date(now.getTime() - offsetMinutes * 60 * 1000);
+                    const url = buildArchiveUrl(target) + '?t=' + Date.now();
+
+                    const testImg = new Image();
+                    testImg.onload = function() {
+                        missingFrames.delete(index);
+                        resolve(true);
+                    };
+                    testImg.onerror = function() {
+                        missingFrames.add(index);
+                        resolve(false);
+                    };
+                    testImg.src = url;
+                });
+            }
+
+            async function precheckTimeline(maxChecks = 8) {
+                if (!timeSlider || !intervalSelect) return;
+                missingFrames.clear();
+                const maxIndex = Math.min(parseInt(timeSlider.max, 10) || 0, maxChecks - 1);
+                if (maxIndex <= 0) return;
+
+                for (let i = 0; i <= maxIndex; i++) {
+                    // Sequentially probe a few recent frames so slider hits are more likely valid
+                    // We intentionally ignore the result; missingFrames is populated as we go.
+                    // eslint-disable-next-line no-await-in-loop
+                    await checkArchiveFrame(i);
+                }
+            }
+
+            async function copyImageToClipboard() {
+                try {
+                    if (!imgEl.src) {
+                        showStatus('No image loaded to copy.');
+                        return;
+                    }
+                    const response = await fetch(imgEl.src);
+                    const blob = await response.blob();
+                    if (navigator.clipboard && navigator.clipboard.write) {
+                        const item = new ClipboardItem({ [blob.type]: blob });
+                        await navigator.clipboard.write([item]);
+                        showStatus('Image copied to clipboard.');
+                    } else if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(imgEl.src.split('?')[0]);
+                        showStatus('Image URL copied to clipboard.');
+                    } else {
+                        showStatus('Clipboard copying is not supported in this browser.');
+                    }
+                } catch (err) {
+                    console.error('Error copying image:', err);
+                    showStatus('Failed to copy image.');
+                }
+            }
+
+            function renderMultiView() {
+                if (!multiGrid) return;
+                multiGrid.innerHTML = '';
+                if (!pinnedViews.length) {
+                    const p = document.createElement('p');
+                    p.className = 'satellite-multi-empty';
+                    p.textContent = 'No saved views yet. Use “Add to multi-view” to pin the current image.';
+                    multiGrid.appendChild(p);
+                    return;
+                }
+                pinnedViews.forEach((view, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'satellite-multi-card';
+                    card.innerHTML = `
+                        <div class=\"satellite-multi-caption\">${view.caption}</div>
+                        <img src=\"${view.url}\" loading=\"lazy\" alt=\"${view.caption}\">
+                        <button type=\"button\" class=\"filter-btn satellite-remove-view\" data-index=\"${index}\">Remove</button>
+                    `;
+                    multiGrid.appendChild(card);
+                });
+                multiGrid.querySelectorAll('.satellite-remove-view').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const idx = parseInt(e.currentTarget.getAttribute('data-index'), 10);
+                        if (!isNaN(idx)) {
+                            pinnedViews.splice(idx, 1);
+                            renderMultiView();
+                        }
+                    });
+                });
+            }
+
+            function addCurrentToMultiView() {
+                const baseUrl = buildUrl(); // without cache-busting so multi-view cards stay stable
+                const caption = `${satelliteEl.value} · ${sectorEl.value} · ${productEl.value} · ${sizeEl.value}`;
+
+                if (pinnedViews.find(v => v.url === baseUrl)) {
+                    showStatus('This configuration is already pinned.');
+                    return;
+                }
+                if (pinnedViews.length >= MAX_VIEWS) {
+                    showStatus('Maximum of four views reached. Remove one to add another.');
+                    return;
+                }
+                pinnedViews.push({ url: baseUrl, caption });
+                renderMultiView();
+                showStatus('View pinned to multi-view.');
+            }
+
+            function attachListeners() {
+                [satelliteEl, sectorEl, productEl, sizeEl].forEach(function(el) {
+                    el.addEventListener('change', () => {
+                        loadImage();
+                    });
+                });
+                refreshBtn.addEventListener('click', loadImage);
+                autoRefreshEl.addEventListener('change', function() {
+                    if (autoRefreshEl.checked) {
+                        window._goesRefreshInterval = setInterval(loadImage, 5 * 60 * 1000);
+                    } else {
+                        if (window._goesRefreshInterval) clearInterval(window._goesRefreshInterval);
+                    }
+                });
+                if (copyBtn) {
+                    copyBtn.addEventListener('click', copyImageToClipboard);
+                }
+                if (addViewBtn) {
+                    addViewBtn.addEventListener('click', addCurrentToMultiView);
+                }
+                if (timeSlider && intervalSelect) {
+                    intervalSelect.addEventListener('change', () => {
+                        updateSliderMeta();
+                        precheckTimeline();
+                        if (timeSlider.value === '0') {
+                            loadImage();
+                        } else {
+                            loadArchiveFrame(parseInt(timeSlider.value, 10));
+                        }
+                    });
+                    timeSlider.addEventListener('input', (e) => {
+                        const idx = parseInt(e.target.value, 10) || 0;
+                        if (idx === 0) {
+                            loadImage();
+                        } else {
+                            loadArchiveFrame(idx);
+                        }
+                    });
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                attachListeners();
+                updateSliderMeta();
+                loadImage();
+            });
+        })();
+    </script>
+</body>
+</html>

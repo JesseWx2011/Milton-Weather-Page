@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TropixTracker - SST Anomalies</title>
+    <meta charset="UTF-8" />
+    <meta name="author" content="JesseLikesWeather" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+    <div class="banner">
+        <div class="page-title">TropixTracker</div>
+        <div class="utc-tz" id="utc-tz">Loading...</div>
+        <div class="local-tz" id="local-tz">Loading...</div>
+        <nav class="navigation">
+            <div class="btn-nav-header" data-link="index.html">Home</div>
+            <div class="btn-nav-header" data-link="#">Satellite Imagery</div>
+            <div class="btn-nav-header active" data-link="sst-anomalies.html">SST Anomalies</div>
+        </nav>
+    </div>
+
+    <div class="Page-Welcome" id="page-welcome">SST Anomalies & Temperatures</div>
+    
+    <div class="filter-container">
+        <div class="filter-label">Filter by Region:</div>
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterSST('all')">All</button>
+            <button class="filter-btn" onclick="filterSST('global')">Global</button>
+            <button class="filter-btn" onclick="filterSST('hemi')">Hemispheres</button>
+            <button class="filter-btn" onclick="filterSST('ocean')">Ocean Basins</button>
+        </div>
+    </div>
+
+    <div class="line-seperator"></div>
+
+    <div class="sst-grid">
+        
+        <div class="sst-card" data-category="global">
+            <div class="sst-title">Global 5km SST Anomalies</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/ct5km_ssta_v3.1_tropics_current.png" loading="lazy" alt="Global SST Anomalies">
+        </div>
+        <div class="sst-card" data-category="global">
+            <div class="sst-title">Global Sea Surface Temperatures</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/coraltemp_v3.1_tropics_current.png" loading="lazy" alt="Global Temperatures">
+        </div>
+
+        <div class="sst-card" data-category="hemi">
+            <div class="sst-title">Eastern Hemisphere SST</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/coraltemp_v3.1_east_current.png" loading="lazy" alt="Eastern Hemi SST">
+        </div>
+        <div class="sst-card" data-category="hemi">
+            <div class="sst-title">Eastern Hemisphere Anomalies</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/ct5km_ssta_v3.1_east_current.png" loading="lazy" alt="Eastern Hemi Anomalies">
+        </div>
+        <div class="sst-card" data-category="hemi">
+            <div class="sst-title">Western Hemisphere SST</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/coraltemp_v3.1_west_current.png" loading="lazy" alt="Western Hemi SST">
+        </div>
+        <div class="sst-card" data-category="hemi">
+            <div class="sst-title">Western Hemisphere Anomalies</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/ct5km_ssta_v3.1_west_current.png" loading="lazy" alt="Western Hemi Anomalies">
+        </div>
+
+        <div class="sst-card" data-category="ocean">
+            <div class="sst-title">Pacific Ocean SST</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/coraltemp_v3.1_pacific_current.png" loading="lazy" alt="Pacific SST">
+        </div>
+        <div class="sst-card" data-category="ocean">
+            <div class="sst-title">Indian Ocean SST</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/coraltemp_v3.1_indian_current.png" loading="lazy" alt="Indian Ocean SST">
+        </div>
+        <div class="sst-card" data-category="ocean">
+            <div class="sst-title">South Atlantic SST</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/coraltemp_v3.1_satlantic_current.png" loading="lazy" alt="South Atlantic SST">
+        </div>
+        <div class="sst-card" data-category="ocean">
+            <div class="sst-title">Caribbean SST</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/coraltemp_v3.1_caribbean_current.png" loading="lazy" alt="Caribbean SST">
+        </div>
+        <div class="sst-card" data-category="ocean">
+            <div class="sst-title">Florida SST</div>
+            <img src="https://coralreefwatch.noaa.gov/data_current/5km/v3.1_op/daily/png/coraltemp_v3.1_florida_current.png" loading="lazy" alt="Florida SST">
+        </div>
+    </div>
+
+    <script src="./script.js"></script>
+    <div class="site-footer" style="margin-top:28px;padding:18px 12px;background:#f7f7f8;border-top:1px solid #e0e0e0;color:#333;font-size:13px;text-align:center;">
+        ©2023-2026 JesseLikesWeather, All Rights Reserved.
+        <br>
+        <span style="display:block;margin-top:8px;color:#b33;font-weight:600;">This is a hobbyist website, and while important information can be referenced here, <strong>this website should not be used for live-saving decisions.</strong></span>
+        <div class="badges" style="margin-top:8px;display:inline-flex;gap:8px;align-items:center;">
+            <a href="https://usaweatherfinder.com" target="_blank" rel="noopener noreferrer"><img class="badge" src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder"></a>
+            <a href="https://usaweatherfinder.com" target="_blank" rel="noopener noreferrer">USA Weather Finder</a>
+            <a href="https://usaweatherfinder.com" style="margin-left:12px;" target="_blank" rel="noopener noreferrer"><img class="badge" src="https://s05.flagcounter.com/count2_US/lQOw/bg_FFFFFF/txt_000000/border_CCCCCC/columns_5/maxflags_15/viewers_Visitors+of+this+Website/labels_1/pageviews_1/flags_0/percent_0/" alt="Visitor Counter"></a>
+        </div>
+    </div>
+</body>
+</html>
