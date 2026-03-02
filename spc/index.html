@@ -1,0 +1,4090 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Severe Weather Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Verdana', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #2a2a2a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 87, 51, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 217, 61, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 30px rgba(255, 87, 51, 0.4);
+            border-bottom: 3px solid #ff5733;
+            position: relative;
+            z-index: 10;
+            animation: slideDown 0.8s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .header h1 {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 2.5em;
+            color: #fff;
+            text-shadow: 
+                0 0 20px rgba(255, 87, 51, 0.8), 
+                0 0 40px rgba(255, 87, 51, 0.5),
+                0 0 60px rgba(255, 87, 51, 0.3);
+            margin-bottom: 10px;
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 87, 51, 0.8), 0 0 40px rgba(255, 87, 51, 0.5); }
+            50% { text-shadow: 0 0 30px rgba(255, 87, 51, 1), 0 0 60px rgba(255, 87, 51, 0.7), 0 0 80px rgba(255, 87, 51, 0.4); }
+        }
+
+        .header p {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffd93d;
+            font-size: 1.1em;
+            text-shadow: 0 0 10px rgba(255, 217, 61, 0.6);
+            animation: fadeIn 1s ease 0.3s both;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        nav {
+            background: #000;
+            padding: 0;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+            z-index: 100;
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-btn {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 18px 30px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dropdown-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 87, 51, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .dropdown-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .dropdown-btn:hover {
+            background: linear-gradient(135deg, #ff5733 0%, #c70039 100%);
+            box-shadow: 0 0 25px rgba(255, 87, 51, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .dropdown-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .dropdown-btn i {
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown.active .dropdown-btn i.fa-caret-down {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            min-width: 250px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            border: 2px solid #ff5733;
+            border-top: none;
+            animation: dropdownSlide 0.3s ease;
+        }
+
+        @keyframes dropdownSlide {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dropdown.active .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-content a {
+            font-family: 'Verdana', sans-serif;
+            color: #e0e0e0;
+            padding: 14px 20px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(255, 87, 51, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dropdown-content a::before {
+            content: '';
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 87, 51, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .dropdown-content a:hover::before {
+            left: 100%;
+        }
+
+        .dropdown-content a:hover {
+            background: linear-gradient(135deg, #ff5733 0%, #c70039 100%);
+            padding-left: 30px;
+            box-shadow: inset 0 0 20px rgba(255, 87, 51, 0.5);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 30px auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: pageSlide 0.6s ease;
+        }
+
+        @keyframes pageSlide {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .section-title {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 2em;
+            color: #ffd93d;
+            text-shadow: 0 0 20px rgba(255, 217, 61, 0.6);
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title i {
+            animation: rotate 4s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            animation: fadeIn 0.8s ease 0.2s both;
+        }
+
+        .control-btn {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            color: white;
+            border: 2px solid #ff5733;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(255, 87, 51, 0.4) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .control-btn:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 87, 51, 0.8), 0 8px 20px rgba(0, 0, 0, 0.6);
+            border-color: #ffd93d;
+        }
+
+        .outlook-main {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .outlook-extended {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .outlook-extended.visible {
+            display: grid;
+        }
+
+        .outlook-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6), 0 0 20px rgba(255, 87, 51, 0.2);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .outlook-card.animate-in {
+            animation: cardFloat 0.6s ease both;
+        }
+
+        .outlook-card:nth-child(1).animate-in { animation-delay: 0.1s; }
+        .outlook-card:nth-child(2).animate-in { animation-delay: 0.2s; }
+        .outlook-card:nth-child(3).animate-in { animation-delay: 0.3s; }
+        .outlook-card:nth-child(4).animate-in { animation-delay: 0.4s; }
+        .outlook-card:nth-child(5).animate-in { animation-delay: 0.5s; }
+
+        @keyframes cardFloat {
+            from { opacity: 0; transform: translateY(50px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .outlook-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 87, 51, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .outlook-card:hover::before {
+            opacity: 1;
+        }
+
+        .outlook-card.expanded {
+            grid-column: 1 / -1;
+            animation: expandCard 0.5s ease;
+        }
+
+        @keyframes expandCard {
+            from { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            to { transform: scale(1); }
+        }
+
+        .outlook-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 87, 51, 0.5);
+            border-color: rgba(255, 87, 51, 0.8);
+        }
+
+        .outlook-card h3 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            color: #ff5733;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            text-shadow: 0 0 15px rgba(255, 87, 51, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .expand-btn {
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #ff5733;
+            color: #ff5733;
+            padding: 6px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .expand-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 87, 51, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        .expand-btn:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .expand-btn:hover {
+            background: #ff5733;
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 87, 51, 0.6);
+            transform: scale(1.1);
+        }
+
+        .expand-btn i {
+            position: relative;
+            z-index: 1;
+        }
+
+        .outlook-drawer-btn {
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #ffd93d;
+            color: #ffd93d;
+            padding: 6px 14px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.8em;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 12px;
+            width: 100%;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+        }
+
+        .outlook-drawer-btn:hover {
+            background: #ffd93d;
+            color: #1a1a1a;
+            box-shadow: 0 0 20px rgba(255, 217, 61, 0.6);
+        }
+
+        .outlook-drawer-btn i {
+            margin-right: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .outlook-drawer-btn.open i {
+            transform: rotate(180deg);
+        }
+
+        .outlook-drawer {
+            display: none;
+            background: rgba(0, 0, 0, 0.4);
+            border-top: 2px solid rgba(255, 217, 61, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            animation: drawerSlide 0.3s ease;
+        }
+
+        .outlook-drawer.open {
+            display: block;
+        }
+
+        @keyframes drawerSlide {
+            from { opacity: 0; transform: translateY(-10px); max-height: 0; }
+            to { opacity: 1; transform: translateY(0); max-height: 500px; }
+        }
+
+        .drawer-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 87, 51, 0.2);
+        }
+
+        .drawer-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .drawer-label {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffd93d;
+            font-weight: bold;
+            font-size: 0.85em;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .drawer-value {
+            font-family: 'Verdana', sans-serif;
+            color: #e0e0e0;
+            font-size: 0.95em;
+        }
+
+        .outlook-card img {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 217, 61, 0.2);
+            transition: all 0.4s ease;
+            position: relative;
+            z-index: 1;
+        }
+
+        .outlook-card:hover img {
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(255, 217, 61, 0.4);
+            transform: scale(1.02);
+        }
+
+        .countdown-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .countdown-card {
+            background: linear-gradient(135deg, rgba(42, 42, 42, 0.8) 0%, rgba(26, 26, 26, 0.8) 100%);
+            border: 2px solid rgba(255, 87, 51, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .countdown-card.animate-in {
+            animation: cardFloat 0.6s ease both;
+        }
+
+        .countdown-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255, 87, 51, 0.1), transparent 30%);
+            animation: rotateBg 4s linear infinite;
+            opacity: 0;
+        }
+
+        @keyframes rotateBg {
+            to { transform: rotate(360deg); }
+        }
+
+        .countdown-card:hover::after {
+            opacity: 1;
+        }
+
+        .countdown-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 87, 51, 0.4);
+        }
+
+        .countdown-card.next {
+            background: linear-gradient(135deg, rgba(255, 217, 61, 0.25) 0%, rgba(255, 154, 61, 0.25) 100%);
+            border: 2px solid rgba(255, 217, 61, 0.8);
+            box-shadow: 0 0 35px rgba(255, 217, 61, 0.4);
+        }
+
+        .countdown-card.next.pulse-glow {
+            animation: nextPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes nextPulse {
+            0%, 100% { box-shadow: 0 0 35px rgba(255, 217, 61, 0.4); }
+            50% { box-shadow: 0 0 50px rgba(255, 217, 61, 0.7), 0 0 70px rgba(255, 217, 61, 0.3); }
+        }
+
+        .countdown-card.completed {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(56, 142, 60, 0.15) 100%);
+            border: 2px solid rgba(76, 175, 80, 0.5);
+        }
+
+        .countdown-card h3 {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffd93d;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .countdown-card.next h3 {
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255, 217, 61, 0.8);
+        }
+
+        .countdown-time {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 2em;
+            color: #ff5733;
+            text-shadow: 0 0 15px rgba(255, 87, 51, 0.8);
+            margin: 10px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .countdown-card.next .countdown-time {
+            color: #ffd93d;
+            text-shadow: 0 0 20px rgba(255, 217, 61, 1);
+            font-size: 2.3em;
+            animation: numberGlow 1.5s ease-in-out infinite;
+        }
+
+        @keyframes numberGlow {
+            0%, 100% { text-shadow: 0 0 20px rgba(255, 217, 61, 1); }
+            50% { text-shadow: 0 0 30px rgba(255, 217, 61, 1), 0 0 50px rgba(255, 217, 61, 0.5); }
+        }
+
+        .countdown-label {
+            font-family: 'Verdana', sans-serif;
+            color: #b0b0b0;
+            font-size: 0.9em;
+            position: relative;
+            z-index: 1;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 10px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .badge-completed {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+            border: 1px solid #4caf50;
+        }
+
+        .badge-ahead {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4caf50;
+            border: 1px solid #4caf50;
+        }
+
+        .badge-ontime {
+            background: rgba(33, 150, 243, 0.3);
+            color: #2196f3;
+            border: 1px solid #2196f3;
+        }
+
+        .badge-delayed {
+            background: rgba(255, 152, 0, 0.3);
+            color: #ff9800;
+            border: 1px solid #ff9800;
+        }
+
+        .badge-next {
+            background: rgba(255, 217, 61, 0.3);
+            color: #ffd93d;
+            border: 1px solid #ffd93d;
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(255, 217, 61, 0.5); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255, 217, 61, 0.8); }
+        }
+
+        .reports-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+        }
+
+        .report-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 217, 61, 0.3);
+            transition: all 0.4s ease;
+        }
+
+        .report-card.animate-in {
+            animation: cardFloat 0.6s ease both;
+        }
+
+        .report-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7), 0 0 40px rgba(255, 217, 61, 0.4);
+            border-color: rgba(255, 217, 61, 0.8);
+        }
+
+        .report-card h3 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            color: #ffd93d;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .report-count {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 3em;
+            color: #ff5733;
+            text-shadow: 0 0 20px rgba(255, 87, 51, 0.8);
+            text-align: center;
+            margin: 20px 0;
+            animation: countPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes countPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .report-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .report-item {
+            font-family: 'Verdana', sans-serif;
+            background: rgba(42, 42, 42, 0.6);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #ff5733;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .report-item:hover {
+            background: rgba(42, 42, 42, 0.9);
+            transform: translateX(5px);
+            border-left-width: 5px;
+            box-shadow: 0 0 15px rgba(255, 87, 51, 0.3);
+        }
+
+        .report-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .report-list::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .report-list::-webkit-scrollbar-thumb {
+            background: #ff5733;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+
+        .report-list::-webkit-scrollbar-thumb:hover {
+            background: #ffd93d;
+        }
+
+        .archive-controls {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .archive-controls label {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffd93d;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .archive-controls select, .archive-controls input {
+            font-family: 'Verdana', sans-serif;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .archive-controls select:hover, .archive-controls input:hover {
+            border-color: #ff5733;
+            box-shadow: 0 0 15px rgba(255, 87, 51, 0.3);
+        }
+
+        .archive-controls select:focus, .archive-controls input:focus {
+            outline: none;
+            border-color: #ffd93d;
+            box-shadow: 0 0 20px rgba(255, 217, 61, 0.4);
+        }
+
+        .animation-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255, 87, 51, 0.3);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #ff5733;
+        }
+
+        .checkbox-wrapper label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .playback-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .playback-status {
+            font-family: 'Courier New', monospace;
+            color: #ffd93d;
+            font-size: 0.9em;
+            margin-left: 10px;
+        }
+
+        .archive-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 25px;
+        }
+
+        .archive-grid .outlook-card {
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .archive-grid .outlook-card img {
+            max-height: 600px;
+            object-fit: contain;
+        }
+
+        .alert-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            transition: all 0.4s ease;
+            position: relative;
+        }
+
+        .alert-card.animate-in {
+            animation: cardFloat 0.6s ease both;
+        }
+
+        .alert-card.convective {
+            border-color: rgba(255, 0, 0, 0.6);
+            border-width: 3px;
+        }
+
+        .alert-card.updated {
+            animation: alertPulse 10s ease-out;
+        }
+
+        @keyframes alertPulse {
+            0%, 100% { 
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+                border-color: rgba(255, 87, 51, 0.3);
+            }
+            5%, 15%, 25% { 
+                box-shadow: 0 0 40px rgba(255, 217, 61, 0.8), 0 8px 30px rgba(0, 0, 0, 0.6);
+                border-color: rgba(255, 217, 61, 1);
+            }
+            10%, 20%, 30% { 
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+                border-color: rgba(255, 87, 51, 0.3);
+            }
+        }
+
+        .alert-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 87, 51, 0.4);
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .alert-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            color: #ff5733;
+            font-size: 1.3em;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .alert-severity {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .severity-extreme {
+            background: rgba(139, 0, 0, 0.3);
+            color: #ff1744;
+            border: 2px solid #ff1744;
+        }
+
+        .severity-severe {
+            background: rgba(255, 87, 0, 0.3);
+            color: #ff5722;
+            border: 2px solid #ff5722;
+        }
+
+        .severity-moderate {
+            background: rgba(255, 152, 0, 0.3);
+            color: #ff9800;
+            border: 2px solid #ff9800;
+        }
+
+        .severity-minor {
+            background: rgba(255, 235, 59, 0.3);
+            color: #ffeb3b;
+            border: 2px solid #ffeb3b;
+        }
+
+        .alert-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.9em;
+        }
+
+        .alert-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #b0b0b0;
+        }
+
+        .alert-info-item i {
+            color: #ffd93d;
+            min-width: 20px;
+        }
+
+        .alert-description {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.9em;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease, padding 0.5s ease;
+        }
+
+        .alert-description.expanded {
+            max-height: 1000px;
+            padding: 15px;
+        }
+
+        .alert-description.collapsed {
+            max-height: 0;
+            padding: 0 15px;
+        }
+
+        .expand-alert-btn {
+            background: rgba(255, 87, 51, 0.2);
+            border: 1px solid #ff5733;
+            color: #ff5733;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .expand-alert-btn:hover {
+            background: #ff5733;
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 87, 51, 0.6);
+        }
+
+        .alerts-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .alerts-stats {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid rgba(255, 87, 51, 0.4);
+            border-radius: 12px;
+            padding: 20px;
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 87, 51, 0.3);
+        }
+
+        .stat-number {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 2.5em;
+            color: #ff5733;
+            text-shadow: 0 0 15px rgba(255, 87, 51, 0.8);
+        }
+
+        .stat-label {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffd93d;
+            margin-top: 5px;
+        }
+
+        .warning-filters {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .location-search {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .location-search input {
+            width: 100%;
+            font-family: 'Verdana', sans-serif;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .location-search input:focus {
+            outline: none;
+            border-color: #ffd93d;
+            box-shadow: 0 0 20px rgba(255, 217, 61, 0.4);
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .search-results.visible {
+            display: block;
+        }
+
+        .search-result-item {
+            padding: 12px;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255, 87, 51, 0.2);
+            transition: all 0.3s ease;
+            font-family: 'Verdana', sans-serif;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .search-result-item:hover {
+            background: rgba(255, 87, 51, 0.2);
+        }
+
+        .search-result-name {
+            font-weight: bold;
+            color: #ffd93d;
+            font-size: 1em;
+        }
+
+        .search-result-context {
+            color: #b0b0b0;
+            font-size: 0.85em;
+            margin-top: 3px;
+        }
+
+        .attribution {
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.85em;
+            color: #b0b0b0;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 87, 51, 0.3);
+        }
+
+        .attribution a {
+            color: #ffd93d;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .attribution a:hover {
+            color: #ff5733;
+            text-shadow: 0 0 10px rgba(255, 87, 51, 0.6);
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffd93d;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .filter-group input, .filter-group select {
+            font-family: 'Verdana', sans-serif;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+
+        .filter-group input:hover, .filter-group select:hover {
+            border-color: #ff5733;
+            box-shadow: 0 0 15px rgba(255, 87, 51, 0.3);
+        }
+
+        .filter-group input:focus, .filter-group select:focus {
+            outline: none;
+            border-color: #ffd93d;
+            box-shadow: 0 0 20px rgba(255, 217, 61, 0.4);
+        }
+
+        .filter-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .filter-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #ff5733;
+        }
+
+        .filter-checkbox label {
+            margin: 0;
+            cursor: pointer;
+            color: #e0e0e0;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.9em;
+        }
+
+        .warning-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            transition: all 0.4s ease;
+        }
+
+        .warning-card.animate-in {
+            animation: cardFloat 0.6s ease both;
+        }
+
+        .warning-card.tornado {
+            border-color: rgba(255, 0, 0, 0.8);
+            border-width: 3px;
+        }
+
+        .warning-card.severe {
+            border-color: rgba(255, 165, 0, 0.8);
+        }
+
+        .warning-card.flood {
+            border-color: rgba(0, 191, 255, 0.8);
+        }
+
+        .warning-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 87, 51, 0.4);
+        }
+
+        .warning-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .warning-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            color: #ff5733;
+            font-size: 1.2em;
+        }
+
+        .warning-wfo {
+            background: rgba(255, 87, 51, 0.2);
+            border: 1px solid #ff5733;
+            color: #ff5733;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+
+        .warning-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.9em;
+            color: #b0b0b0;
+        }
+
+        .warning-detail {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .warning-detail i {
+            color: #ffd93d;
+            min-width: 20px;
+        }
+
+        .warning-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .warning-tag {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .tag-wind {
+            background: rgba(255, 165, 0, 0.3);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+
+        .tag-hail {
+            background: rgba(173, 216, 230, 0.3);
+            color: #add8e6;
+            border: 1px solid #add8e6;
+        }
+
+        .tag-tornado {
+            background: rgba(255, 0, 0, 0.3);
+            color: #ff0000;
+            border: 1px solid #ff0000;
+        }
+
+        .tag-damage {
+            background: rgba(139, 0, 0, 0.3);
+            color: #ff1744;
+            border: 1px solid #ff1744;
+        }
+
+        .warnings-list {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .radar-preview {
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        .radar-preview img {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .radar-preview img:hover {
+            box-shadow: 0 0 20px rgba(255, 87, 51, 0.6);
+            transform: scale(1.02);
+        }
+
+        .radar-expanded {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .radar-expanded.visible {
+            display: flex;
+        }
+
+        .radar-expanded img {
+            max-width: 90%;
+            max-height: 90vh;
+            border-radius: 10px;
+            box-shadow: 0 0 50px rgba(255, 87, 51, 0.8);
+        }
+
+        .radar-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 87, 51, 0.9);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+
+        .radar-close:hover {
+            background: #ff5733;
+            box-shadow: 0 0 20px rgba(255, 87, 51, 0.8);
+        }
+
+        .afd-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .afd-input {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .afd-input input {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            padding: 12px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+            text-transform: uppercase;
+            width: 150px;
+            text-align: center;
+        }
+
+        .afd-content {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .afd-text {
+            font-family: 'Courier New', monospace;
+            color: #e0e0e0;
+            white-space: pre-wrap;
+            line-height: 1.6;
+            font-size: 0.95em;
+            max-height: 600px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .afd-text::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .afd-text::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+
+        .afd-text::-webkit-scrollbar-thumb {
+            background: #ff5733;
+            border-radius: 5px;
+        }
+
+        .afd-text::-webkit-scrollbar-thumb:hover {
+            background: #ffd93d;
+        }
+
+        .no-alerts {
+            background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(56, 142, 60, 0.15) 100%);
+            border: 2px solid rgba(76, 175, 80, 0.5);
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.2em;
+            color: #4caf50;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-family: 'Montserrat', sans-serif;
+            color: #ffd93d;
+            font-size: 1.2em;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(199, 0, 57, 0.2);
+            border: 2px solid #c70039;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: #ff5733;
+            font-family: 'Verdana', sans-serif;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .converter-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .day-selector {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .day-selector label {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffd93d;
+            font-weight: bold;
+            margin-right: 20px;
+            font-size: 1.1em;
+        }
+
+        .day-selector select {
+            font-family: 'Roboto', sans-serif;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .day-selector select:hover {
+            border-color: #ffd93d;
+            box-shadow: 0 0 15px rgba(255, 217, 61, 0.4);
+        }
+
+        .converter-content {
+            display: grid;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .converter-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .converter-card h3 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            color: #ff5733;
+            margin-bottom: 20px;
+            font-size: 1.2em;
+            text-shadow: 0 0 15px rgba(255, 87, 51, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            font-family: 'Montserrat', sans-serif;
+            color: #b0b0b0;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+
+        .input-group input {
+            width: 100%;
+            font-family: 'Roboto', sans-serif;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 1em;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #ffd93d;
+            box-shadow: 0 0 15px rgba(255, 217, 61, 0.4);
+        }
+
+        .result-box {
+            background: rgba(255, 87, 51, 0.15);
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-family: 'Montserrat', sans-serif;
+            color: #b0b0b0;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .result-value {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 1.3em;
+            color: #ffd93d;
+            text-shadow: 0 0 10px rgba(255, 217, 61, 0.6);
+        }
+
+        .lookup-table {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid rgba(255, 87, 51, 0.3);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+            margin-bottom: 30px;
+            animation: fadeInUp 0.6s ease;
+        }
+
+        .lookup-table h4 {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            color: #ff5733;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            text-shadow: 0 0 10px rgba(255, 87, 51, 0.5);
+        }
+
+        .lookup-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Verdana', sans-serif;
+        }
+
+        .lookup-table table thead {
+            background: rgba(255, 87, 51, 0.2);
+        }
+
+        .lookup-table table th {
+            color: #ffd93d;
+            padding: 12px;
+            text-align: left;
+            font-weight: bold;
+            border-bottom: 2px solid rgba(255, 87, 51, 0.5);
+        }
+
+        .lookup-table table td {
+            color: #e0e0e0;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(255, 87, 51, 0.2);
+        }
+
+        .lookup-table table tr:hover {
+            background: rgba(255, 87, 51, 0.1);
+        }
+
+        .category-marginal { color: #3f6843; font-weight: bold; }
+        .category-slight { color: #ffff00; font-weight: bold; }
+        .category-enhanced { color: #f19837; font-weight: bold; }
+        .category-moderate { color: #ff0000; font-weight: bold; }
+        .category-high { color: #f545fa; font-weight: bold; }
+        .category-unused { color: #808080; font-style: italic; }
+
+        .site-footer {
+            background: linear-gradient(135deg, #0f0f0f 0%, #111 100%);
+            border-top: 2px solid rgba(255,87,51,0.15);
+            padding: 20px 0;
+            margin-top: 30px;
+            color: #cfcfcf;
+        }
+
+        .site-footer .footer-inner {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .site-footer a { color: #ffd93d; text-decoration: underline; }
+
+        .site-footer .copyright { font-family: 'Courier New', monospace; }
+
+        .site-footer .disclaimer { max-width: 900px; text-align: center; font-size: 0.95em; color: #e0e0e0; }
+
+        .probability-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .prob-btn {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            background: linear-gradient(135deg, rgba(255, 87, 51, 0.3) 0%, rgba(199, 0, 57, 0.2) 100%);
+            color: #ffd93d;
+            border: 2px solid rgba(255, 87, 51, 0.6);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .prob-btn:hover:not(:disabled) {
+            background: linear-gradient(135deg, rgba(255, 87, 51, 0.6) 0%, rgba(199, 0, 57, 0.4) 100%);
+            border-color: #ffd93d;
+            box-shadow: 0 0 15px rgba(255, 87, 51, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .prob-btn.active {
+            background: linear-gradient(135deg, #ff5733 0%, #c70039 100%);
+            border-color: #ffd93d;
+            box-shadow: 0 0 25px rgba(255, 87, 51, 0.8);
+        }
+
+        .prob-btn:disabled {
+            background: rgba(128, 128, 128, 0.2);
+            color: #808080;
+            border-color: rgba(128, 128, 128, 0.4);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .prob-btn:disabled span {
+            text-decoration: line-through;
+        }
+
+        .probability-dropdown {
+            font-family: 'Roboto', sans-serif;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border: 2px solid rgba(255, 87, 51, 0.5);
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        .probability-dropdown:hover {
+            border-color: #ffd93d;
+            box-shadow: 0 0 15px rgba(255, 217, 61, 0.4);
+        }
+
+        .probability-dropdown:focus {
+            outline: none;
+            border-color: #ffd93d;
+            box-shadow: 0 0 20px rgba(255, 217, 61, 0.6);
+        }
+
+        .probability-dropdown option {
+            background: #1a1a1a;
+            color: #e0e0e0;
+        }
+
+        .day-sections {
+            display: none;
+        }
+
+        .day-sections.visible {
+            display: block;
+        }
+
+        .reference-tables-container {
+            display: none;
+        }
+
+        .reference-tables-container.visible {
+            display: block;
+        }
+
+        .overall-risk-box {
+            background: linear-gradient(135deg, rgba(255, 87, 51, 0.3) 0%, rgba(199, 0, 57, 0.2) 100%);
+            border: 2px solid rgba(255, 87, 51, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glowBox {
+            0%, 100% { box-shadow: 0 0 15px rgba(255, 87, 51, 0.4); }
+            50% { box-shadow: 0 0 30px rgba(255, 87, 51, 0.7); }
+        }
+
+        .overall-risk-box {
+            animation: glowBox 2s ease-in-out infinite;
+        }
+
+        .overall-risk-label {
+            font-family: 'Montserrat', sans-serif;
+            color: #ffd93d;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .overall-risk-value {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 2em;
+            text-shadow: 0 0 15px rgba(255, 217, 61, 0.8);
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .nav-container {
+                flex-direction: column;
+            }
+
+            .dropdown-content {
+                position: relative;
+            }
+
+            .outlook-main, .countdown-grid, .reports-container, .archive-grid, .converter-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .button-grey {
+            color: grey;
+            text-emphasis-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-cloud-bolt"></i> SEVERE WEATHER TRACKER</h1>
+        <p>Real-Time Storm Prediction Center Data</p>
+        <div style="margin-top:12px;">
+            <a href="../" class="control-btn" style="text-decoration:none; display:inline-block;">
+                <i class="fas fa-arrow-left"></i> Back To Weather Dashboard
+            </a>
+        </div>
+    </div>
+
+    <nav>
+        <div class="nav-container">
+            <div class="dropdown" id="dropdown1">
+                <button class="dropdown-btn" onclick="toggleDropdown('dropdown1')">
+                    <span><i class="fas fa-map"></i> SPC Outlooks</span> <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#" onclick="showPage('outlooks'); closeAllDropdowns(); return false;">Current Outlooks</a>
+                    <a href="#" onclick="showPage('archive'); closeAllDropdowns(); return false;">Outlook Archive</a>
+                </div>
+            </div>
+            <div class="dropdown" id="dropdown2">
+                <button class="dropdown-btn" onclick="toggleDropdown('dropdown2')">
+                    <span><i class="fas fa-clock"></i> Countdowns</span> <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#" onclick="showPage('countdowns'); closeAllDropdowns(); return false;">Outlook Update Countdowns</a>
+                </div>
+            </div>
+            <div class="dropdown" id="dropdown3">
+                <button class="dropdown-btn" onclick="toggleDropdown('dropdown3')">
+                    <span><i class="fas fa-exclamation-triangle"></i> Alerts & Reports</span> <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#" onclick="showPage('alerts'); closeAllDropdowns(); return false;">Active NWS Alerts</a>
+                    <a href="#" onclick="showPage('reports'); closeAllDropdowns(); return false;">Local Storm Reports</a>
+                    <a href="#" onclick="showPage('warnings'); closeAllDropdowns(); return false;">Warning Archive</a>
+                    <a class="button-grey" href="#">Area Forecast Discussions (Coming Soon)</a>
+                </div>
+            </div>
+            <div class="dropdown" id="dropdown4">
+                <button class="dropdown-btn" onclick="toggleDropdown('dropdown4')">
+                    <span><i class="fas fa-calculator"></i> Calculations</span> <i class="fas fa-caret-down"></i>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#" onclick="showPage('spcConverter'); closeAllDropdowns(); return false;">SPC Probability Converter</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- SPC Outlooks Page -->
+        <div id="outlooks" class="page active">
+            <h2 class="section-title">
+                <i class="fas fa-map-marked-alt"></i>
+                Storm Prediction Center Outlooks
+            </h2>
+            
+            <div class="outlook-main">
+                <div class="outlook-card animate-in" id="day1-card">
+                    <h3>
+                        <span><i class="fas fa-calendar-day"></i> Day 1 Convective Outlook</span>
+                        <button class="expand-btn" onclick="toggleExpand('day1-card')">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </h3>
+                    <img src="https://www.spc.noaa.gov/partners/outlooks/state/swody1.png" alt="Day 1 Outlook">
+                    <button class="outlook-drawer-btn" onclick="toggleOutlookDrawer('day1-drawer')">
+                        <i class="fas fa-chevron-down"></i> View Threat Details
+                    </button>
+                    <div class="outlook-drawer" id="day1-drawer">
+                        <div id="day1-drawer-content">
+                            <div class="drawer-item"><div class="drawer-label">Loading...</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="outlook-card animate-in" id="day2-card">
+                    <h3>
+                        <span><i class="fas fa-calendar-day"></i> Day 2 Convective Outlook</span>
+                        <button class="expand-btn" onclick="toggleExpand('day2-card')">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </h3>
+                    <img src="https://www.spc.noaa.gov/partners/outlooks/state/swody2.png" alt="Day 2 Outlook">
+                    <button class="outlook-drawer-btn" onclick="toggleOutlookDrawer('day2-drawer')">
+                        <i class="fas fa-chevron-down"></i> View Threat Details
+                    </button>
+                    <div class="outlook-drawer" id="day2-drawer">
+                        <div id="day2-drawer-content">
+                            <div class="drawer-item"><div class="drawer-label">Loading...</div></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="outlook-card animate-in" id="day3-card">
+                    <h3>
+                        <span><i class="fas fa-calendar-day"></i> Day 3 Convective Outlook</span>
+                        <button class="expand-btn" onclick="toggleExpand('day3-card')">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </h3>
+                    <img src="https://www.spc.noaa.gov/partners/outlooks/state/swody3.png" alt="Day 3 Outlook">
+                    <button class="outlook-drawer-btn" onclick="toggleOutlookDrawer('day3-drawer')">
+                        <i class="fas fa-chevron-down"></i> View Threat Details
+                    </button>
+                    <div class="outlook-drawer" id="day3-drawer">
+                        <div id="day3-drawer-content">
+                            <div class="drawer-item"><div class="drawer-label">Loading...</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" onclick="toggleExtended()">
+                    <i class="fas fa-calendar-week"></i> <span id="toggleText">Show Extended Outlooks (Days 4-8)</span>
+                </button>
+            </div>
+
+            <div class="outlook-extended" id="extendedOutlooks">
+                <div class="outlook-card animate-in" id="day4-card">
+                    <h3>
+                        <span><i class="fas fa-calendar-week"></i> Day 4 Convective Outlook</span>
+                        <button class="expand-btn" onclick="toggleExpand('day4-card')">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </h3>
+                    <img src="https://www.spc.noaa.gov/partners/outlooks/national/swody4_PROB.png" alt="Day 4 Outlook">
+                </div>
+                <div class="outlook-card animate-in" id="day5-card">
+                    <h3>
+                        <span><i class="fas fa-calendar-week"></i> Day 5 Convective Outlook</span>
+                        <button class="expand-btn" onclick="toggleExpand('day5-card')">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </h3>
+                    <img src="https://www.spc.noaa.gov/partners/outlooks/national/swody5_PROB.png" alt="Day 5 Outlook">
+                </div>
+                <div class="outlook-card animate-in" id="day6-card">
+                    <h3>
+                        <span><i class="fas fa-calendar-week"></i> Day 6 Convective Outlook</span>
+                        <button class="expand-btn" onclick="toggleExpand('day6-card')">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </h3>
+                    <img src="https://www.spc.noaa.gov/partners/outlooks/national/swody6_PROB.png" alt="Day 6 Outlook">
+                </div>
+                <div class="outlook-card animate-in" id="day7-card">
+                    <h3>
+                        <span><i class="fas fa-calendar-week"></i> Day 7 Convective Outlook</span>
+                        <button class="expand-btn" onclick="toggleExpand('day7-card')">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </h3>
+                    <img src="https://www.spc.noaa.gov/partners/outlooks/national/swody7_PROB.png" alt="Day 7 Outlook">
+                </div>
+                <div class="outlook-card animate-in" id="day8-card">
+                    <h3>
+                        <span><i class="fas fa-calendar-week"></i> Day 8 Convective Outlook</span>
+                        <button class="expand-btn" onclick="toggleExpand('day8-card')">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </h3>
+                    <img src="https://www.spc.noaa.gov/partners/outlooks/national/swody8_PROB.png" alt="Day 8 Outlook">
+                </div>
+            </div>
+        </div>
+
+        <!-- Archive Page -->
+        <div id="archive" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-archive"></i>
+                SPC Outlook Archive
+            </h2>
+            <div class="archive-controls">
+                <div class="control-group">
+                    <div class="input-wrapper">
+                        <label for="archiveDay">Outlook Day:</label>
+                        <select id="archiveDay">
+                            <option value="1">Day 1</option>
+                            <option value="2">Day 2</option>
+                            <option value="3">Day 3</option>
+                        </select>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label for="archiveDate">Date:</label>
+                        <input type="date" id="archiveDate" min="2003-01-23">
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label for="archiveTime">Time (UTC):</label>
+                        <select id="archiveTime">
+                            <option value="0100">01:00Z</option>
+                            <option value="1200">12:00Z</option>
+                            <option value="1300">13:00Z</option>
+                            <option value="1630">16:30Z</option>
+                            <option value="2000">20:00Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button class="control-btn" onclick="loadArchive()">
+                        <i class="fas fa-search"></i> Load Archive
+                    </button>
+                </div>
+
+                <div class="animation-controls">
+                    <div class="playback-controls">
+                        <button class="control-btn" onclick="playAnimation()" id="playBtn">
+                            <i class="fas fa-play"></i> Play Animation
+                        </button>
+                        <button class="control-btn" onclick="stopAnimation()" id="stopBtn" style="display: none;">
+                            <i class="fas fa-stop"></i> Stop
+                        </button>
+                        <span class="playback-status" id="playbackStatus"></span>
+                    </div>
+                    
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="loopCheck" onchange="handleCheckbox('loopCheck')">
+                        <label for="loopCheck">Loop Same Day</label>
+                    </div>
+                    
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="multiDayCheck" onchange="handleCheckbox('multiDayCheck')">
+                        <label for="multiDayCheck">Advance Through Days</label>
+                    </div>
+                </div>
+            </div>
+            <div class="archive-grid" id="archiveContainer"></div>
+        </div>
+
+        <!-- Countdowns Page -->
+        <div id="countdowns" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-stopwatch"></i>
+                SPC Outlook Update Status
+            </h2>
+            <div class="countdown-grid" id="countdownContainer"></div>
+        </div>
+
+        <!-- Local Storm Reports Page -->
+        <div id="reports" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-list-alt"></i>
+                Today's Local Storm Reports
+            </h2>
+            <div class="reports-container" id="reportsContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading storm reports...
+                </div>
+            </div>
+        </div>
+
+        <!-- NWS Alerts Page -->
+        <div id="alerts" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-bell"></i>
+                NWS Active Weather Alerts
+            </h2>
+            <div class="alerts-stats" id="alertsStats"></div>
+            <div class="alerts-container" id="alertsContainer">
+                <div class="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading active alerts...
+                </div>
+            </div>
+        </div>
+
+        <!-- Warning Archive Page -->
+        <div id="warnings" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                Warning Archive Search
+            </h2>
+            
+            <div class="warning-filters">
+                <div class="location-search">
+                    <label style="font-family: 'Montserrat', sans-serif; color: #ffd93d; font-weight: bold; font-size: 0.9em; display: block; margin-bottom: 8px;">
+                        Search Location:
+                    </label>
+                    <input type="text" id="locationSearch" placeholder="Search for a city (e.g., Des Moines, IA)" oninput="searchLocation()">
+                    <div class="search-results" id="searchResults"></div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="warningLat">Latitude:</label>
+                        <input type="number" id="warningLat" step="0.0001" placeholder="e.g., 41.5868" readonly>
+                    </div>
+                    <div class="filter-group">
+                        <label for="warningLon">Longitude:</label>
+                        <input type="number" id="warningLon" step="0.0001" placeholder="e.g., -93.6250" readonly>
+                    </div>
+                    <div class="filter-group">
+                        <label for="warningStartDate">Start Date:</label>
+                        <input type="date" id="warningStartDate" min="1986-01-01">
+                    </div>
+                    <div class="filter-group">
+                        <label for="warningEndDate">End Date:</label>
+                        <input type="date" id="warningEndDate">
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label>Minimum Wind Speed (SVR):</label>
+                        <select id="minWind">
+                            <option value="0">All Warnings</option>
+                            <option value="50">&lt;50 MPH</option>
+                            <option value="60">60+ MPH</option>
+                            <option value="70">70+ MPH</option>
+                            <option value="80">80+ MPH</option>
+                            <option value="90">90+ MPH</option>
+                            <option value="100">100+ MPH</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Minimum Hail Size (SVR):</label>
+                        <select id="minHail">
+                            <option value="0">All Warnings</option>
+                            <option value="0.5">&lt;0.5"</option>
+                            <option value="0.75">0.75"+</option>
+                            <option value="1">1"+</option>
+                            <option value="1.5">1.5"+</option>
+                            <option value="1.75">1.75"+</option>
+                            <option value="2">2"+</option>
+                            <option value="2.5">2.5"+</option>
+                            <option value="2.75">2.75"+ (Destructive)</option>
+                            <option value="3">3"+</option>
+                            <option value="4">4"+</option>
+                            <option value="4.5">4.5"+</option>
+                            <option value="5">5"+ (Historic)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-group" style="margin-top: 10px;">
+                    <label>Warning Types to Show:</label>
+                    <div class="filter-checkboxes">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="showTO" value="TO" checked>
+                            <label for="showTO">Tornado Warnings</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="showSV" value="SV" checked>
+                            <label for="showSV">Severe Thunderstorm Warnings</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="showFF" value="FF">
+                            <label for="showFF">Flash Flood Warnings</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="showFL" value="FL">
+                            <label for="showFL">Flood Warnings</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="showFA" value="FA">
+                            <label for="showFA">Flood Advisories</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-group" style="margin-top: 10px;">
+                    <label>Tornado Warning Filters:</label>
+                    <div class="filter-checkboxes">
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="torRadar" value="RADAR INDICATED">
+                            <label for="torRadar">Radar Indicated</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="torObserved" value="OBSERVED">
+                            <label for="torObserved">Observed</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="torConsiderable" value="CONSIDERABLE">
+                            <label for="torConsiderable">Considerable Damage Threat</label>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="torCatastrophic" value="CATASTROPHIC">
+                            <label for="torCatastrophic">Catastrophic Damage Threat</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 20px;">
+                    <button class="control-btn" onclick="searchWarnings()">
+                        <i class="fas fa-search"></i> Search Warnings
+                    </button>
+                    <button class="control-btn" onclick="clearWarningFilters()">
+                        <i class="fas fa-times"></i> Clear Filters
+                    </button>
+                </div>
+
+                <div class="attribution">
+                    Data provided by <a href="https://mesonet.agron.iastate.edu/api/" target="_blank">Iowa State University Mesonet</a>
+                </div>
+            </div>
+
+            <div class="warnings-list" id="warningsList"></div>
+        </div>
+
+        <!-- Area Forecast Discussion Page -->
+        <div id="afd" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-file-alt"></i>
+                Area Forecast Discussion
+            </h2>
+            
+            <div class="afd-container">
+                <div class="afd-input">
+                    <div class="filter-group">
+                        <label for="afdOffice">NWS Office Code (3 letters):</label>
+                        <input type="text" id="afdOffice" maxlength="3" placeholder="e.g., DMX" oninput="this.value = this.value.toUpperCase()">
+                    </div>
+                    <div class="controls" style="margin-top: 15px;">
+                        <button class="control-btn" onclick="loadAFD()">
+                            <i class="fas fa-download"></i> Load AFD
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="afdContent"></div>
+            </div>
+        </div>
+
+        <!-- SPC Probability Converter Page -->
+        <div id="spcConverter" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-calculator"></i>
+                SPC Probability Converter
+            </h2>
+            
+            <div class="converter-container">
+                <div class="day-selector">
+                    <label for="converterDay">Select Outlook Day:</label>
+                    <select id="converterDay" onchange="updateConverter()">
+                        <option value="1">Day 1</option>
+                        <option value="2">Day 2</option>
+                        <option value="3">Day 3</option>
+                    </select>
+                </div>
+
+                <div class="converter-content">
+                    <!-- Day 1/2 Section -->
+                    <div id="day12Section" class="day-sections visible">
+                        <!-- Individual Hazards Card -->
+                        <div class="converter-card">
+                            <h3><i class="fas fa-cloud-bolt"></i> Individual Hazards</h3>
+                            
+                            <div class="input-group">
+                                <label>Tornado Probability (%):</label>
+                                <select id="tornadoDropdown" class="probability-dropdown" onchange="updateResults()">
+                                    <option value="">-- Select Probability --</option>
+                                </select>
+                                <div class="result-box">
+                                    <div class="result-label">Tornado Category</div>
+                                    <div class="result-value" id="tornadoResult">-</div>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>Wind Probability (%):</label>
+                                <select id="windDropdown" class="probability-dropdown" onchange="updateResults()">
+                                    <option value="">-- Select Probability --</option>
+                                </select>
+                                <div class="result-box">
+                                    <div class="result-label">Wind Category</div>
+                                    <div class="result-value" id="windResult">-</div>
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label>Hail Probability (%):</label>
+                                <select id="hailDropdown" class="probability-dropdown" onchange="updateResults()">
+                                    <option value="">-- Select Probability --</option>
+                                </select>
+                                <div class="result-box">
+                                    <div class="result-label">Hail Category</div>
+                                    <div class="result-value" id="hailResult">-</div>
+                                </div>
+                            </div>
+
+                            <div class="overall-risk-box">
+                                <div class="overall-risk-label">Overall Risk (Day 1/2)</div>
+                                <div class="result-value overall-risk-value" id="overallRiskDay12">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Day 3 Section -->
+                    <div id="day3Section" class="day-sections">
+                        <!-- Combined Risk Card -->
+                        <div class="converter-card">
+                            <h3><i class="fas fa-list-check"></i> Combined Risk</h3>
+                            
+                            <div class="input-group">
+                                <label>Combined Probability (%):</label>
+                                <select id="combinedDropdown" class="probability-dropdown" onchange="updateCombinedResult()">
+                                    <option value="">-- Select Probability --</option>
+                                </select>
+                                <div class="result-box">
+                                    <div class="result-label">Combined Category</div>
+                                    <div class="result-value" id="combinedResult">-</div>
+                                </div>
+                            </div>
+
+                            <div class="overall-risk-box">
+                                <div class="overall-risk-label">Overall Risk (Day 3)</div>
+                                <div class="result-value overall-risk-value" id="overallRiskDay3">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top: 20px;">
+                    <button class="control-btn" onclick="clearConverter()" style="width: 100%;">
+                        <i class="fas fa-times"></i> Clear All
+                    </button>
+                </div>
+
+                <!-- Reference Tables -->
+                <div id="referenceTablesDay12" class="reference-tables-container">
+                    <div class="lookup-table">
+                    <h4><i class="fas fa-table"></i> Day 1/2 Individual Hazards Reference</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Probability (%)</th>
+                                <th>Tornado</th>
+                                <th>Wind</th>
+                                <th>Hail</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2%</td>
+                                <td class="category-marginal">Marginal</td>
+                                <td class="category-unused">Unused</td>
+                                <td class="category-unused">Unused</td>
+                            </tr>
+                            <tr>
+                                <td>5%</td>
+                                <td class="category-slight">Slight</td>
+                                <td class="category-marginal">Marginal</td>
+                                <td class="category-marginal">Marginal</td>
+                            </tr>
+                            <tr>
+                                <td>10%</td>
+                                <td class="category-enhanced">Enhanced</td>
+                                <td class="category-unused">Unused</td>
+                                <td class="category-unused">Unused</td>
+                            </tr>
+                            <tr>
+                                <td>10% SIG</td>
+                                <td class="category-enhanced">Enhanced</td>
+                                <td class="category-unused">Unused</td>
+                                <td class="category-unused">Unused</td>
+                            </tr>
+                            <tr>
+                                <td>15%</td>
+                                <td class="category-enhanced">Enhanced</td>
+                                <td class="category-slight">Slight</td>
+                                <td class="category-slight">Slight</td>
+                            </tr>
+                            <tr>
+                                <td>15% SIG</td>
+                                <td class="category-moderate">Moderate</td>
+                                <td class="category-slight">Slight</td>
+                                <td class="category-slight">Slight</td>
+                            </tr>
+                            <tr>
+                                <td>30%</td>
+                                <td class="category-moderate">Moderate</td>
+                                <td class="category-enhanced">Enhanced</td>
+                                <td class="category-enhanced">Enhanced</td>
+                            </tr>
+                            <tr>
+                                <td>30% SIG</td>
+                                <td class="category-high">High</td>
+                                <td class="category-enhanced">Enhanced</td>
+                                <td class="category-enhanced">Enhanced</td>
+                            </tr>
+                            <tr>
+                                <td>45%</td>
+                                <td class="category-high">High</td>
+                                <td class="category-enhanced">Enhanced</td>
+                                <td class="category-enhanced">Enhanced</td>
+                            </tr>
+                            <tr>
+                                <td>45% SIG</td>
+                                <td class="category-high">High</td>
+                                <td class="category-moderate">Moderate</td>
+                                <td class="category-moderate">Moderate</td>
+                            </tr>
+                            <tr>
+                                <td>60%</td>
+                                <td class="category-high">High</td>
+                                <td class="category-moderate">Moderate</td>
+                                <td class="category-moderate">Moderate</td>
+                            </tr>
+                            <tr>
+                                <td>60% SIG</td>
+                                <td class="category-high">High</td>
+                                <td class="category-high">High</td>
+                                <td class="category-moderate">Moderate</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="lookup-table">
+                    <h4><i class="fas fa-table"></i> Day 1/2 Combined Risk Reference</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Probability (%)</th>
+                                <th>Combined Category</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>5%</td>
+                                <td class="category-marginal">Marginal</td>
+                            </tr>
+                            <tr>
+                                <td>15%</td>
+                                <td class="category-slight">Slight</td>
+                            </tr>
+                            <tr>
+                                <td>15% SIG</td>
+                                <td class="category-slight">Slight</td>
+                            </tr>
+                            <tr>
+                                <td>30%</td>
+                                <td class="category-enhanced">Enhanced</td>
+                            </tr>
+                            <tr>
+                                <td>30% SIG</td>
+                                <td class="category-enhanced">Enhanced</td>
+                            </tr>
+                            <tr>
+                                <td>45%</td>
+                                <td class="category-enhanced">Enhanced</td>
+                            </tr>
+                            <tr>
+                                <td>45% SIG</td>
+                                <td class="category-moderate">Moderate</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Radar Expanded View -->
+        <div class="radar-expanded" id="radarExpanded" onclick="closeRadar()">
+            <button class="radar-close"><i class="fas fa-times"></i> Close</button>
+            <img id="radarExpandedImg" src="" alt="Radar Image">
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 'outlows';
+        let animationInterval = null;
+        let currentAnimationIndex = 0;
+        let animationFrames = [];
+        let countdownsInitialized = false;
+        let alertsInterval = null;
+        let previousAlerts = {};
+
+        const convectiveEvents = [
+            'Tornado Warning', 'Severe Thunderstorm Warning', 'Flash Flood Warning',
+            'Tornado Watch', 'Severe Thunderstorm Watch', 'Flash Flood Watch',
+            'Severe Weather Statement'
+        ];
+
+        function isConvectiveSpecialWeatherStatement(description) {
+            if (!description) return false;
+            const text = description.toUpperCase();
+            // Check for thunderstorm keywords
+            if (text.includes('STRONG THUNDERSTORM') || text.includes('A STRONG THUNDERSTORM')) {
+                return true;
+            }
+            // Check for wind speed hazards (40/50/55 mph)
+            if (text.includes('HAZARD') && (/\b(40|50|55)\s*mph/i.test(text))) {
+                return true;
+            }
+            // Check for hail size hazards
+            if (text.includes('HAZARD') && (text.includes('PEA') || text.includes('NICKEL') || text.includes('HALF DOLLAR'))) {
+                return true;
+            }
+            return false;
+        }
+
+        function handleCheckbox(checkboxId) {
+            const loopCheck = document.getElementById('loopCheck');
+            const multiDayCheck = document.getElementById('multiDayCheck');
+            
+            if (checkboxId === 'loopCheck' && loopCheck.checked) {
+                multiDayCheck.checked = false;
+            } else if (checkboxId === 'multiDayCheck' && multiDayCheck.checked) {
+                loopCheck.checked = false;
+            }
+        }
+
+        function preloadImages(urls) {
+            return Promise.all(
+                urls.map(url => {
+                    return new Promise((resolve, reject) => {
+                        const img = new Image();
+                        img.onload = () => resolve(url);
+                        img.onerror = () => resolve(url); // Resolve even on error to continue
+                        img.src = url;
+                    });
+                })
+            );
+        }
+
+        async function playAnimation() {
+            const day = document.getElementById('archiveDay').value;
+            const dateInput = document.getElementById('archiveDate').value;
+            const loopCheck = document.getElementById('loopCheck').checked;
+            const multiDayCheck = document.getElementById('multiDayCheck').checked;
+            
+            if (!dateInput) {
+                alert('Please select a date first');
+                return;
+            }
+
+            const selectedDate = new Date(dateInput);
+            const minDate = new Date('2003-01-23');
+            
+            if (selectedDate < minDate) {
+                alert('Archives are only available from January 23, 2003 onwards');
+                return;
+            }
+
+            // Stop any existing animation
+            stopAnimation();
+
+            // Build animation frames
+            animationFrames = [];
+            const times = ['0100', '1200', '1300', '1630', '2000'];
+            
+            if (loopCheck) {
+                // Loop through times for the same day
+                times.forEach(time => {
+                    animationFrames.push({
+                        day: day,
+                        date: dateInput,
+                        time: time
+                    });
+                });
+            } else if (multiDayCheck) {
+                // Advance through multiple days with first update of each day
+                const currentDate = new Date(dateInput);
+                for (let i = 0; i < 10; i++) {
+                    const year = currentDate.getFullYear();
+                    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+                    const dayOfMonth = String(currentDate.getDate()).padStart(2, '0');
+                    const dateStr = `${year}-${month}-${dayOfMonth}`;
+                    
+                    animationFrames.push({
+                        day: day,
+                        date: dateStr,
+                        time: '1200' // Use 12Z as the main update
+                    });
+                    
+                    currentDate.setDate(currentDate.getDate() + 1);
+                }
+            } else {
+                // Just play through the times once
+                times.forEach(time => {
+                    animationFrames.push({
+                        day: day,
+                        date: dateInput,
+                        time: time
+                    });
+                });
+            }
+
+            // Preload all images
+            document.getElementById('playbackStatus').textContent = 'Loading images...';
+            const imageUrls = animationFrames.map(frame => {
+                const date = new Date(frame.date);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const dayOfMonth = String(date.getDate()).padStart(2, '0');
+                return `https://www.spc.noaa.gov/products/outlook/archive/${year}/day${frame.day}otlk_${year}${month}${dayOfMonth}_${frame.time}_prt.gif`;
+            });
+
+            await preloadImages(imageUrls);
+
+            currentAnimationIndex = 0;
+            document.getElementById('playBtn').style.display = 'none';
+            document.getElementById('stopBtn').style.display = 'inline-block';
+            
+            // Show first frame
+            showAnimationFrame();
+            
+            // Start animation
+            animationInterval = setInterval(() => {
+                currentAnimationIndex++;
+                
+                if (currentAnimationIndex >= animationFrames.length) {
+                    if (loopCheck || multiDayCheck) {
+                        currentAnimationIndex = 0; // Loop
+                    } else {
+                        stopAnimation();
+                        return;
+                    }
+                }
+                
+                showAnimationFrame();
+            }, 2000); // Change frame every 2 seconds
+        }
+
+        function showAnimationFrame() {
+            const frame = animationFrames[currentAnimationIndex];
+            const date = new Date(frame.date);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const dayOfMonth = String(date.getDate()).padStart(2, '0');
+            
+            const url = `https://www.spc.noaa.gov/products/outlook/archive/${year}/day${frame.day}otlk_${year}${month}${dayOfMonth}_${frame.time}_prt.gif`;
+            
+            const container = document.getElementById('archiveContainer');
+            const statusText = `Playing: Frame ${currentAnimationIndex + 1} of ${animationFrames.length} - Day ${frame.day} ${frame.date} ${frame.time}Z`;
+            document.getElementById('playbackStatus').textContent = statusText;
+            
+            container.innerHTML = `
+                <div class="outlook-card">
+                    <h3><i class="fas fa-film"></i> Day ${frame.day} Outlook - ${frame.date} at ${frame.time}Z</h3>
+                    <img src="${url}" alt="Archive Outlook" onerror="this.parentElement.innerHTML='<div class=error><i class=fas fa-exclamation-circle></i> Archive image not found for this frame.</div>'">
+                </div>
+            `;
+        }
+
+        function stopAnimation() {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+            document.getElementById('playBtn').style.display = 'inline-block';
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('playbackStatus').textContent = '';
+        }
+
+        function toggleDropdown(dropdownId) {
+            const dropdown = document.getElementById(dropdownId);
+            const allDropdowns = document.querySelectorAll('.dropdown');
+            
+            allDropdowns.forEach(d => {
+                if (d.id !== dropdownId) {
+                    d.classList.remove('active');
+                }
+            });
+            
+            dropdown.classList.toggle('active');
+        }
+
+        function closeAllDropdowns() {
+            document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown')) {
+                closeAllDropdowns();
+            }
+        });
+
+        function showPage(pageId) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(p => p.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            currentPage = pageId;
+
+            if (pageId === 'reports') {
+                loadStormReports();
+            } else if (pageId === 'alerts') {
+                loadAlerts();
+                if (alertsInterval) clearInterval(alertsInterval);
+                alertsInterval = setInterval(loadAlerts, 15000);
+            } else if (pageId === 'spcConverter') {
+                initializeProbabilitySelectors();
+            } else {
+                if (alertsInterval) {
+                    clearInterval(alertsInterval);
+                    alertsInterval = null;
+                }
+            }
+        }
+
+        function toggleExtended() {
+            const extended = document.getElementById('extendedOutlooks');
+            const toggleText = document.getElementById('toggleText');
+            if (extended.classList.contains('visible')) {
+                extended.classList.remove('visible');
+                toggleText.innerHTML = 'Show Extended Outlooks (Days 4-8)';
+            } else {
+                extended.classList.add('visible');
+                toggleText.innerHTML = 'Hide Extended Outlooks (Days 4-8)';
+            }
+        }
+
+        function toggleExpand(cardId) {
+            const card = document.getElementById(cardId);
+            if (!card) return;
+            
+            const btn = card.querySelector('.expand-btn i');
+            if (!btn) return;
+            
+            if (card.classList.contains('expanded')) {
+                card.classList.remove('expanded');
+                btn.className = 'fas fa-expand';
+            } else {
+                document.querySelectorAll('.outlook-card').forEach(c => {
+                    if (!c) return;
+                    c.classList.remove('expanded');
+                    const cBtn = c.querySelector('.expand-btn i');
+                    if (cBtn) cBtn.className = 'fas fa-expand';
+                });
+                card.classList.add('expanded');
+                btn.className = 'fas fa-compress';
+            }
+        }
+
+        // Outlook drawer toggle
+        function toggleOutlookDrawer(drawerId) {
+            const drawer = document.getElementById(drawerId);
+            if (!drawer) return;
+            
+            const btn = drawer.previousElementSibling;
+            if (!btn) return;
+            
+            drawer.classList.toggle('open');
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-chevron-down');
+                icon.classList.toggle('fa-chevron-up');
+            }
+        }
+
+        // Format ISO timestamp to Zulu and CST/CDT
+        function formatOutlookTime(isoString) {
+            try {
+                const date = new Date(isoString);
+                
+                // Zulu format (UTC with Z suffix)
+                const zulu = date.toISOString().split('T')[0] + ' ' + date.toISOString().split('T')[1].substring(0, 5) + 'Z';
+                
+                // Convert to CST/CDT (UTC-6/-5)
+                const cstDate = new Date(date.getTime() - (6 * 60 * 60 * 1000)); // Start with CST (UTC-6)
+                
+                // Check if DST applies (second Sunday in March to first Sunday in November)
+                const year = date.getUTCFullYear();
+                const marchSecond = new Date(year, 2, 8); // March 8 (earliest possible second Sunday)
+                while (marchSecond.getDay() !== 0) marchSecond.setDate(marchSecond.getDate() + 1);
+                
+                const novemberFirst = new Date(year, 10, 1); // November 1 (latest possible first Sunday)
+                while (novemberFirst.getDay() !== 0) novemberFirst.setDate(novemberFirst.getDate() + 1);
+                
+                const isDST = date >= marchSecond && date < novemberFirst;
+                
+                // Adjust for CDT if DST is in effect
+                const offset = isDST ? 5 : 6;
+                const cstDateAdjusted = new Date(date.getTime() - (offset * 60 * 60 * 1000));
+                
+                const cstFormatted = cstDateAdjusted.toISOString().split('T')[0] + ' ' + 
+                                   cstDateAdjusted.toISOString().split('T')[1].substring(0, 5) + 
+                                   (isDST ? ' CDT' : ' CST');
+                
+                return { zulu, cst: cstFormatted, isDST };
+            } catch (error) {
+                console.error('Error formatting time:', error);
+                return { zulu: 'N/A', cst: 'N/A', isDST: false };
+            }
+        }
+
+        // Fetch and populate outlook metadata from GeoJSON
+        async function fetchOutlookMetadata(day) {
+            try {
+                const url = `https://www.spc.noaa.gov/products/outlook/day${day}otlk_cat.nolyr.geojson`;
+                const response = await fetch(url);
+                const geojson = await response.json();
+                
+                if (!geojson.features || geojson.features.length === 0) {
+                    return null;
+                }
+                
+                // Get the first feature (primary outlook)
+                const feature = geojson.features[0];
+                const props = feature.properties;
+                
+                return {
+                    issued: formatOutlookTime(props.ISSUE_ISO),
+                    forecaster: props.FORECASTER || 'Unknown',
+                    threats: geojson.features.map(f => ({
+                        label: f.properties.LABEL,
+                        description: f.properties.LABEL2
+                    }))
+                };
+            } catch (error) {
+                console.error(`Error fetching outlook for day ${day}:`, error);
+                return null;
+            }
+        }
+
+        // Populate drawer with metadata
+        async function populateOutlookDrawer(day) {
+            const metadata = await fetchOutlookMetadata(day);
+            if (!metadata) {
+                const contentDiv = document.getElementById(`day${day}-drawer-content`);
+                if (contentDiv) {
+                    contentDiv.innerHTML = '<div class="drawer-item"><div class="drawer-label">Unable to load data</div></div>';
+                }
+                return;
+            }
+            
+            const contentDiv = document.getElementById(`day${day}-drawer-content`);
+            if (!contentDiv) return;
+            
+            let html = '';
+            
+            // Time issued
+            html += `
+                <div class="drawer-item">
+                    <div class="drawer-label">Issued (Zulu)</div>
+                    <div class="drawer-value">${metadata.issued.zulu}</div>
+                </div>
+                <div class="drawer-item">
+                    <div class="drawer-label">Issued (${metadata.issued.isDST ? 'CDT' : 'CST'})</div>
+                    <div class="drawer-value">${metadata.issued.cst}</div>
+                </div>
+            `;
+            
+            // Threats by day
+            if (day <= 2) {
+                // Day 1/2: Show individual threat types
+                const threatMap = {
+                    'TSTM': 'General Thunderstorms',
+                    'MRGL': 'Marginal',
+                    'SLGT': 'Slight',
+                    'ENH': 'Enhanced',
+                    'MDT': 'Moderate',
+                    'HIGH': 'High'
+                };
+                
+                metadata.threats.forEach(threat => {
+                    const threatName = threatMap[threat.label] || threat.label;
+                    html += `
+                        <div class="drawer-item">
+                            <div class="drawer-label">${threatName}</div>
+                        </div>
+                    `;
+                });
+            } else {
+                // Day 3: Show combined risk
+                metadata.threats.forEach(threat => {
+                    html += `
+                        <div class="drawer-item">
+                            <div class="drawer-label">Combined Risk</div>
+                            <div class="drawer-value">${threat.description}</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Forecaster
+            html += `
+                <div class="drawer-item">
+                    <div class="drawer-label">Forecaster</div>
+                    <div class="drawer-value">${metadata.forecaster}</div>
+                </div>
+            `;
+            
+            contentDiv.innerHTML = html;
+        }
+
+        // Load all outlook metadata on page load
+        async function loadAllOutlookMetadata() {
+            for (let day = 1; day <= 3; day++) {
+                await populateOutlookDrawer(day);
+            }
+        }
+
+        // Countdown functionality
+        const outlookTimes = {
+            'Day 1': [
+                { time: '0100', hour: 1, minute: 0, url: 'https://www.spc.noaa.gov/partners/outlooks/state/swody1.png' },
+                { time: '1200', hour: 12, minute: 0, url: 'https://www.spc.noaa.gov/partners/outlooks/state/swody1.png' },
+                { time: '1300', hour: 13, minute: 0, url: 'https://www.spc.noaa.gov/partners/outlooks/state/swody1.png' },
+                { time: '1630', hour: 16, minute: 30, url: 'https://www.spc.noaa.gov/partners/outlooks/state/swody1.png' },
+                { time: '2000', hour: 20, minute: 0, url: 'https://www.spc.noaa.gov/partners/outlooks/state/swody1.png' }
+            ],
+            'Day 2': [
+                { time: '0700', hour: 7, minute: 0, url: 'https://www.spc.noaa.gov/partners/outlooks/state/swody2.png' },
+                { time: '1730', hour: 17, minute: 30, url: 'https://www.spc.noaa.gov/partners/outlooks/state/swody2.png' }
+            ],
+            'Day 3': [
+                { time: '0830', hour: 8, minute: 30, url: 'https://www.spc.noaa.gov/partners/outlooks/state/swody3.png' },
+                { time: '1930', hour: 19, minute: 30, url: 'https://www.spc.noaa.gov/partners/outlooks/state/swody3.png' }
+            ]
+        };
+
+        let outlookLastModified = {};
+
+        async function checkOutlookStatus(url, scheduledTime) {
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                const lastModified = new Date(response.headers.get('Last-Modified'));
+                outlookLastModified[url] = lastModified;
+                
+                const timeDiff = (lastModified - scheduledTime) / 1000 / 60; // difference in minutes
+                
+                if (timeDiff > 2) {
+                    return 'ahead'; // Updated more than 2 minutes early
+                } else if (timeDiff >= -2 && timeDiff <= 2) {
+                    return 'ontime'; // Within 2 minute window
+                } else if (timeDiff < -2) {
+                    return 'delayed'; // More than 2 minutes late
+                }
+            } catch (error) {
+                return null; // Can't determine status
+            }
+        }
+
+        async function updateCountdowns() {
+            const container = document.getElementById('countdownContainer');
+            const isFirstRun = !countdownsInitialized;
+            
+            if (isFirstRun) {
+                container.innerHTML = '';
+                countdownsInitialized = true;
+            }
+
+            const now = new Date();
+            let cardIndex = 0;
+            
+            for (const [day, times] of Object.entries(outlookTimes)) {
+                if (isFirstRun) {
+                    const dayDiv = document.createElement('div');
+                    dayDiv.style.gridColumn = '1 / -1';
+                    dayDiv.innerHTML = `<h3 class="section-title" style="font-size: 1.5em; margin: 20px 0 15px 0;"><i class="fas fa-calendar"></i> ${day} Updates</h3>`;
+                    container.appendChild(dayDiv);
+                }
+
+                let nextUpdateFound = false;
+                let allCompleted = true;
+
+                for (let idx = 0; idx < times.length; idx++) {
+                    const timeObj = times[idx];
+                    const nextUpdate = new Date();
+                    nextUpdate.setUTCHours(timeObj.hour, timeObj.minute, 0, 0);
+                    
+                    const isCompleted = nextUpdate < now;
+                    const diff = nextUpdate - now;
+                    
+                    if (!isCompleted) {
+                        allCompleted = false;
+                    }
+
+                    const isNext = !isCompleted && !nextUpdateFound;
+                    if (isNext) nextUpdateFound = true;
+
+                    const cardId = `countdown-${day.replace(' ', '')}-${idx}`;
+                    let card = document.getElementById(cardId);
+                    
+                    if (isFirstRun) {
+                        card = document.createElement('div');
+                        card.id = cardId;
+                        card.className = `countdown-card animate-in ${isNext ? 'next pulse-glow' : ''} ${isCompleted ? 'completed' : ''}`;
+                        card.style.animationDelay = `${cardIndex * 0.1}s`;
+                        cardIndex++;
+                        container.appendChild(card);
+                    }
+                    
+                    if (isCompleted) {
+                        // Check outlook status
+                        const status = await checkOutlookStatus(timeObj.url, nextUpdate);
+                        let statusBadge = '';
+                        let statusClass = '';
+                        
+                        if (status === 'ahead') {
+                            statusBadge = '<span class="status-badge badge-ahead"><i class="fas fa-check-circle"></i> Early</span>';
+                            statusClass = 'ahead';
+                        } else if (status === 'ontime') {
+                            statusBadge = '<span class="status-badge badge-ontime"><i class="fas fa-check-circle"></i> On Time</span>';
+                            statusClass = 'ontime';
+                        } else if (status === 'delayed') {
+                            statusBadge = '<span class="status-badge badge-delayed"><i class="fas fa-clock"></i> Delayed</span>';
+                            statusClass = 'delayed';
+                        } else {
+                            statusBadge = '<span class="status-badge badge-completed"><i class="fas fa-check-circle"></i> Completed</span>';
+                            statusClass = 'completed';
+                        }
+                        
+                        card.className = `countdown-card ${statusClass}`;
+                        card.innerHTML = `
+                            <h3>${day} - ${timeObj.time}Z Update</h3>
+                            <div class="countdown-time">ISSUED</div>
+                            ${statusBadge}
+                        `;
+                    } else {
+                        card.className = `countdown-card ${isNext ? 'next pulse-glow' : ''}`;
+                        
+                        const hours = Math.floor(diff / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                        const localTime = nextUpdate.toLocaleTimeString('en-US', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            timeZoneName: 'short'
+                        });
+
+                        card.innerHTML = `
+                            <h3>${day} - ${timeObj.time}Z Update</h3>
+                            <div class="countdown-time">
+                                ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}
+                            </div>
+                            <div class="countdown-label">Next update: ${localTime}</div>
+                            ${isNext ? '<span class="status-badge badge-next"><i class="fas fa-arrow-right"></i> NEXT</span>' : ''}
+                        `;
+                    }
+                }
+
+                // If all completed for this day, show tomorrow's first update
+                if (allCompleted) {
+                    const tomorrowCardId = `countdown-${day.replace(' ', '')}-tomorrow`;
+                    let card = document.getElementById(tomorrowCardId);
+                    
+                    const tomorrowUpdate = new Date();
+                    tomorrowUpdate.setUTCHours(times[0].hour, times[0].minute, 0, 0);
+                    tomorrowUpdate.setUTCDate(tomorrowUpdate.getUTCDate() + 1);
+                    
+                    const diff = tomorrowUpdate - now;
+                    const hours = Math.floor(diff / (1000 * 60 * 60));
+                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                    const localTime = tomorrowUpdate.toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        timeZoneName: 'short'
+                    });
+
+                    if (isFirstRun) {
+                        card = document.createElement('div');
+                        card.id = tomorrowCardId;
+                        card.className = 'countdown-card next pulse-glow animate-in';
+                        card.style.animationDelay = `${cardIndex * 0.1}s`;
+                        cardIndex++;
+                        container.appendChild(card);
+                    } else {
+                        card.className = 'countdown-card next pulse-glow';
+                    }
+                    
+                    card.innerHTML = `
+                        <h3>${day} - ${times[0].time}Z (Tomorrow)</h3>
+                        <div class="countdown-time">
+                            ${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}
+                        </div>
+                        <div class="countdown-label">Next update: ${localTime}</div>
+                        <span class="status-badge badge-next"><i class="fas fa-calendar-plus"></i> Tomorrow's First Update</span>
+                    `;
+                }
+            }
+        }
+
+        setInterval(updateCountdowns, 1000);
+        updateCountdowns();
+
+        // Archive functionality
+        function loadArchive() {
+            const day = document.getElementById('archiveDay').value;
+            const dateInput = document.getElementById('archiveDate').value;
+            const time = document.getElementById('archiveTime').value;
+            
+            if (!dateInput) {
+                alert('Please select a date');
+                return;
+            }
+
+            const selectedDate = new Date(dateInput);
+            const minDate = new Date('2003-01-23');
+            
+            if (selectedDate < minDate) {
+                alert('Archives are only available from January 23, 2003 onwards');
+                return;
+            }
+
+            const date = new Date(dateInput);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const dayOfMonth = String(date.getDate()).padStart(2, '0');
+            
+            const url = `https://www.spc.noaa.gov/products/outlook/archive/${year}/day${day}otlk_${year}${month}${dayOfMonth}_${time}_prt.gif`;
+            
+            const container = document.getElementById('archiveContainer');
+            container.innerHTML = `
+                <div class="outlook-card" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-archive"></i> Day ${day} Outlook - ${dateInput} at ${time}Z</h3>
+                    <img src="${url}" alt="Archive Outlook" onerror="this.parentElement.innerHTML='<div class=error><i class=fas fa-exclamation-circle></i> Archive image not found. Please verify the date and time.</div>'">
+                </div>
+            `;
+        }
+
+        // Load Storm Reports
+        async function loadStormReports() {
+            const container = document.getElementById('reportsContainer');
+            
+            try {
+                const [tornados, wind, hail] = await Promise.all([
+                    fetch('https://www.spc.noaa.gov/climo/reports/today_torn.csv').then(r => r.text()),
+                    fetch('https://www.spc.noaa.gov/climo/reports/today_raw_wind.csv').then(r => r.text()),
+                    fetch('https://www.spc.noaa.gov/climo/reports/today_filtered_hail.csv').then(r => r.text())
+                ]);
+
+                const tornadoReports = parseCSV(tornados);
+                const windReports = parseCSV(wind);
+                const hailReports = parseCSV(hail);
+
+                container.innerHTML = `
+                    <div class="report-card animate-in">
+                        <h3><i class="fas fa-tornado"></i> Tornado Reports</h3>
+                        <div class="report-count">${tornadoReports.length}</div>
+                        <div class="report-list">
+                            ${tornadoReports.map(r => `
+                                <div class="report-item">
+                                    <strong>${r.time}</strong> - ${r.location}<br>
+                                    ${r.comments}
+                                </div>
+                            `).join('') || '<div class="report-item">No tornado reports today</div>'}
+                        </div>
+                    </div>
+                    <div class="report-card animate-in">
+                        <h3><i class="fas fa-wind"></i> Wind Reports</h3>
+                        <div class="report-count">${windReports.length}</div>
+                        <div class="report-list">
+                            ${windReports.map(r => `
+                                <div class="report-item">
+                                    <strong>${r.time}</strong> - ${r.location}<br>
+                                    Speed: ${r.speed} | ${r.comments}
+                                </div>
+                            `).join('') || '<div class="report-item">No wind reports today</div>'}
+                        </div>
+                    </div>
+                    <div class="report-card animate-in">
+                        <h3><i class="fas fa-cloud-meatball"></i> Hail Reports</h3>
+                        <div class="report-count">${hailReports.length}</div>
+                        <div class="report-list">
+                            ${hailReports.map(r => `
+                                <div class="report-item">
+                                    <strong>${r.time}</strong> - ${r.location}<br>
+                                    Size: ${r.size}" | ${r.comments}
+                                </div>
+                            `).join('') || '<div class="report-item">No hail reports today</div>'}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Error loading storm reports. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        function parseCSV(csv) {
+            const lines = csv.trim().split('\n');
+            if (lines.length <= 1) return [];
+            
+            const reports = [];
+            for (let i = 1; i < lines.length; i++) {
+                const parts = lines[i].split(',');
+                if (parts.length >= 6) {
+                    reports.push({
+                        time: parts[0] || 'Unknown',
+                        location: `${parts[5] || ''}, ${parts[4] || ''}`,
+                        comments: parts[6] || 'No details',
+                        speed: parts[3] || 'Unknown',
+                        size: parts[3] || 'Unknown'
+                    });
+                }
+            }
+            return reports;
+        }
+
+        // Set default date to today and minimum date to Jan 23, 2003
+        const dateInput = document.getElementById('archiveDate');
+        dateInput.valueAsDate = new Date();
+        dateInput.min = '2003-01-23';
+
+        // Set warning archive dates
+        const warningStartDate = document.getElementById('warningStartDate');
+        const warningEndDate = document.getElementById('warningEndDate');
+        const today = new Date();
+        const twoYearsAgo = new Date(today);
+        twoYearsAgo.setFullYear(today.getFullYear() - 2);
+        
+        warningStartDate.valueAsDate = twoYearsAgo;
+        warningEndDate.valueAsDate = today;
+        warningStartDate.min = '1986-01-01';
+        warningEndDate.max = today.toISOString().split('T')[0];
+
+        // Warning Archive functions
+        let searchTimeout = null;
+
+        async function searchLocation() {
+            const query = document.getElementById('locationSearch').value.trim();
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if (query.length < 2) {
+                resultsDiv.classList.remove('visible');
+                return;
+            }
+
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(async () => {
+                try {
+                    const url = `https://api.weather.com/v3/location/search?query=${encodeURIComponent(query)}&locationType=city&language=en-US&format=json&countryCode=US&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909`;
+                    const response = await fetch(url);
+                    const data = await response.json();
+
+                    if (!data.location || data.location.address.length === 0) {
+                        resultsDiv.innerHTML = '<div style="padding: 12px; color: #b0b0b0;">No results found</div>';
+                        resultsDiv.classList.add('visible');
+                        return;
+                    }
+
+                    // Show top 5 results
+                    const maxResults = Math.min(5, data.location.address.length);
+                    let html = '';
+                    
+                    for (let i = 0; i < maxResults; i++) {
+                        const name = data.location.displayName[i];
+                        const context = data.location.displayContext[i];
+                        const lat = data.location.latitude[i];
+                        const lon = data.location.longitude[i];
+                        
+                        html += `
+                            <div class="search-result-item" onclick="selectLocation(${lat}, ${lon}, '${name}, ${context}')">
+                                <div class="search-result-name">${name}</div>
+                                <div class="search-result-context">${context}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    resultsDiv.innerHTML = html;
+                    resultsDiv.classList.add('visible');
+                } catch (error) {
+                    console.error('Location search error:', error);
+                    resultsDiv.innerHTML = '<div style="padding: 12px; color: #ff5733;">Error searching locations</div>';
+                    resultsDiv.classList.add('visible');
+                }
+            }, 300);
+        }
+
+        function selectLocation(lat, lon, locationName) {
+            document.getElementById('warningLat').value = lat.toFixed(4);
+            document.getElementById('warningLon').value = lon.toFixed(4);
+            document.getElementById('locationSearch').value = locationName;
+            document.getElementById('searchResults').classList.remove('visible');
+        }
+
+        // Close search results when clicking outside
+        document.addEventListener('click', function(event) {
+            const searchDiv = document.querySelector('.location-search');
+            if (searchDiv && !searchDiv.contains(event.target)) {
+                document.getElementById('searchResults').classList.remove('visible');
+            }
+        });
+
+        function formatWarningTimestamp(dateString) {
+            const date = new Date(dateString);
+            const month = date.getMonth() + 1;
+            const day = date.getDate();
+            const year = date.getFullYear();
+            let hours = date.getHours();
+            const minutes = date.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            const minutesStr = minutes < 10 ? '0' + minutes : minutes;
+            
+            // Get timezone abbreviation
+            const tzString = date.toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ').pop();
+            
+            return `${month}/${day}/${year}, ${hours}:${minutesStr} ${ampm} ${tzString}`;
+        }
+
+        function getWarningTypeName(phenomena) {
+            const types = {
+                'TO': 'Tornado Warning',
+                'SV': 'Severe Thunderstorm Warning',
+                'FF': 'Flash Flood Warning',
+                'FA': 'Flood Advisory',
+                'FL': 'Flood Warning'
+            };
+            return types[phenomena] || 'Warning';
+        }
+        async function searchWarnings() {
+            const lat = document.getElementById('warningLat').value;
+            const lon = document.getElementById('warningLon').value;
+            const startDate = document.getElementById('warningStartDate').value;
+            const endDate = document.getElementById('warningEndDate').value;
+
+            if (!lat || !lon) {
+                alert('Please enter latitude and longitude');
+                return;
+            }
+
+            if (!startDate || !endDate) {
+                alert('Please select start and end dates');
+                return;
+            }
+
+            const container = document.getElementById('warningsList');
+            container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Searching warnings...</div>';
+
+            try {
+                const url = `https://mesonet.agron.iastate.edu/json/sbw_by_point.py?lat=${lat}&lon=${lon}&buffer=0&sdate=${startDate}&edate=${endDate}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (!data.sbws || data.sbws.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-alerts">
+                            <i class="fas fa-info-circle" style="font-size: 3em; margin-bottom: 15px; display: block;"></i>
+                            No warnings found for this location and time period
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Apply filters
+                let filteredWarnings = data.sbws;
+
+                // Warning type filter
+                const showTypes = [];
+                if (document.getElementById('showTO').checked) showTypes.push('TO');
+                if (document.getElementById('showSV').checked) showTypes.push('SV');
+                if (document.getElementById('showFF').checked) showTypes.push('FF');
+                if (document.getElementById('showFL').checked) showTypes.push('FL');
+                if (document.getElementById('showFA').checked) showTypes.push('FA');
+
+                if (showTypes.length > 0) {
+                    filteredWarnings = filteredWarnings.filter(w => showTypes.includes(w.phenomena));
+                }
+
+                // Wind filter
+                const minWind = parseFloat(document.getElementById('minWind').value);
+                if (minWind > 0) {
+                    filteredWarnings = filteredWarnings.filter(w => {
+                        if (w.phenomena !== 'SV') return true;
+                        return w.issue_windtag && w.issue_windtag >= minWind;
+                    });
+                }
+
+                // Hail filter
+                const minHail = parseFloat(document.getElementById('minHail').value);
+                if (minHail > 0) {
+                    filteredWarnings = filteredWarnings.filter(w => {
+                        if (w.phenomena !== 'SV') return true;
+                        return w.issue_hailtag && w.issue_hailtag >= minHail;
+                    });
+                }
+
+                // Tornado filters
+                const torRadar = document.getElementById('torRadar').checked;
+                const torObserved = document.getElementById('torObserved').checked;
+                const torConsiderable = document.getElementById('torConsiderable').checked;
+                const torCatastrophic = document.getElementById('torCatastrophic').checked;
+
+                if (torRadar || torObserved || torConsiderable || torCatastrophic) {
+                    filteredWarnings = filteredWarnings.filter(w => {
+                        if (w.phenomena !== 'TO') return true;
+                        
+                        let matches = false;
+                        
+                        if (torRadar && w.issue_tornadotag === 'RADAR INDICATED') matches = true;
+                        if (torObserved && w.issue_tornadotag === 'OBSERVED') matches = true;
+                        if (torConsiderable && w.issue_tornadodamagetag === 'CONSIDERABLE') matches = true;
+                        if (torCatastrophic && w.issue_tornadodamagetag === 'CATASTROPHIC') matches = true;
+                        
+                        return matches;
+                    });
+                }
+
+                if (filteredWarnings.length === 0) {
+                    container.innerHTML = `
+                        <div class="no-alerts">
+                            <i class="fas fa-filter" style="font-size: 3em; margin-bottom: 15px; display: block;"></i>
+                            No warnings match your filter criteria
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Sort by issue date (newest first)
+                filteredWarnings.sort((a, b) => new Date(b.issue) - new Date(a.issue));
+
+                // Display warnings
+                container.innerHTML = '';
+                filteredWarnings.forEach((warning, index) => {
+                    const card = document.createElement('div');
+                    const typeClass = warning.phenomena === 'TO' ? 'tornado' : 
+                                    warning.phenomena === 'SV' ? 'severe' : 'flood';
+                    card.className = `warning-card ${typeClass} animate-in`;
+                    card.style.animationDelay = `${index * 0.05}s`;
+
+                    const issueDate = new Date(warning.issue);
+                    const expireDate = new Date(warning.expire);
+                    const warningYear = issueDate.getFullYear();
+                    
+                    const tags = [];
+                    if (warning.issue_windtag) {
+                        tags.push(`<span class="warning-tag tag-wind"><i class="fas fa-wind"></i> ${warning.issue_windtag} MPH</span>`);
+                    }
+                    if (warning.issue_hailtag) {
+                        tags.push(`<span class="warning-tag tag-hail"><i class="fas fa-cloud-meatball"></i> ${warning.issue_hailtag}" Hail</span>`);
+                    }
+                    if (warning.issue_tornadotag) {
+                        tags.push(`<span class="warning-tag tag-tornado"><i class="fas fa-tornado"></i> ${warning.issue_tornadotag}</span>`);
+                    }
+                    if (warning.issue_damagetag) {
+                        tags.push(`<span class="warning-tag tag-damage"><i class="fas fa-house-damage"></i> ${warning.issue_damagetag}</span>`);
+                    }
+                    if (warning.issue_tornadodamagetag) {
+                        tags.push(`<span class="warning-tag tag-damage"><i class="fas fa-skull-crossbones"></i> ${warning.issue_tornadodamagetag}</span>`);
+                    }
+
+                    const movementSpeed = warning.tml_sknt ? Math.round(warning.tml_sknt * 1.15078) : null; // Convert knots to mph
+
+                    // Build VTEC code for radar
+                    const vtecCode = `${warningYear}.K${warning.wfo}.${warning.phenomena}.${warning.significance}.${String(warning.eventid).padStart(4, '0')}`;
+                    const radarUrl = `https://mesonet.agron.iastate.edu/GIS/radmap.php?layers[]=nexrad&layers[]=sbw&layers[]=sbwh&layers[]=uscounties&vtec=${vtecCode}`;
+
+                    card.innerHTML = `
+                        <div class="warning-header">
+                            <div class="warning-title">
+                                <i class="fas ${getWarningIcon(warning.phenomena)}"></i> ${warning.name}
+                            </div>
+                            <div class="warning-wfo">WFO: ${warning.wfo}</div>
+                        </div>
+                        
+                        <div class="warning-details">
+                            <div class="warning-detail">
+                                <i class="fas fa-clock"></i>
+                                <span>Issued: ${formatWarningTimestamp(warning.issue)}</span>
+                            </div>
+                            <div class="warning-detail">
+                                <i class="fas fa-hourglass-end"></i>
+                                <span>Expired: ${formatWarningTimestamp(warning.expire)}</span>
+                            </div>
+                            <div class="warning-detail">
+                                <i class="fas fa-hashtag"></i>
+                                <span>#${warning.eventid} ${getWarningTypeName(warning.phenomena)} of ${warningYear}</span>
+                            </div>
+                            ${warning.tml_direction && movementSpeed ? `
+                                <div class="warning-detail">
+                                    <i class="fas fa-compass"></i>
+                                    <span>Movement: ${warning.tml_direction}° at ${movementSpeed} mph</span>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        ${tags.length > 0 ? `<div class="warning-tags">${tags.join('')}</div>` : ''}
+                        
+                        <div class="radar-preview" onclick="expandRadar('${radarUrl}'); event.stopPropagation();">
+                            <img src="${radarUrl}" alt="Warning Radar" title="Click to expand">
+                        </div>
+                        
+                        <a href="https://mesonet.agron.iastate.edu${warning.url}" target="_blank" class="expand-alert-btn" style="display: inline-flex; text-decoration: none; margin-top: 15px;">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>View Full Details</span>
+                        </a>
+                    `;
+
+                    container.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error('Error searching warnings:', error);
+                container.innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Error searching warnings. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        function getWarningIcon(phenomena) {
+            const icons = {
+                'TO': 'fa-tornado',
+                'SV': 'fa-cloud-bolt',
+                'FF': 'fa-water',
+                'FA': 'fa-house-flood-water',
+                'FL': 'fa-house-flood-water'
+            };
+            return icons[phenomena] || 'fa-triangle-exclamation';
+        }
+
+        function clearWarningFilters() {
+            document.getElementById('warningLat').value = '';
+            document.getElementById('warningLon').value = '';
+            document.getElementById('minWind').value = '0';
+            document.getElementById('minHail').value = '0';
+            document.getElementById('torRadar').checked = false;
+            document.getElementById('torObserved').checked = false;
+            document.getElementById('torConsiderable').checked = false;
+            document.getElementById('torCatastrophic').checked = false;
+            
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today);
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            document.getElementById('warningStartDate').valueAsDate = thirtyDaysAgo;
+            document.getElementById('warningEndDate').valueAsDate = today;
+            
+            document.getElementById('warningsList').innerHTML = '';
+        }
+
+        // Alerts functionality
+        async function loadAlerts() {
+            try {
+                const response = await fetch('https://api.weather.gov/alerts/active');
+                const data = await response.json();
+                
+                if (!data.features || data.features.length === 0) {
+                    document.getElementById('alertsStats').innerHTML = '';
+                    document.getElementById('alertsContainer').innerHTML = `
+                        <div class="no-alerts">
+                            <i class="fas fa-check-circle" style="font-size: 3em; margin-bottom: 15px; display: block;"></i>
+                            No active convective weather alerts at this time
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Filter for only convective alerts
+                const convectiveAlerts = [];
+                
+                data.features.forEach(alert => {
+                    const eventType = alert.properties.event;
+                    // Include standard convective events
+                    if (convectiveEvents.includes(eventType)) {
+                        convectiveAlerts.push(alert);
+                    }
+                    // For Special Weather Statements, check description for convective keywords
+                    else if (eventType === 'Special Weather Statement') {
+                        const description = alert.properties.description;
+                        if (isConvectiveSpecialWeatherStatement(description)) {
+                            convectiveAlerts.push(alert);
+                        }
+                    }
+                });
+
+                if (convectiveAlerts.length === 0) {
+                    document.getElementById('alertsStats').innerHTML = '';
+                    document.getElementById('alertsContainer').innerHTML = `
+                        <div class="no-alerts">
+                            <i class="fas fa-check-circle" style="font-size: 3em; margin-bottom: 15px; display: block;"></i>
+                            No active convective weather alerts at this time
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Update stats - now only showing convective alerts
+                const statsHTML = `
+                    <div class="stat-box">
+                        <div class="stat-number">${convectiveAlerts.length}</div>
+                        <div class="stat-label">Convective Alerts</div>
+                    </div>
+                `;
+                document.getElementById('alertsStats').innerHTML = statsHTML;
+
+                // Use only convective alerts
+                const sortedAlerts = convectiveAlerts;
+                
+                // Build alerts HTML
+                const container = document.getElementById('alertsContainer');
+                container.innerHTML = '';
+
+                sortedAlerts.forEach((alert, index) => {
+                    const props = alert.properties;
+                    const alertId = props.id;
+                    
+                    // Check if alert was updated
+                    const isUpdated = previousAlerts[alertId] && 
+                                    previousAlerts[alertId] !== props.sent;
+                    
+                    // Store current sent time
+                    previousAlerts[alertId] = props.sent;
+
+                    const severityClass = `severity-${props.severity.toLowerCase()}`;
+                    
+                    const onset = new Date(props.onset || props.effective);
+                    const expires = new Date(props.expires);
+                    const ends = props.ends ? new Date(props.ends) : null;
+                    
+                    // Format area description - show more locations
+                    const areas = props.areaDesc.split(';').map(a => a.trim());
+                    let areaDisplay = '';
+                    if (areas.length <= 2) {
+                        areaDisplay = areas.join('; ');
+                    } else if (areas.length <= 5) {
+                        areaDisplay = areas.slice(0, 3).join('; ') + ` and ${areas.length - 3} more`;
+                    } else {
+                        areaDisplay = areas.slice(0, 3).join('; ') + ` and ${areas.length - 3} more areas`;
+                    }
+                    
+                    const alertCard = document.createElement('div');
+                    alertCard.className = `alert-card convective ${isUpdated ? 'updated' : ''} animate-in`;
+                    alertCard.style.animationDelay = `${index * 0.05}s`;
+                    
+                    alertCard.innerHTML = `
+                        <div class="alert-header">
+                            <div class="alert-title">
+                                <i class="fas ${getAlertIcon(props.event)}"></i> ${props.event}
+                            </div>
+                            <div class="alert-severity ${severityClass}">
+                                ${props.severity}
+                            </div>
+                        </div>
+                        
+                        <div class="alert-info">
+                            <div class="alert-info-item">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <span>${areaDisplay}</span>
+                            </div>
+                            <div class="alert-info-item">
+                                <i class="fas fa-clock"></i>
+                                <span>Effective: ${onset.toLocaleString()}</span>
+                            </div>
+                            <div class="alert-info-item">
+                                <i class="fas fa-hourglass-end"></i>
+                                <span>Expires: ${expires.toLocaleString()}</span>
+                            </div>
+                            ${ends ? `
+                                <div class="alert-info-item">
+                                    <i class="fas fa-flag-checkered"></i>
+                                    <span>Ends: ${ends.toLocaleString()}</span>
+                                </div>
+                            ` : ''}
+                            <div class="alert-info-item">
+                                <i class="fas fa-building"></i>
+                                <span>${props.senderName}</span>
+                            </div>
+                        </div>
+
+                        <button class="expand-alert-btn" onclick="toggleAlertDescription('alert-desc-${index}')">
+                            <i class="fas fa-chevron-down"></i>
+                            <span id="alert-btn-text-${index}">Show Details</span>
+                        </button>
+
+                        <div class="alert-description collapsed" id="alert-desc-${index}">
+                            ${props.description || 'No additional details available.'}
+                            ${props.instruction ? `\n\nINSTRUCTIONS:\n${props.instruction}` : ''}
+                        </div>
+                    `;
+                    
+                    container.appendChild(alertCard);
+                });
+
+            } catch (error) {
+                console.error('Error loading alerts:', error);
+                document.getElementById('alertsContainer').innerHTML = `
+                    <div class="error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Error loading weather alerts. Please try again later.
+                    </div>
+                `;
+            }
+        }
+
+        function getAlertIcon(eventType) {
+            const icons = {
+                'Tornado Warning': 'fa-tornado',
+                'Tornado Watch': 'fa-tornado',
+                'Severe Thunderstorm Warning': 'fa-cloud-bolt',
+                'Severe Thunderstorm Watch': 'fa-cloud-bolt',
+                'Flash Flood Warning': 'fa-water',
+                'Flash Flood Watch': 'fa-water',
+                'Flood Warning': 'fa-house-flood-water',
+                'Winter Storm Warning': 'fa-snowflake',
+                'Blizzard Warning': 'fa-wind',
+                'Ice Storm Warning': 'fa-icicles',
+                'Heat Advisory': 'fa-temperature-high',
+                'Excessive Heat Warning': 'fa-temperature-arrow-up',
+                'Wind Advisory': 'fa-wind',
+                'High Wind Warning': 'fa-wind'
+            };
+            return icons[eventType] || 'fa-triangle-exclamation';
+        }
+
+        function toggleAlertDescription(descId) {
+            const desc = document.getElementById(descId);
+            const btnIndex = descId.split('-')[2];
+            const btnText = document.getElementById(`alert-btn-text-${btnIndex}`);
+            const btn = btnText.parentElement;
+            const icon = btn.querySelector('i');
+            
+            if (desc.classList.contains('collapsed')) {
+                desc.classList.remove('collapsed');
+                desc.classList.add('expanded');
+                btnText.textContent = 'Hide Details';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                desc.classList.remove('expanded');
+                desc.classList.add('collapsed');
+                btnText.textContent = 'Show Details';
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        // SPC Probability Converter Functions
+        const lookupTableDay12 = {
+            '2%': { tornado: 'Marginal', wind: 'Unused', hail: 'Unused' },
+            '5%': { tornado: 'Slight', wind: 'Marginal', hail: 'Marginal' },
+            '10%': { tornado: 'Enhanced', wind: 'Unused', hail: 'Unused' },
+            '10% SIG': { tornado: 'Enhanced', wind: 'Unused', hail: 'Unused' },
+            '15%': { tornado: 'Enhanced', wind: 'Slight', hail: 'Slight' },
+            '15% SIG': { tornado: 'Moderate', wind: 'Slight', hail: 'Slight' },
+            '30%': { tornado: 'Moderate', wind: 'Enhanced', hail: 'Enhanced' },
+            '30% SIG': { tornado: 'High', wind: 'Enhanced', hail: 'Enhanced' },
+            '45%': { tornado: 'High', wind: 'Enhanced', hail: 'Enhanced' },
+            '45% SIG': { tornado: 'High', wind: 'Moderate', hail: 'Moderate' },
+            '60%': { tornado: 'High', wind: 'Moderate', hail: 'Moderate' },
+            '60% SIG': { tornado: 'High', wind: 'High', hail: 'Moderate' }
+        };
+
+        const combinedTableDay12 = {
+            '5%': 'Marginal',
+            '15%': 'Slight',
+            '15% SIG': 'Slight',
+            '30%': 'Enhanced',
+            '30% SIG': 'Enhanced',
+            '45%': 'Enhanced',
+            '45% SIG': 'Moderate'
+        };
+
+        const allProbabilities = ['2%', '5%', '10%', '10% SIG', '15%', '15% SIG', '30%', '30% SIG', '45%', '45% SIG', '60%', '60% SIG'];
+        const combinedProbabilities = ['5%', '15%', '15% SIG', '30%', '30% SIG', '45%', '45% SIG'];
+
+        const riskHierarchy = {
+            'High': 5,
+            'Moderate': 4,
+            'Enhanced': 3,
+            'Slight': 2,
+            'Marginal': 1,
+            'Unused': 0
+        };
+
+        function getCategoryClass(category) {
+            const classes = {
+                'Marginal': 'category-marginal',
+                'Slight': 'category-slight',
+                'Enhanced': 'category-enhanced',
+                'Moderate': 'category-moderate',
+                'High': 'category-high',
+                'Unused': 'category-unused'
+            };
+            return classes[category] || '';
+        }
+
+        function getValidProbabilitiesForHazard(hazardType) {
+            const validProbs = [];
+            for (const [prob, values] of Object.entries(lookupTableDay12)) {
+                if (values[hazardType] !== 'Unused') {
+                    validProbs.push(prob);
+                }
+            }
+            return validProbs;
+        }
+
+        function populateDropdown(elementId, probabilities) {
+            const dropdown = document.getElementById(elementId);
+            dropdown.innerHTML = '<option value="">-- Select Probability --</option>';
+            
+            probabilities.forEach(prob => {
+                const option = document.createElement('option');
+                option.value = prob;
+                option.textContent = prob;
+                dropdown.appendChild(option);
+            });
+        }
+
+        function initializeProbabilitySelectors() {
+            const day = document.getElementById('converterDay').value;
+            
+            if (day === '3') {
+                // Day 3: only combined
+                document.getElementById('day12Section').classList.remove('visible');
+                document.getElementById('day3Section').classList.add('visible');
+                document.getElementById('referenceTablesDay12').classList.remove('visible');
+                populateDropdown('combinedDropdown', combinedProbabilities);
+            } else {
+                // Day 1/2: Individual hazards
+                document.getElementById('day12Section').classList.add('visible');
+                document.getElementById('day3Section').classList.remove('visible');
+                document.getElementById('referenceTablesDay12').classList.add('visible');
+                
+                const tornadoProbs = getValidProbabilitiesForHazard('tornado');
+                const windProbs = getValidProbabilitiesForHazard('wind');
+                const hailProbs = getValidProbabilitiesForHazard('hail');
+                
+                populateDropdown('tornadoDropdown', tornadoProbs);
+                populateDropdown('windDropdown', windProbs);
+                populateDropdown('hailDropdown', hailProbs);
+            }
+        }
+
+        function getHighestRisk(categories) {
+            let highest = 0;
+            let highestCategory = 'Unused';
+            
+            categories.forEach(cat => {
+                const value = riskHierarchy[cat] || 0;
+                if (value > highest) {
+                    highest = value;
+                    highestCategory = cat;
+                }
+            });
+            
+            return highestCategory;
+        }
+
+        function updateResults() {
+            const tornadoProb = document.getElementById('tornadoDropdown').value;
+            const windProb = document.getElementById('windDropdown').value;
+            const hailProb = document.getElementById('hailDropdown').value;
+
+            // Update tornado result
+            if (tornadoProb !== '') {
+                const tornadoEntry = lookupTableDay12[tornadoProb];
+                const tornadoResult = tornadoEntry ? tornadoEntry.tornado : 'Not Found';
+                const tornadoElement = document.getElementById('tornadoResult');
+                tornadoElement.textContent = tornadoResult;
+                tornadoElement.className = 'result-value ' + getCategoryClass(tornadoResult);
+            } else {
+                document.getElementById('tornadoResult').textContent = '-';
+                document.getElementById('tornadoResult').className = 'result-value';
+            }
+
+            // Update wind result
+            if (windProb !== '') {
+                const windEntry = lookupTableDay12[windProb];
+                const windResult = windEntry ? windEntry.wind : 'Not Found';
+                const windElement = document.getElementById('windResult');
+                windElement.textContent = windResult;
+                windElement.className = 'result-value ' + getCategoryClass(windResult);
+            } else {
+                document.getElementById('windResult').textContent = '-';
+                document.getElementById('windResult').className = 'result-value';
+            }
+
+            // Update hail result
+            if (hailProb !== '') {
+                const hailEntry = lookupTableDay12[hailProb];
+                const hailResult = hailEntry ? hailEntry.hail : 'Not Found';
+                const hailElement = document.getElementById('hailResult');
+                hailElement.textContent = hailResult;
+                hailElement.className = 'result-value ' + getCategoryClass(hailResult);
+            } else {
+                document.getElementById('hailResult').textContent = '-';
+                document.getElementById('hailResult').className = 'result-value';
+            }
+
+            // Update overall risk for Day 1/2
+            updateOverallRiskDay12();
+        }
+
+        function updateOverallRiskDay12() {
+            const tornadoResult = document.getElementById('tornadoResult').textContent;
+            const windResult = document.getElementById('windResult').textContent;
+            const hailResult = document.getElementById('hailResult').textContent;
+
+            if (tornadoResult !== '-' && windResult !== '-' && hailResult !== '-') {
+                const highestRisk = getHighestRisk([tornadoResult, windResult, hailResult]);
+                const overallElement = document.getElementById('overallRiskDay12');
+                overallElement.textContent = highestRisk;
+                overallElement.className = 'result-value overall-risk-value ' + getCategoryClass(highestRisk);
+            } else {
+                document.getElementById('overallRiskDay12').textContent = '-';
+                document.getElementById('overallRiskDay12').className = 'result-value overall-risk-value';
+            }
+        }
+
+        function updateCombinedResult() {
+            const combinedProb = document.getElementById('combinedDropdown').value;
+
+            if (combinedProb !== '') {
+                const combinedResult = combinedTableDay12[combinedProb] || 'Not Found';
+                const combinedElement = document.getElementById('combinedResult');
+                combinedElement.textContent = combinedResult;
+                combinedElement.className = 'result-value ' + getCategoryClass(combinedResult);
+
+                // For Day 3, overall risk is just the combined risk
+                const overallElement = document.getElementById('overallRiskDay3');
+                overallElement.textContent = combinedResult;
+                overallElement.className = 'result-value overall-risk-value ' + getCategoryClass(combinedResult);
+            } else {
+                document.getElementById('combinedResult').textContent = '-';
+                document.getElementById('combinedResult').className = 'result-value';
+                document.getElementById('overallRiskDay3').textContent = '-';
+                document.getElementById('overallRiskDay3').className = 'result-value overall-risk-value';
+            }
+        }
+
+        function updateConverter() {
+            clearConverter();
+            initializeProbabilitySelectors();
+        }
+
+        function clearConverter() {
+            document.getElementById('tornadoDropdown').value = '';
+            document.getElementById('windDropdown').value = '';
+            document.getElementById('hailDropdown').value = '';
+            document.getElementById('combinedDropdown').value = '';
+            document.getElementById('tornadoResult').textContent = '-';
+            document.getElementById('windResult').textContent = '-';
+            document.getElementById('hailResult').textContent = '-';
+            document.getElementById('combinedResult').textContent = '-';
+            document.getElementById('overallRiskDay12').textContent = '-';
+            document.getElementById('overallRiskDay3').textContent = '-';
+            document.getElementById('tornadoResult').className = 'result-value';
+            document.getElementById('windResult').className = 'result-value';
+            document.getElementById('hailResult').className = 'result-value';
+            document.getElementById('combinedResult').className = 'result-value';
+            document.getElementById('overallRiskDay12').className = 'result-value overall-risk-value';
+            document.getElementById('overallRiskDay3').className = 'result-value overall-risk-value';
+        }
+    </script>
+    <footer class="site-footer">
+        <div class="container footer-inner">
+            <div class="copyright">Copyght  ©2022-<span id="currentYear"></span> JesseLikesWeather. All Rights Reserved.</div>
+            <div class="disclaimer"><em><strong>This is a hobbyist website, and while important information can be referenced here, this website should not be used to make important life-saving decisions.</strong></em>
+            <br>
+            Please refer to <a href="https://www.spc.noaa.gov" target="_blank">spc.noaa.gov</a> &amp; <a href="https://www.weather.gov" target="_blank">weather.gov</a> for official warning updates and information.</div>
+
+            <br>
+
+            <a href="https://usaweatherfinder.com" target="_blank"><img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder Badge"/></a>
+
+            <br>
+
+            <img src="https://s05.flagcounter.com/count2_US/lQOw/bg_FFFFFF/txt_000000/border_CCCCCC/columns_5/maxflags_15/viewers_Visitors+of+this+Website/labels_1/pageviews_1/flags_0/percent_0/" alt="USA Flag Counter">
+        </div>
+    </footer>
+    <script>
+        // set current year in footer
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+        
+        // Load outlook metadata when page loads
+        loadAllOutlookMetadata();
+    </script>
+</body>
+</html>
