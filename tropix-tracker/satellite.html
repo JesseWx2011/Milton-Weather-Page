@@ -1,16 +1,239 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>TropixTracker - Satellite Imagery</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="author" content="JesseLikesWeather" />
     <meta name="date" content="2026-02-23" />
-    <meta name="description" content="GOES satellite imagery from NOAA STAR. View GEOCOLOR, bands, and specialty products by sector." />
+    <meta name="description"
+        content="GOES satellite imagery from NOAA STAR. View GEOCOLOR, bands, and specialty products by sector." />
     <meta name="copyright" content="©2026 JesseLikesWeather" />
     <meta name="keywords" content="TropixTracker, GOES, satellite, NOAA, GEOCOLOR, tropical weather" />
     <link rel="stylesheet" href="./styles.css" />
+    <style>
+        /* ── Mobile-first responsive overrides ─────────────────────────── */
+        .satellite-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.75rem;
+        }
+
+        .satellite-control-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            flex: 1 1 10rem;
+            min-width: 9rem;
+        }
+
+        .satellite-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .satellite-select {
+            font-size: 0.9rem;
+            padding: 0.35rem 0.5rem;
+            border-radius: 4px;
+            width: 100%;
+        }
+
+        .satellite-control-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1 1 100%;
+            padding-top: 0.25rem;
+        }
+
+        .filter-btn {
+            font-size: 0.85rem;
+            padding: 0.4rem 0.75rem;
+            white-space: nowrap;
+        }
+
+        .satellite-auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .satellite-timeline {
+            padding: 0 0.75rem 0.5rem;
+        }
+
+        .timeline-header {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .satellite-interval-select {
+            flex: 0 0 auto;
+            width: auto;
+            font-size: 0.85rem;
+        }
+
+        .satellite-time-label {
+            font-size: 0.8rem;
+            flex: 1 1 auto;
+            text-align: right;
+        }
+
+        .satellite-slider {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .satellite-image-wrapper {
+            padding: 0 0.75rem;
+        }
+
+        .satellite-image {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 6px;
+        }
+
+        .satellite-caption {
+            font-size: 0.85rem;
+            margin: 0.4rem 0 0.1rem;
+        }
+
+        .satellite-updated,
+        .satellite-status {
+            font-size: 0.8rem;
+            margin: 0.1rem 0;
+        }
+
+        .satellite-loading,
+        .satellite-error {
+            font-size: 0.9rem;
+            padding: 1rem;
+        }
+
+        .satellite-multi-section {
+            padding: 0.75rem;
+        }
+
+        .satellite-multi-header h2 {
+            font-size: 1.1rem;
+            margin: 0 0 0.2rem;
+        }
+
+        .satellite-multi-subtitle {
+            font-size: 0.85rem;
+            margin: 0 0 0.75rem;
+        }
+
+        .satellite-multi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+            gap: 0.75rem;
+        }
+
+        .satellite-multi-card {
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 0.35rem;
+            padding: 0.5rem;
+        }
+
+        .satellite-multi-caption {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .satellite-multi-card img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        .satellite-remove-view {
+            font-size: 0.8rem;
+            align-self: flex-start;
+        }
+
+        .satellite-multi-empty {
+            font-size: 0.85rem;
+            grid-column: 1 / -1;
+        }
+
+        .Page-Welcome {
+            font-size: 3.5rem;
+            padding: 0.75rem 0.75rem 0;
+            margin: 0;
+        }
+
+        .satellite-subtitle {
+            font-size: 0.9rem;
+            padding: 0 3.80rem;
+            margin: 0.25rem 0 0.5rem;
+        }
+
+        /* ── Desktop tweaks ─────────────────────────────────────────────── */
+        @media (max-width: 640px) {
+            .satellite-controls {
+                gap: 0.75rem;
+                padding: 1rem;
+            }
+
+            .satellite-control-row {
+                flex: 1 1 11rem;
+            }
+
+            .satellite-label {
+                font-size: 0.8rem;
+            }
+
+            .satellite-select {
+                font-size: 0.95rem;
+            }
+
+            .filter-btn {
+                font-size: 0.9rem;
+            }
+
+            .satellite-timeline {
+                padding: 0 1rem 0.75rem;
+            }
+
+            .satellite-image-wrapper {
+                padding: 0 1rem;
+            }
+
+            .satellite-multi-section {
+                padding: 1rem;
+            }
+
+            .Page-Welcome {
+                font-size: 1.9rem;
+                padding: 1rem 1rem 0;
+            }
+
+            .satellite-subtitle {
+                font-size: 1rem;
+                padding: 0 1rem;
+                margin-bottom: 0.75rem;
+            }
+        }
+    </style>
 </head>
+
 <body>
     <div class="banner">
         <div class="page-title">TropixTracker</div>
@@ -23,7 +246,9 @@
         </nav>
     </div>
 
-    <div class="Page-Welcome" id="page-welcome">GOES Satellite Imagery</div>
+    <h1 class="Page-Welcome" id="page-welcome">GOES Satellite Imagery</h1>
+    <br>
+    <br>
     <p class="satellite-subtitle">Imagery from NOAA STAR CDN. Select satellite, sector, product, and timeframe.</p>
 
     <div class="satellite-controls">
@@ -40,7 +265,7 @@
             <select id="goes-sector" class="satellite-select">
                 <option value="SE" selected>Southeast (SE)</option>
                 <option value="EUS">Eastern US (EUS)</option>
-                <option value="CAM">Caribbean & Mexico (CAM)</option>
+                <option value="CAM">Caribbean &amp; Mexico (CAM)</option>
                 <option value="CAR">Caribbean (CAR)</option>
                 <option value="CGL">Central Gulf (CGL)</option>
                 <option value="GA">Gulf of Alaska (GA)</option>
@@ -99,7 +324,8 @@
         <div class="satellite-control-actions">
             <button type="button" class="filter-btn satellite-refresh-btn" id="satellite-refresh">Refresh image</button>
             <button type="button" class="filter-btn satellite-copy-btn" id="satellite-copy">Copy image</button>
-            <button type="button" class="filter-btn satellite-add-view-btn" id="satellite-add-view">Add to multi-view</button>
+            <button type="button" class="filter-btn satellite-add-view-btn" id="satellite-add-view">Add to
+                multi-view</button>
             <label class="satellite-auto-refresh">
                 <input type="checkbox" id="satellite-auto-refresh" />
                 <span>Auto-refresh (5 min)</span>
@@ -125,7 +351,8 @@
     <div class="satellite-image-wrapper">
         <img id="goes-image" class="satellite-image" src="" alt="GOES satellite imagery" />
         <div id="goes-loading" class="satellite-loading">Loading image…</div>
-        <div id="goes-error" class="satellite-error" style="display: none;">Failed to load image. Check sector/product availability.</div>
+        <div id="goes-error" class="satellite-error" style="display: none;">Failed to load image. Check sector/product
+            availability.</div>
         <p class="satellite-caption" id="goes-caption">GOES-19 · SE · GEOCOLOR</p>
         <p class="satellite-updated" id="goes-updated">Last updated: --</p>
         <p class="satellite-status" id="goes-status" aria-live="polite"></p>
@@ -137,13 +364,13 @@
             <p class="satellite-multi-subtitle">Pin up to four configurations for side-by-side comparison.</p>
         </div>
         <div id="satellite-multi-grid" class="satellite-multi-grid">
-            <p class="satellite-multi-empty">No saved views yet. Use “Add to multi-view” to pin the current image.</p>
+            <p class="satellite-multi-empty">No saved views yet. Use "Add to multi-view" to pin the current image.</p>
         </div>
     </div>
 
     <script src="./script.js"></script>
     <script>
-        (function() {
+        (function () {
             const BASE = 'https://cdn.star.nesdis.noaa.gov';
             const satelliteEl = document.getElementById('goes-satellite');
             const sectorEl = document.getElementById('goes-sector');
@@ -168,13 +395,100 @@
             const MAX_VIEWS = 4;
             const missingFrames = new Set();
 
-            function buildUrl() {
+            // ── Directory listing cache ──────────────────────────────────────
+            // Keyed by "SAT/sector/product/size" → sorted array of .jpg filenames
+            const dirCache = {};
+
+            /**
+             * Fetch the NOAA CDN directory listing and return a sorted array of
+             * matching .jpg filenames for the current selection.
+             *
+             * Real NOAA filename pattern:
+             *   YYYYDOYHHMM_SATELLITE-ABI-sector-PRODUCT-WidthxHeight.jpg
+             *   e.g. 2026062_GOES19-ABI-se-GEOCOLOR-2400x2400.jpg
+             */
+            async function fetchDirListing() {
                 const sat = satelliteEl.value;
                 const sector = sectorEl.value.toLowerCase();
                 const product = productEl.value;
                 const size = sizeEl.value;
-                const url = `${BASE}/${sat}/ABI/SECTOR/${sector}/${product}/${size}.jpg`;
-                return url;
+                const cacheKey = `${sat}/${sector}/${product}/${size}`;
+
+                if (dirCache[cacheKey]) return dirCache[cacheKey];
+
+                const dirUrl = `${BASE}/${sat}/ABI/SECTOR/${sector}/${product}/`;
+                try {
+                    const resp = await fetch(dirUrl, { cache: 'no-store' });
+                    const html = await resp.text();
+                    // Parse .jpg hrefs from the Apache/nginx directory listing
+                    const re = /href="([^"]*\.jpg)"/gi;
+                    const files = [];
+                    let m;
+                    while ((m = re.exec(html)) !== null) {
+                        const name = m[1].split('/').pop();
+                        // Only keep files matching our resolution
+                        if (name.includes(`-${size}.jpg`) || name.endsWith(`${size}.jpg`)) {
+                            files.push(name);
+                        }
+                    }
+                    files.sort(); // lexicographic == chronological for YYYYDOY stamps
+                    dirCache[cacheKey] = files;
+                    return files;
+                } catch (e) {
+                    console.warn('Dir listing fetch failed:', e);
+                    return [];
+                }
+            }
+
+            /** Return the URL of the most-recent available image. */
+            async function buildUrl() {
+                const sat = satelliteEl.value;
+                const sector = sectorEl.value.toLowerCase();
+                const product = productEl.value;
+                const size = sizeEl.value;
+                const baseDir = `${BASE}/${sat}/ABI/SECTOR/${sector}/${product}/`;
+
+                const files = await fetchDirListing();
+                if (files.length > 0) {
+                    return baseDir + files[files.length - 1];
+                }
+                // Fallback: some products expose a static convenience URL
+                return `${baseDir}${size}.jpg`;
+            }
+
+            /**
+             * Return the URL of the archive file whose timestamp is closest to
+             * (and not after) the requested date.
+             * Filename stamp occupies the first 12 chars: YYYYDOYHHMM
+             */
+            async function buildArchiveUrl(date) {
+                const sat = satelliteEl.value;
+                const sector = sectorEl.value.toLowerCase();
+                const product = productEl.value;
+                const size = sizeEl.value;
+                const baseDir = `${BASE}/${sat}/ABI/SECTOR/${sector}/${product}/`;
+
+                const year = date.getUTCFullYear();
+                const startOfYear = new Date(Date.UTC(year, 0, 1));
+                const doy = Math.floor((date - startOfYear) / 86400000) + 1;
+                const hh = String(date.getUTCHours()).padStart(2, '0');
+                const mm = String(date.getUTCMinutes()).padStart(2, '0');
+                const targetStamp = `${year}${String(doy).padStart(3, '0')}${hh}${mm}`;
+
+                const files = await fetchDirListing();
+                if (files.length > 0) {
+                    // Walk forward until we overshoot, keep the last valid entry
+                    let best = files[0];
+                    for (const f of files) {
+                        const stamp = f.slice(0, 12); // YYYYDOYHHMM
+                        if (stamp <= targetStamp) best = f;
+                        else break;
+                    }
+                    return baseDir + best;
+                }
+                // Fallback: construct filename directly from computed stamp
+                const filename = `${targetStamp}_${sat}-ABI-${sector}-${product}-${size}.jpg`;
+                return baseDir + filename;
             }
 
             function setCaption() {
@@ -196,14 +510,22 @@
                 }, 3500);
             }
 
-            function loadImage() {
-                const url = buildUrl() + '?t=' + Date.now();
+            async function loadImage() {
                 setCaption();
                 loadingEl.style.display = 'block';
                 errorEl.style.display = 'none';
                 imgEl.style.display = 'none';
 
-                imgEl.onload = function() {
+                // Bust the dir cache so Refresh always fetches the latest listing
+                const sat = satelliteEl.value;
+                const sector = sectorEl.value.toLowerCase();
+                const product = productEl.value;
+                const size = sizeEl.value;
+                delete dirCache[`${sat}/${sector}/${product}/${size}`];
+
+                const url = (await buildUrl()) + '?t=' + Date.now();
+
+                imgEl.onload = function () {
                     loadingEl.style.display = 'none';
                     errorEl.style.display = 'none';
                     imgEl.style.display = 'block';
@@ -211,7 +533,7 @@
                     updateSliderMeta();
                     precheckTimeline();
                 };
-                imgEl.onerror = function() {
+                imgEl.onerror = function () {
                     loadingEl.style.display = 'none';
                     errorEl.style.display = 'block';
                     imgEl.style.display = 'none';
@@ -219,31 +541,7 @@
                 imgEl.src = url;
             }
 
-            function buildArchiveUrl(date) {
-                const sat = satelliteEl.value;
-                const sector = sectorEl.value.toLowerCase();
-                const product = productEl.value;
-                const size = sizeEl.value;
-
-                const year = date.getUTCFullYear();
-                const startOfYear = new Date(Date.UTC(year, 0, 1));
-                const doy = Math.floor((date - startOfYear) / 86400000) + 1;
-
-                const hour = date.getUTCHours();
-                const minute = date.getUTCMinutes();
-
-                const hh = String(hour).padStart(2, '0');
-                const mm = String(minute).padStart(2, '0');
-                const yStr = String(year);
-                const doyStr = String(doy).padStart(3, '0');
-                const stamp = `${yStr}${doyStr}${hh}${mm}`;
-
-                // Archived filenames include the sector code (e.g., "se") instead of "reg"
-                const filename = `${stamp}_${sat}-ABI-${sector}-${product}-${size}.jpg`;
-                return `${BASE}/${sat}/ABI/SECTOR/${sector}/${product}/${filename}`;
-            }
-
-            function loadArchiveFrame(index, attemptsLeft = 8) {
+            async function loadArchiveFrame(index, attemptsLeft = 8) {
                 index = Math.max(0, index);
                 if (missingFrames.has(index) && attemptsLeft <= 0) {
                     errorEl.style.display = 'block';
@@ -255,7 +553,7 @@
                 const now = new Date();
                 const offsetMinutes = index * intervalMinutes;
                 const target = new Date(now.getTime() - offsetMinutes * 60 * 1000);
-                const url = buildArchiveUrl(target);
+                const url = await buildArchiveUrl(target);
 
                 const displayTime = target.toLocaleString('en-US', {
                     month: 'short',
@@ -271,13 +569,13 @@
                 errorEl.style.display = 'none';
                 imgEl.style.display = 'none';
 
-                imgEl.onload = function() {
+                imgEl.onload = function () {
                     loadingEl.style.display = 'none';
                     errorEl.style.display = 'none';
                     imgEl.style.display = 'block';
                     updatedEl.textContent = `Archive frame: ${displayTime}`;
                 };
-                imgEl.onerror = function() {
+                imgEl.onerror = function () {
                     loadingEl.style.display = 'none';
                     imgEl.style.display = 'none';
                     missingFrames.add(index);
@@ -307,20 +605,20 @@
                 }
             }
 
-            function checkArchiveFrame(index) {
-                return new Promise((resolve) => {
+            async function checkArchiveFrame(index) {
+                return new Promise(async (resolve) => {
                     const intervalMinutes = parseInt(intervalSelect.value, 10) || 30;
                     const now = new Date();
                     const offsetMinutes = index * intervalMinutes;
                     const target = new Date(now.getTime() - offsetMinutes * 60 * 1000);
-                    const url = buildArchiveUrl(target) + '?t=' + Date.now();
+                    const url = (await buildArchiveUrl(target)) + '?t=' + Date.now();
 
                     const testImg = new Image();
-                    testImg.onload = function() {
+                    testImg.onload = function () {
                         missingFrames.delete(index);
                         resolve(true);
                     };
-                    testImg.onerror = function() {
+                    testImg.onerror = function () {
                         missingFrames.add(index);
                         resolve(false);
                     };
@@ -372,7 +670,7 @@
                 if (!pinnedViews.length) {
                     const p = document.createElement('p');
                     p.className = 'satellite-multi-empty';
-                    p.textContent = 'No saved views yet. Use “Add to multi-view” to pin the current image.';
+                    p.textContent = 'No saved views yet. Use "Add to multi-view" to pin the current image.';
                     multiGrid.appendChild(p);
                     return;
                 }
@@ -380,9 +678,9 @@
                     const card = document.createElement('div');
                     card.className = 'satellite-multi-card';
                     card.innerHTML = `
-                        <div class=\"satellite-multi-caption\">${view.caption}</div>
-                        <img src=\"${view.url}\" loading=\"lazy\" alt=\"${view.caption}\">
-                        <button type=\"button\" class=\"filter-btn satellite-remove-view\" data-index=\"${index}\">Remove</button>
+                        <div class="satellite-multi-caption">${view.caption}</div>
+                        <img src="${view.url}" loading="lazy" alt="${view.caption}">
+                        <button type="button" class="filter-btn satellite-remove-view" data-index="${index}">Remove</button>
                     `;
                     multiGrid.appendChild(card);
                 });
@@ -397,8 +695,8 @@
                 });
             }
 
-            function addCurrentToMultiView() {
-                const baseUrl = buildUrl(); // without cache-busting so multi-view cards stay stable
+            async function addCurrentToMultiView() {
+                const baseUrl = await buildUrl(); // without cache-busting so multi-view cards stay stable
                 const caption = `${satelliteEl.value} · ${sectorEl.value} · ${productEl.value} · ${sizeEl.value}`;
 
                 if (pinnedViews.find(v => v.url === baseUrl)) {
@@ -415,13 +713,13 @@
             }
 
             function attachListeners() {
-                [satelliteEl, sectorEl, productEl, sizeEl].forEach(function(el) {
+                [satelliteEl, sectorEl, productEl, sizeEl].forEach(function (el) {
                     el.addEventListener('change', () => {
                         loadImage();
                     });
                 });
                 refreshBtn.addEventListener('click', loadImage);
-                autoRefreshEl.addEventListener('change', function() {
+                autoRefreshEl.addEventListener('change', function () {
                     if (autoRefreshEl.checked) {
                         window._goesRefreshInterval = setInterval(loadImage, 5 * 60 * 1000);
                     } else {
@@ -455,7 +753,7 @@
                 }
             }
 
-            document.addEventListener('DOMContentLoaded', function() {
+            document.addEventListener('DOMContentLoaded', function () {
                 attachListeners();
                 updateSliderMeta();
                 loadImage();
@@ -463,4 +761,5 @@
         })();
     </script>
 </body>
+
 </html>
