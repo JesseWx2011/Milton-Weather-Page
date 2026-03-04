@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Severe Weather Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <meta name="author" content="JesseLikesWeather">
+    <meta name="date" content="2026-03-02"/>
     <style>
         * {
             margin: 0;
@@ -1941,6 +1944,7 @@
                 <div class="dropdown-content">
                     <a href="#" onclick="showPage('outlooks'); closeAllDropdowns(); return false;">Current Outlooks</a>
                     <a href="#" onclick="showPage('archive'); closeAllDropdowns(); return false;">Outlook Archive</a>
+                    <a href="#" onclick="showPage('regional'); closeAllDropdowns(); return false;">Regional Outlooks</a>
                 </div>
             </div>
             <div class="dropdown" id="dropdown2">
@@ -1968,6 +1972,7 @@
                 </button>
                 <div class="dropdown-content">
                     <a href="#" onclick="showPage('spcConverter'); closeAllDropdowns(); return false;">SPC Probability Converter</a>
+                    <a href="#" onclick="showPage('spcHistory'); closeAllDropdowns(); return false;">SPC History</a>
                 </div>
             </div>
         </div>
@@ -2087,6 +2092,127 @@
                     </h3>
                     <img src="https://www.spc.noaa.gov/partners/outlooks/national/swody8_PROB.png" alt="Day 8 Outlook">
                 </div>
+            </div>
+        </div>
+
+        <!-- Regional Page -->
+        <div id="regional" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-map"></i>
+                Regional Outlooks
+            </h2>
+            <div class="controls-section" style="margin-bottom:20px;">
+                <label for="scopeSelect" style="margin-right:10px;">Show:</label>
+                <select id="scopeSelect">
+                    <option value="national">National</option>
+                    <option value="state">State</option>
+                </select>
+            </div>
+
+            <div id="nationalControls" class="controls-section">
+                <label for="nationalOutlookSelect">Select Outlook:</label>
+                <select id="nationalOutlookSelect">
+                    <option value="day1">Day 1 Outlook</option>
+                    <option value="day2">Day 2 Outlook</option>
+                    <option value="day3">Day 3 Outlook</option>
+                    <option value="day4">Day 4 Outlook</option>
+                    <option value="day5">Day 5 Outlook</option>
+                    <option value="day6">Day 6 Outlook</option>
+                    <option value="day7">Day 7 Outlook</option>
+                    <option value="day8">Day 8 Outlook</option>
+                    <option value="day1tornado">Day 1 Tornado</option>
+                    <option value="day2tornado">Day 2 Tornado</option>
+                    <option value="day1wind">Day 1 Wind</option>
+                    <option value="day2wind">Day 2 Wind</option>
+                    <option value="day1hail">Day 1 Hail</option>
+                    <option value="day2hail">Day 2 Hail</option>
+                    <option value="day3probalistic">Day 3 Probabilistic Severe</option>
+                </select>
+            </div>
+
+            <div id="stateControls" class="controls-section" style="display:none; margin-top:20px;">
+                <div style="margin-bottom:10px;">
+                    <label for="stateAbbrev">State / Region:</label>
+                    <select id="stateAbbrev" style="width:120px;">
+                        <option value="" selected>-- Select --</option>
+                        <option value="AL">Alabama (AL)</option>
+                        <option value="AK">Alaska (AK)</option>
+                        <option value="AZ">Arizona (AZ)</option>
+                        <option value="AR">Arkansas (AR)</option>
+                        <option value="CA">California (CA)</option>
+                        <option value="CO">Colorado (CO)</option>
+                        <option value="CT">Connecticut (CT)</option>
+                        <option value="DE">Delaware (DE)</option>
+                        <option value="FL">Florida (FL)</option>
+                        <option value="GA">Georgia (GA)</option>
+                        <option value="HI">Hawaii (HI)</option>
+                        <option value="ID">Idaho (ID)</option>
+                        <option value="IL">Illinois (IL)</option>
+                        <option value="IN">Indiana (IN)</option>
+                        <option value="IA">Iowa (IA)</option>
+                        <option value="KS">Kansas (KS)</option>
+                        <option value="KY">Kentucky (KY)</option>
+                        <option value="LA">Louisiana (LA)</option>
+                        <option value="ME">Maine (ME)</option>
+                        <option value="MD">Maryland (MD)</option>
+                        <option value="MA">Massachusetts (MA)</option>
+                        <option value="MI">Michigan (MI)</option>
+                        <option value="MN">Minnesota (MN)</option>
+                        <option value="MS">Mississippi (MS)</option>
+                        <option value="MO">Missouri (MO)</option>
+                        <option value="MT">Montana (MT)</option>
+                        <option value="NE">Nebraska (NE)</option>
+                        <option value="NV">Nevada (NV)</option>
+                        <option value="NH">New Hampshire (NH)</option>
+                        <option value="NJ">New Jersey (NJ)</option>
+                        <option value="NM">New Mexico (NM)</option>
+                        <option value="NY">New York (NY)</option>
+                        <option value="NC">North Carolina (NC)</option>
+                        <option value="ND">North Dakota (ND)</option>
+                        <option value="OH">Ohio (OH)</option>
+                        <option value="OK">Oklahoma (OK)</option>
+                        <option value="OR">Oregon (OR)</option>
+                        <option value="PA">Pennsylvania (PA)</option>
+                        <option value="RI">Rhode Island (RI)</option>
+                        <option value="SC">South Carolina (SC)</option>
+                        <option value="SD">South Dakota (SD)</option>
+                        <option value="TN">Tennessee (TN)</option>
+                        <option value="TX">Texas (TX)</option>
+                        <option value="UT">Utah (UT)</option>
+                        <option value="VT">Vermont (VT)</option>
+                        <option value="VA">Virginia (VA)</option>
+                        <option value="WA">Washington (WA)</option>
+                        <option value="WV">West Virginia (WV)</option>
+                        <option value="WI">Wisconsin (WI)</option>
+                        <option value="WY">Wyoming (WY)</option>
+                        <option value="DC">District of Columbia (DC)</option>
+                        <!-- regional codes -->
+                        <option value="SR">Southern Region (SR)</option>
+                        <option value="WR">Western Region (WR)</option>
+                        <option value="CR">Central Region (CR)</option>
+                        <option value="ER">Eastern Region (ER)</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label for="stateType">Type:</label>
+                    <select id="stateType">
+                        <option value="conv13">Convective Day 1-3</option>
+                        <option value="conv48">Convective Day 4-8</option>
+                        <option value="tornado">Tornado Day 1/2</option>
+                        <option value="hail">Hail Day 1/2</option>
+                        <option value="wind">Wind Day 1/2</option>
+                        <option value="combined3">Combined Day 3</option>
+                    </select>
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label for="stateDay">Day:</label>
+                    <select id="stateDay"></select>
+                </div>
+                <button id="loadStateBtn">Load State Outlook</button>
+            </div>
+
+            <div class="outlook-display" style="margin-top:20px;text-align:center;">
+                <img id="regionalDisplay" src="" alt="Regional Outlook" style="max-width:100%; max-height:500px; border:1px solid #555;">
             </div>
         </div>
 
@@ -2356,13 +2482,23 @@
             </h2>
             
             <div class="converter-container">
-                <div class="day-selector">
-                    <label for="converterDay">Select Outlook Day:</label>
-                    <select id="converterDay" onchange="updateConverter()">
-                        <option value="1">Day 1</option>
-                        <option value="2">Day 2</option>
-                        <option value="3">Day 3</option>
-                    </select>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <div class="day-selector">
+                        <label for="converterDay">Select Outlook Day:</label>
+                        <select id="converterDay" onchange="updateConverter()">
+                            <option value="1">Day 1</option>
+                            <option value="2">Day 2</option>
+                            <option value="3">Day 3</option>
+                        </select>
+                    </div>
+
+                    <div class="day-selector">
+                        <label for="converterVersion">Conversion Version:</label>
+                        <select id="converterVersion" onchange="updateConverter()">
+                            <option value="operational" selected>Operational (CIG)</option>
+                            <option value="legacy">Legacy (SIG)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="converter-content">
@@ -2377,6 +2513,14 @@
                                 <select id="tornadoDropdown" class="probability-dropdown" onchange="updateResults()">
                                     <option value="">-- Select Probability --</option>
                                 </select>
+                                <!-- CIG Level Selector for Tornado (Operational only) -->
+                                <label id="tornadoCigLabel" style="display: none; margin-top: 8px; font-size: 0.9em;">Tornado CIG Level:</label>
+                                <select id="tornadoCigLevel" class="probability-dropdown" onchange="updateResults()" style="display: none;">
+                                    <option value="None">None</option>
+                                    <option value="CIG 1">CIG 1</option>
+                                    <option value="CIG 2">CIG 2</option>
+                                    <option value="CIG 3">CIG 3</option>
+                                </select>
                                 <div class="result-box">
                                     <div class="result-label">Tornado Category</div>
                                     <div class="result-value" id="tornadoResult">-</div>
@@ -2388,6 +2532,14 @@
                                 <select id="windDropdown" class="probability-dropdown" onchange="updateResults()">
                                     <option value="">-- Select Probability --</option>
                                 </select>
+                                <!-- CIG Level Selector for Wind (Operational only) -->
+                                <label id="windCigLabel" style="display: none; margin-top: 8px; font-size: 0.9em;">Wind CIG Level:</label>
+                                <select id="windCigLevel" class="probability-dropdown" onchange="updateResults()" style="display: none;">
+                                    <option value="None">None</option>
+                                    <option value="CIG 1">CIG 1</option>
+                                    <option value="CIG 2">CIG 2</option>
+                                    <option value="CIG 3">CIG 3</option>
+                                </select>
                                 <div class="result-box">
                                     <div class="result-label">Wind Category</div>
                                     <div class="result-value" id="windResult">-</div>
@@ -2398,6 +2550,14 @@
                                 <label>Hail Probability (%):</label>
                                 <select id="hailDropdown" class="probability-dropdown" onchange="updateResults()">
                                     <option value="">-- Select Probability --</option>
+                                </select>
+                                <!-- CIG Level Selector for Hail (Operational only) -->
+                                <label id="hailCigLabel" style="display: none; margin-top: 8px; font-size: 0.9em;">Hail CIG Level:</label>
+                                <select id="hailCigLevel" class="probability-dropdown" onchange="updateResults()" style="display: none;">
+                                    <option value="None">None</option>
+                                    <option value="CIG 1">CIG 1</option>
+                                    <option value="CIG 2">CIG 2</option>
+                                    <option value="CIG 3">CIG 3</option>
                                 </select>
                                 <div class="result-box">
                                     <div class="result-label">Hail Category</div>
@@ -2417,6 +2577,16 @@
                         <!-- Combined Risk Card -->
                         <div class="converter-card">
                             <h3><i class="fas fa-list-check"></i> Combined Risk</h3>
+                            
+                            <!-- CIG Level Selector (Operational only) -->
+                            <div id="day3CigSelector" class="input-group" style="display: none;">
+                                <label>CIG Level:</label>
+                                <select id="day3CigLevel" class="probability-dropdown" onchange="updateCombinedResult()">
+                                    <option value="None">None</option>
+                                    <option value="CIG 1">CIG 1</option>
+                                    <option value="CIG 2">CIG 2</option>
+                                </select>
+                            </div>
                             
                             <div class="input-group">
                                 <label>Combined Probability (%):</label>
@@ -2445,9 +2615,14 @@
 
                 <!-- Reference Tables -->
                 <div id="referenceTablesDay12" class="reference-tables-container">
-                    <div class="lookup-table">
-                    <h4><i class="fas fa-table"></i> Day 1/2 Individual Hazards Reference</h4>
-                    <table>
+                    <!-- Legacy Version Tables -->
+                    <div id="legacyTablesDay12" class="legacy-version-tables" style="display: none;">
+                        <div class="version-label" style="background: #666; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold;">
+                            <i class="fas fa-history"></i> Legacy Version (SIG Format)
+                        </div>
+                        <div class="lookup-table">
+                            <h4><i class="fas fa-table"></i> Day 1/2 Individual Hazards Reference</h4>
+                            <table>
                         <thead>
                             <tr>
                                 <th>Probability (%)</th>
@@ -2574,6 +2749,229 @@
                         </tbody>
                     </table>
                 </div>
+                    </div>
+
+                    <!-- Operational Version Tables -->
+                    <div id="operationalTablesDay12" class="operational-version-tables">
+                        <div class="version-label" style="background: #233; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-weight: bold;">
+                            <i class="fas fa-star"></i> Operational Version (CIG Format)
+                        </div>
+                        
+                        <div class="lookup-table">
+                            <h4><i class="fas fa-table"></i> Day 1/2 Operational Conversion (CIG Levels)</h4>
+                            <div style="overflow-x: auto;">
+                                <table style="font-size: 0.9em;">
+                                    <thead>
+                                        <tr>
+                                            <th>Probability</th>
+                                            <th>CIG Level</th>
+                                            <th>Tornado</th>
+                                            <th>Wind</th>
+                                            <th>Hail</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr><td rowspan="3">2%</td><td>None</td><td class="category-marginal">Marginal</td><td class="category-unused">N/A</td><td class="category-unused">N/A</td></tr>
+                                        <tr><td>CIG 1</td><td class="category-marginal">Marginal</td><td class="category-unused">N/A</td><td class="category-unused">N/A</td></tr>
+                                        <tr><td>CIG 2</td><td class="category-slight">Slight</td><td class="category-unused">N/A</td><td class="category-unused">N/A</td></tr>
+                                        
+                                        <tr><td rowspan="3">5%</td><td>None</td><td class="category-slight">Slight</td><td class="category-marginal">Marginal</td><td class="category-marginal">Marginal</td></tr>
+                                        <tr><td>CIG 1</td><td class="category-slight">Slight</td><td class="category-marginal">Marginal</td><td class="category-marginal">Marginal</td></tr>
+                                        <tr><td>CIG 2</td><td class="category-enhanced">Enhanced</td><td class="category-slight">Slight</td><td class="category-slight">Slight</td></tr>
+                                        
+                                        <tr><td rowspan="3">10%</td><td>None</td><td class="category-slight">Slight</td><td class="category-unused">N/A</td><td class="category-unused">N/A</td></tr>
+                                        <tr><td>CIG 1</td><td class="category-enhanced">Enhanced</td><td class="category-unused">N/A</td><td class="category-unused">N/A</td></tr>
+                                        <tr><td>CIG 2</td><td class="category-enhanced">Enhanced</td><td class="category-unused">N/A</td><td class="category-unused">N/A</td></tr>
+                                        
+                                        <tr><td rowspan="4">15%</td><td>None</td><td class="category-enhanced">Enhanced</td><td class="category-slight">Slight</td><td class="category-slight">Slight</td></tr>
+                                        <tr><td>CIG 1</td><td class="category-enhanced">Enhanced</td><td class="category-slight">Slight</td><td class="category-enhanced">Enhanced</td></tr>
+                                        <tr><td>CIG 2</td><td class="category-moderate">Moderate</td><td class="category-enhanced">Enhanced</td><td class="category-enhanced">Enhanced</td></tr>
+                                        <tr><td>CIG 3</td><td class="category-moderate">Moderate</td><td class="category-unused">N/A</td><td class="category-unused">N/A</td></tr>
+                                        
+                                        <tr><td rowspan="4">30%</td><td>None</td><td class="category-enhanced">Enhanced</td><td class="category-slight">Slight</td><td class="category-slight">Slight</td></tr>
+                                        <tr><td>CIG 1</td><td class="category-moderate">Moderate</td><td class="category-enhanced">Enhanced</td><td class="category-enhanced">Enhanced</td></tr>
+                                        <tr><td>CIG 2</td><td class="category-high">High</td><td class="category-enhanced">Enhanced</td><td class="category-enhanced">Enhanced</td></tr>
+                                        <tr><td>CIG 3</td><td class="category-high">High</td><td class="category-unused">N/A</td><td class="category-unused">N/A</td></tr>
+                                        
+                                        <tr><td rowspan="3">45%</td><td>CIG 1</td><td class="category-moderate">Moderate</td><td class="category-enhanced">Enhanced</td><td class="category-enhanced">Enhanced</td></tr>
+                                        <tr><td>CIG 2</td><td class="category-high">High</td><td class="category-moderate">Moderate</td><td class="category-moderate">Moderate</td></tr>
+                                        <tr><td>CIG 3</td><td class="category-high">High</td><td class="category-high">High</td><td class="category-unused">N/A</td></tr>
+                                        
+                                        <tr><td rowspan="3">60%</td><td>CIG 1</td><td class="category-high">High</td><td class="category-moderate">Moderate</td><td class="category-moderate">Moderate</td></tr>
+                                        <tr><td>CIG 2</td><td class="category-high">High</td><td class="category-high">High</td><td class="category-moderate">Moderate</td></tr>
+                                        <tr><td>CIG 3</td><td class="category-high">High</td><td class="category-high">High</td><td class="category-unused">N/A</td></tr>
+                                        
+                                        <tr><td rowspan="3">75%/90%</td><td>CIG 1</td><td class="category-unused">N/A</td><td class="category-moderate">Moderate</td><td class="category-unused">N/A</td></tr>
+                                        <tr><td>CIG 2</td><td class="category-unused">N/A</td><td class="category-high">High</td><td class="category-unused">N/A</td></tr>
+                                        <tr><td>CIG 3</td><td class="category-unused">N/A</td><td class="category-high">High</td><td class="category-unused">N/A</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="lookup-table">
+                            <h4><i class="fas fa-table"></i> Day 3 Operational Conversion (Probabilistic)</h4>
+                            <table style="font-size: 0.9em;">
+                                <thead>
+                                    <tr>
+                                        <th>Probability</th>
+                                        <th>CIG Level</th>
+                                        <th>Categorical Risk</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td rowspan="3">5%</td><td>None</td><td class="category-marginal">Marginal</td></tr>
+                                    <tr><td>CIG 1</td><td class="category-marginal">Marginal</td></tr>
+                                    <tr><td>CIG 2</td><td class="category-slight">Slight</td></tr>
+                                    
+                                    <tr><td rowspan="3">15%</td><td>None</td><td class="category-slight">Slight</td></tr>
+                                    <tr><td>CIG 1</td><td class="category-slight">Slight</td></tr>
+                                    <tr><td>CIG 2</td><td class="category-enhanced">Enhanced</td></tr>
+                                    
+                                    <tr><td rowspan="3">30%</td><td>None</td><td class="category-enhanced">Enhanced</td></tr>
+                                    <tr><td>CIG 1</td><td class="category-enhanced">Enhanced</td></tr>
+                                    <tr><td>CIG 2</td><td class="category-moderate">Moderate</td></tr>
+                                    
+                                    <tr><td rowspan="2">45%/60%</td><td>CIG 1</td><td class="category-moderate">Moderate</td></tr>
+                                    <tr><td>CIG 2</td><td class="category-moderate">Moderate</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SPC History Page -->
+        <div id="spcHistory" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                History of SPC Outlooks
+            </h2>
+
+            <div style="max-width: 1000px; margin: 0 auto;">
+                <div class="converter-card" style="background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%); border-left: 5px solid #ff5733;">
+                    <p style="font-size: 1.1em; line-height: 1.8; color: #e0e0e0; margin-bottom: 20px;">
+                        The Storm Prediction Center (SPC) has evolved significantly over the past five decades, adapting its outlook systems to better serve forecasters and the public. Below is a timeline of major developments in SPC convective outlooks.
+                    </p>
+
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                        <!-- 1974 -->
+                        <div style="background: rgba(255, 87, 51, 0.1); border-left: 4px solid #ff5733; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #ffd93d; font-size: 1.05em; margin-bottom: 8px;">
+                                <i class="fas fa-circle-notch" style="color: #ff5733;"></i> 1974 - First SPC Outlooks
+                            </h4>
+                            <p style="color: #c0c0c0;">
+                                The first SPC Outlooks were established with three categorical levels: <strong>Slight</strong>, <strong>Moderate</strong>, and <strong>High</strong>. These initial outlooks covered only the next 12-24 hours.
+                            </p>
+                        </div>
+
+                        <!-- 1986 -->
+                        <div style="background: rgba(255, 217, 61, 0.1); border-left: 4px solid #ffd93d; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #ffd93d; font-size: 1.05em; margin-bottom: 8px;">
+                                <i class="fas fa-calendar-alt" style="color: #ffd93d;"></i> 1986 - Day 2 Outlooks Implemented
+                            </h4>
+                            <p style="color: #c0c0c0;">
+                                Day 2 outlooks were introduced, extending the forecast period to include predictions for days beyond the initial 24 hours.
+                            </p>
+                        </div>
+
+                        <!-- 1999 -->
+                        <div style="background: rgba(255, 0, 0, 0.1); border-left: 4px solid #ff1744; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #ff1744; font-size: 1.05em; margin-bottom: 8px;">
+                                <i class="fas fa-tornado" style="color: #ff1744;"></i> May 3, 1999 - Historic F5 Tornado
+                            </h4>
+                            <p style="color: #c0c0c0;">
+                                An F5 tornado passed by SPC headquarters, highlighting the critical importance of accurate severe weather prediction and the work done by forecasters at the center.
+                            </p>
+                        </div>
+
+                        <!-- 2000 -->
+                        <div style="background: rgba(255, 152, 0, 0.1); border-left: 4px solid #ff9800; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #ff9800; font-size: 1.05em; margin-bottom: 8px;">
+                                <i class="fas fa-calendar-plus" style="color: #ff9800;"></i> 2000 - Day 3 Outlooks Added
+                            </h4>
+                            <p style="color: #c0c0c0;">
+                                Day 3 outlooks were introduced, extending the forecast period to the third day, providing extended-range severe weather guidance.
+                            </p>
+                        </div>
+
+                        <!-- 2003 -->
+                        <div style="background: rgba(0, 200, 200, 0.1); border-left: 4px solid #00d4d4; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #00d4d4; font-size: 1.05em; margin-bottom: 8px;">
+                                <i class="fas fa-globe" style="color: #00d4d4;"></i> January 24, 2003 - Web Accessibility & Probabilities
+                            </h4>
+                            <p style="color: #c0c0c0;">
+                                A major milestone: SPC Outlooks became viewable on the web for the first time. That same year, the SPC also introduced detailed Tornado, Hail, and Wind Risk probabilities, enabling more precise risk assessment.
+                            </p>
+                        </div>
+
+                        <!-- 2005 -->
+                        <div style="background: rgba(100, 200, 255, 0.1); border-left: 4px solid #64c8ff; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #64c8ff; font-size: 1.05em; margin-bottom: 8px;">
+                                <i class="fas fa-expand" style="color: #64c8ff;"></i> 2005 - Extended Range Outlooks
+                            </h4>
+                            <p style="color: #c0c0c0;">
+                                Day 4-8 Outlooks were introduced, providing extended-range convective outlooks for the 4th through 8th days of the forecast period.
+                            </p>
+                        </div>
+
+                        <!-- 2010 -->
+                        <div style="background: rgba(255, 0, 0, 0.1); border-left: 4px solid #ff1744; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #ff1744; font-size: 1.05em; margin-bottom: 8px;">
+                                <i class="fas fa-tornado" style="color: #ff1744;"></i> 2010 - EF4 Tornado at SPC
+                            </h4>
+                            <p style="color: #c0c0c0;">
+                                An EF4 tornado passed by SPC headquarters. Debris from this tornado fell on the building, serving as a stark reminder of the destructive power of severe weather.
+                            </p>
+                        </div>
+
+                        <!-- 2014 -->
+                        <div style="background: rgba(100, 255, 100, 0.1); border-left: 4px solid #64ff64; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #64ff64; font-size: 1.05em; margin-bottom: 8px;">
+                                <i class="fas fa-layer-group" style="color: #64ff64;"></i> October 2014 - Risk Category Expansion
+                            </h4>
+                            <p style="color: #c0c0c0;">
+                                The SPC expanded the outlook system to include <strong>Marginal Risk</strong> and <strong>Enhanced Risk</strong> categories. This five-category system (Marginal, Slight, Enhanced, Moderate, High) remains in use today as of March 2026.
+                            </p>
+                        </div>
+
+                        <!-- 2026 -->
+                        <div style="background: rgba(255, 87, 51, 0.2); border-left: 4px solid #ff5733; padding: 15px; border-radius: 0 8px 8px 0;">
+                            <h4 style="color: #ff5733; font-size: 1.05em; margin-bottom: 8px;">
+                                <i class="fas fa-star" style="color: #ff5733;"></i> March 3, 2026 - CIG Scale Implementation
+                            </h4>
+                            <p style="color: #c0c0c0;">
+                                The SPC expanded Tornado, Hail, and Wind risk outlooks to use the new <strong>CIG (Conditional Intensity Groups) Scale</strong>, moving away from the legacy SIG (Significant) format. This change also included updated graphics on the SPC website.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 87, 51, 0.3);">
+                        <h4 style="color: #ffd93d; font-size: 1em; margin-bottom: 15px;">
+                            <i class="fas fa-book"></i> Academic References
+                        </h4>
+                        <div style="background: rgba(0, 0, 0, 0.3); padding: 15px; border-radius: 8px; font-size: 0.9em; color: #b0b0b0; line-height: 1.8;">
+                            <p style="margin-bottom: 10px;">
+                                <strong>Ernst, S., Ripberger, J., Krocak, M. J., Jenkins-Smith, H., & Silva, C. (2021).</strong> 
+                                <em>Colorful Language: Investigating Public Interpretation of the Storm Prediction Center Convective Outlook.</em> 
+                                Weather and Forecasting. <a href="https://doi.org/10.1175/waf-d-21-0001.1" target="_blank" style="color: #ffd93d; text-decoration: none;">https://doi.org/10.1175/waf-d-21-0001.1</a>
+                                <br />Cited by: 13
+                            </p>
+                            <p style="margin-bottom: 10px;">
+                                <strong>Herman, G. R., Nielsen, E. R., & Schumacher, R. S. (2018).</strong> 
+                                <em>Probabilistic Verification of Storm Prediction Center Convective Outlooks.</em> 
+                                Weather and Forecasting, 33(1), 161–184. <a href="https://doi.org/10.1175/waf-d-17-0104.1" target="_blank" style="color: #ffd93d; text-decoration: none;">https://doi.org/10.1175/waf-d-17-0104.1</a>
+                                <br />Cited by: 41
+                            </p>
+                            <p>
+                                <strong>Krocak, M. J., Ripberger, J. T., Ernst, S., Silva, C. L., & Jenkins-Smith, H. C. (2022).</strong> 
+                                <em>Exploring the Differences in SPC Convective Outlook Interpretation Using Categorical and Numeric Information.</em> 
+                                Weather and Forecasting, 37(2), 303–311. <a href="https://doi.org/10.1175/waf-d-21-0123.1" target="_blank" style="color: #ffd93d; text-decoration: none;">https://doi.org/10.1175/waf-d-21-0123.1</a>
+                                <br />Cited by: 9
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2963,7 +3361,7 @@
             
             // Threats by day
             if (day <= 2) {
-                // Day 1/2: Show individual threat types
+                // Day 1/2: determine highest categorical risk only
                 const threatMap = {
                     'TSTM': 'General Thunderstorms',
                     'MRGL': 'Marginal',
@@ -2972,15 +3370,22 @@
                     'MDT': 'Moderate',
                     'HIGH': 'High'
                 };
-                
+
+                // severity order from lowest to highest
+                const order = ['TSTM','MRGL','SLGT','ENH','MDT','HIGH'];
+                let highestLabel = 'TSTM';
                 metadata.threats.forEach(threat => {
-                    const threatName = threatMap[threat.label] || threat.label;
-                    html += `
-                        <div class="drawer-item">
-                            <div class="drawer-label">${threatName}</div>
-                        </div>
-                    `;
+                    if (order.indexOf(threat.label) > order.indexOf(highestLabel)) {
+                        highestLabel = threat.label;
+                    }
                 });
+
+                const threatName = threatMap[highestLabel] || highestLabel;
+                html += `
+                    <div class="drawer-item">
+                        <div class="drawer-label">${threatName}</div>
+                    </div>
+                `;
             } else {
                 // Day 3: Show combined risk
                 metadata.threats.forEach(threat => {
@@ -3846,7 +4251,9 @@
         }
 
         // SPC Probability Converter Functions
-        const lookupTableDay12 = {
+        
+        // LEGACY VERSION (SIG Format)
+        const legacyLookupTableDay12 = {
             '2%': { tornado: 'Marginal', wind: 'Unused', hail: 'Unused' },
             '5%': { tornado: 'Slight', wind: 'Marginal', hail: 'Marginal' },
             '10%': { tornado: 'Enhanced', wind: 'Unused', hail: 'Unused' },
@@ -3861,7 +4268,7 @@
             '60% SIG': { tornado: 'High', wind: 'High', hail: 'Moderate' }
         };
 
-        const combinedTableDay12 = {
+        const legacyCombinedTableDay12 = {
             '5%': 'Marginal',
             '15%': 'Slight',
             '15% SIG': 'Slight',
@@ -3871,8 +4278,92 @@
             '45% SIG': 'Moderate'
         };
 
+        // OPERATIONAL VERSION (CIG Format)
+        const operationalLookupTableDay12 = {
+            '2%': {
+                'None': { tornado: 'Marginal', wind: 'N/A', hail: 'N/A' },
+                'CIG 1': { tornado: 'Marginal', wind: 'N/A', hail: 'N/A' },
+                'CIG 2': { tornado: 'Slight', wind: 'N/A', hail: 'N/A' }
+            },
+            '5%': {
+                'None': { tornado: 'Slight', wind: 'Marginal', hail: 'Marginal' },
+                'CIG 1': { tornado: 'Slight', wind: 'Marginal', hail: 'Marginal' },
+                'CIG 2': { tornado: 'Enhanced', wind: 'Slight', hail: 'Slight' }
+            },
+            '10%': {
+                'None': { tornado: 'Slight', wind: 'N/A', hail: 'N/A' },
+                'CIG 1': { tornado: 'Enhanced', wind: 'N/A', hail: 'N/A' },
+                'CIG 2': { tornado: 'Enhanced', wind: 'N/A', hail: 'N/A' }
+            },
+            '15%': {
+                'None': { tornado: 'Enhanced', wind: 'Slight', hail: 'Slight' },
+                'CIG 1': { tornado: 'Enhanced', wind: 'Slight', hail: 'Enhanced' },
+                'CIG 2': { tornado: 'Moderate', wind: 'Enhanced', hail: 'Enhanced' },
+                'CIG 3': { tornado: 'Moderate', wind: 'N/A', hail: 'N/A' }
+            },
+            '30%': {
+                'None': { tornado: 'Enhanced', wind: 'Slight', hail: 'Slight' },
+                'CIG 1': { tornado: 'Moderate', wind: 'Enhanced', hail: 'Enhanced' },
+                'CIG 2': { tornado: 'High', wind: 'Enhanced', hail: 'Enhanced' },
+                'CIG 3': { tornado: 'High', wind: 'N/A', hail: 'N/A' }
+            },
+            '45%': {
+                'CIG 1': { tornado: 'Moderate', wind: 'Enhanced', hail: 'Enhanced' },
+                'CIG 2': { tornado: 'High', wind: 'Moderate', hail: 'Moderate' },
+                'CIG 3': { tornado: 'High', wind: 'High', hail: 'N/A' }
+            },
+            '60%': {
+                'CIG 1': { tornado: 'High', wind: 'Moderate', hail: 'Moderate' },
+                'CIG 2': { tornado: 'High', wind: 'High', hail: 'Moderate' },
+                'CIG 3': { tornado: 'High', wind: 'High', hail: 'N/A' }
+            },
+            '75%': {
+                'CIG 1': { tornado: 'N/A', wind: 'Moderate', hail: 'N/A' },
+                'CIG 2': { tornado: 'N/A', wind: 'High', hail: 'N/A' },
+                'CIG 3': { tornado: 'N/A', wind: 'High', hail: 'N/A' }
+            },
+            '90%': {
+                'CIG 1': { tornado: 'N/A', wind: 'Moderate', hail: 'N/A' },
+                'CIG 2': { tornado: 'N/A', wind: 'High', hail: 'N/A' },
+                'CIG 3': { tornado: 'N/A', wind: 'High', hail: 'N/A' }
+            }
+        };
+
+        const operationalCombinedTableDay3 = {
+            '5%': {
+                'None': { category: 'Marginal' },
+                'CIG 1': { category: 'Marginal' },
+                'CIG 2': { category: 'Slight' }
+            },
+            '15%': {
+                'None': { category: 'Slight' },
+                'CIG 1': { category: 'Slight' },
+                'CIG 2': { category: 'Enhanced' }
+            },
+            '30%': {
+                'None': { category: 'Enhanced' },
+                'CIG 1': { category: 'Enhanced' },
+                'CIG 2': { category: 'Moderate' }
+            },
+            '45%': {
+                'CIG 1': { category: 'Moderate' },
+                'CIG 2': { category: 'Moderate' }
+            },
+            '60%': {
+                'CIG 1': { category: 'Moderate' },
+                'CIG 2': { category: 'Moderate' }
+            }
+        };
+
+        // Maintain backwards compatibility with old reference names
+        const lookupTableDay12 = legacyLookupTableDay12;
+        const combinedTableDay12 = legacyCombinedTableDay12;
+
         const allProbabilities = ['2%', '5%', '10%', '10% SIG', '15%', '15% SIG', '30%', '30% SIG', '45%', '45% SIG', '60%', '60% SIG'];
         const combinedProbabilities = ['5%', '15%', '15% SIG', '30%', '30% SIG', '45%', '45% SIG'];
+        
+        const operationalProbabilities = ['2%', '5%', '10%', '15%', '30%', '45%', '60%', '75%', '90%'];
+        const operationalDay3Probabilities = ['5%', '15%', '30%', '45%', '60%'];
 
         const riskHierarchy = {
             'High': 5,
@@ -3880,7 +4371,8 @@
             'Enhanced': 3,
             'Slight': 2,
             'Marginal': 1,
-            'Unused': 0
+            'Unused': 0,
+            'N/A': 0
         };
 
         function getCategoryClass(category) {
@@ -3890,15 +4382,22 @@
                 'Enhanced': 'category-enhanced',
                 'Moderate': 'category-moderate',
                 'High': 'category-high',
-                'Unused': 'category-unused'
+                'Unused': 'category-unused',
+                'N/A': 'category-unused'
             };
             return classes[category] || '';
         }
 
-        function getValidProbabilitiesForHazard(hazardType) {
+        function getValidProbabilitiesForHazard(hazardType, version = 'legacy') {
+            let table = version === 'legacy' ? legacyLookupTableDay12 : operationalLookupTableDay12;
             const validProbs = [];
-            for (const [prob, values] of Object.entries(lookupTableDay12)) {
-                if (values[hazardType] !== 'Unused') {
+            for (const [prob, values] of Object.entries(table)) {
+                if (version === 'legacy') {
+                    if (values[hazardType] !== 'Unused') {
+                        validProbs.push(prob);
+                    }
+                } else {
+                    // For operational, just include probabilities that have entries
                     validProbs.push(prob);
                 }
             }
@@ -3919,26 +4418,67 @@
 
         function initializeProbabilitySelectors() {
             const day = document.getElementById('converterDay').value;
+            const version = document.getElementById('converterVersion').value;
             
             if (day === '3') {
                 // Day 3: only combined
                 document.getElementById('day12Section').classList.remove('visible');
                 document.getElementById('day3Section').classList.add('visible');
-                document.getElementById('referenceTablesDay12').classList.remove('visible');
-                populateDropdown('combinedDropdown', combinedProbabilities);
+                
+                if (version === 'operational') {
+                    document.getElementById('referenceTablesDay12').classList.add('visible');
+                    document.getElementById('operationalTablesDay12').style.display = 'block';
+                    document.getElementById('legacyTablesDay12').style.display = 'none';
+                    document.getElementById('day3CigSelector').style.display = 'block';
+                    populateDropdown('day3CigLevel', ['None', 'CIG 1', 'CIG 2']);
+                    populateDropdown('combinedDropdown', operationalDay3Probabilities);
+                } else {
+                    document.getElementById('referenceTablesDay12').classList.remove('visible');
+                    document.getElementById('day3CigSelector').style.display = 'none';
+                    populateDropdown('combinedDropdown', combinedProbabilities);
+                }
             } else {
                 // Day 1/2: Individual hazards
                 document.getElementById('day12Section').classList.add('visible');
                 document.getElementById('day3Section').classList.remove('visible');
                 document.getElementById('referenceTablesDay12').classList.add('visible');
                 
-                const tornadoProbs = getValidProbabilitiesForHazard('tornado');
-                const windProbs = getValidProbabilitiesForHazard('wind');
-                const hailProbs = getValidProbabilitiesForHazard('hail');
-                
-                populateDropdown('tornadoDropdown', tornadoProbs);
-                populateDropdown('windDropdown', windProbs);
-                populateDropdown('hailDropdown', hailProbs);
+                // Show/hide version-specific tables
+                if (version === 'operational') {
+                    document.getElementById('operationalTablesDay12').style.display = 'block';
+                    document.getElementById('legacyTablesDay12').style.display = 'none';
+                    
+                    // Show individual CIG level selectors
+                    document.getElementById('tornadoCigLabel').style.display = 'block';
+                    document.getElementById('tornadoCigLevel').style.display = 'block';
+                    document.getElementById('windCigLabel').style.display = 'block';
+                    document.getElementById('windCigLevel').style.display = 'block';
+                    document.getElementById('hailCigLabel').style.display = 'block';
+                    document.getElementById('hailCigLevel').style.display = 'block';
+                    
+                    populateDropdown('tornadoDropdown', operationalProbabilities);
+                    populateDropdown('windDropdown', operationalProbabilities);
+                    populateDropdown('hailDropdown', operationalProbabilities);
+                } else {
+                    document.getElementById('operationalTablesDay12').style.display = 'none';
+                    document.getElementById('legacyTablesDay12').style.display = 'block';
+                    
+                    // Hide individual CIG level selectors
+                    document.getElementById('tornadoCigLabel').style.display = 'none';
+                    document.getElementById('tornadoCigLevel').style.display = 'none';
+                    document.getElementById('windCigLabel').style.display = 'none';
+                    document.getElementById('windCigLevel').style.display = 'none';
+                    document.getElementById('hailCigLabel').style.display = 'none';
+                    document.getElementById('hailCigLevel').style.display = 'none';
+                    
+                    const tornadoProbs = getValidProbabilitiesForHazard('tornado', 'legacy');
+                    const windProbs = getValidProbabilitiesForHazard('wind', 'legacy');
+                    const hailProbs = getValidProbabilitiesForHazard('hail', 'legacy');
+                    
+                    populateDropdown('tornadoDropdown', tornadoProbs);
+                    populateDropdown('windDropdown', windProbs);
+                    populateDropdown('hailDropdown', hailProbs);
+                }
             }
         }
 
@@ -3958,50 +4498,104 @@
         }
 
         function updateResults() {
+            const version = document.getElementById('converterVersion').value;
             const tornadoProb = document.getElementById('tornadoDropdown').value;
             const windProb = document.getElementById('windDropdown').value;
             const hailProb = document.getElementById('hailDropdown').value;
+            
+            if (version === 'operational') {
+                // Get individual CIG levels for each hazard
+                const tornadoCig = document.getElementById('tornadoCigLevel').value;
+                const windCig = document.getElementById('windCigLevel').value;
+                const hailCig = document.getElementById('hailCigLevel').value;
+                
+                // Update tornado result
+                if (tornadoProb !== '' && tornadoCig !== '') {
+                    const cigEntry = operationalLookupTableDay12[tornadoProb]?.[tornadoCig];
+                    const tornadoResult = cigEntry ? cigEntry.tornado : 'Not Found';
+                    const tornadoElement = document.getElementById('tornadoResult');
+                    tornadoElement.textContent = tornadoResult;
+                    tornadoElement.className = 'result-value ' + getCategoryClass(tornadoResult);
+                } else {
+                    document.getElementById('tornadoResult').textContent = '-';
+                    document.getElementById('tornadoResult').className = 'result-value';
+                }
 
-            // Update tornado result
-            if (tornadoProb !== '') {
-                const tornadoEntry = lookupTableDay12[tornadoProb];
-                const tornadoResult = tornadoEntry ? tornadoEntry.tornado : 'Not Found';
-                const tornadoElement = document.getElementById('tornadoResult');
-                tornadoElement.textContent = tornadoResult;
-                tornadoElement.className = 'result-value ' + getCategoryClass(tornadoResult);
-            } else {
-                document.getElementById('tornadoResult').textContent = '-';
-                document.getElementById('tornadoResult').className = 'result-value';
-            }
+                // Update wind result
+                if (windProb !== '' && windCig !== '') {
+                    const cigEntry = operationalLookupTableDay12[windProb]?.[windCig];
+                    const windResult = cigEntry ? cigEntry.wind : 'Not Found';
+                    const windElement = document.getElementById('windResult');
+                    windElement.textContent = windResult;
+                    windElement.className = 'result-value ' + getCategoryClass(windResult);
+                } else {
+                    document.getElementById('windResult').textContent = '-';
+                    document.getElementById('windResult').className = 'result-value';
+                }
 
-            // Update wind result
-            if (windProb !== '') {
-                const windEntry = lookupTableDay12[windProb];
-                const windResult = windEntry ? windEntry.wind : 'Not Found';
-                const windElement = document.getElementById('windResult');
-                windElement.textContent = windResult;
-                windElement.className = 'result-value ' + getCategoryClass(windResult);
+                // Update hail result
+                if (hailProb !== '' && hailCig !== '') {
+                    const cigEntry = operationalLookupTableDay12[hailProb]?.[hailCig];
+                    const hailResult = cigEntry ? cigEntry.hail : 'Not Found';
+                    const hailElement = document.getElementById('hailResult');
+                    hailElement.textContent = hailResult;
+                    hailElement.className = 'result-value ' + getCategoryClass(hailResult);
+                } else {
+                    document.getElementById('hailResult').textContent = '-';
+                    document.getElementById('hailResult').className = 'result-value';
+                }
             } else {
-                document.getElementById('windResult').textContent = '-';
-                document.getElementById('windResult').className = 'result-value';
-            }
+                // Legacy version
+                // Update tornado result
+                if (tornadoProb !== '') {
+                    const tornadoEntry = legacyLookupTableDay12[tornadoProb];
+                    const tornadoResult = tornadoEntry ? tornadoEntry.tornado : 'Not Found';
+                    const tornadoElement = document.getElementById('tornadoResult');
+                    tornadoElement.textContent = tornadoResult;
+                    tornadoElement.className = 'result-value ' + getCategoryClass(tornadoResult);
+                } else {
+                    document.getElementById('tornadoResult').textContent = '-';
+                    document.getElementById('tornadoResult').className = 'result-value';
+                }
 
-            // Update hail result
-            if (hailProb !== '') {
-                const hailEntry = lookupTableDay12[hailProb];
-                const hailResult = hailEntry ? hailEntry.hail : 'Not Found';
-                const hailElement = document.getElementById('hailResult');
-                hailElement.textContent = hailResult;
-                hailElement.className = 'result-value ' + getCategoryClass(hailResult);
-            } else {
-                document.getElementById('hailResult').textContent = '-';
-                document.getElementById('hailResult').className = 'result-value';
+                // Update wind result
+                if (windProb !== '') {
+                    const windEntry = legacyLookupTableDay12[windProb];
+                    const windResult = windEntry ? windEntry.wind : 'Not Found';
+                    const windElement = document.getElementById('windResult');
+                    windElement.textContent = windResult;
+                    windElement.className = 'result-value ' + getCategoryClass(windResult);
+                } else {
+                    document.getElementById('windResult').textContent = '-';
+                    document.getElementById('windResult').className = 'result-value';
+                }
+
+                // Update hail result
+                if (hailProb !== '') {
+                    const hailEntry = legacyLookupTableDay12[hailProb];
+                    const hailResult = hailEntry ? hailEntry.hail : 'Not Found';
+                    const hailElement = document.getElementById('hailResult');
+                    hailElement.textContent = hailResult;
+                    hailElement.className = 'result-value ' + getCategoryClass(hailResult);
+                } else {
+                    document.getElementById('hailResult').textContent = '-';
+                    document.getElementById('hailResult').className = 'result-value';
+                }
             }
 
             // Update overall risk for Day 1/2
             updateOverallRiskDay12();
         }
 
+        function updateDateMeta() {
+            const dateMeta = document.querySelector('meta[name="date"]');
+            if (dateMeta) {
+                const today = new Date();
+                const formattedDate = today.toISOString().split('T')[0];
+                dateMeta.setAttribute('content', formattedDate);
+            }
+        }
+        updateDateMeta();
         function updateOverallRiskDay12() {
             const tornadoResult = document.getElementById('tornadoResult').textContent;
             const windResult = document.getElementById('windResult').textContent;
@@ -4019,23 +4613,47 @@
         }
 
         function updateCombinedResult() {
+            const version = document.getElementById('converterVersion').value;
             const combinedProb = document.getElementById('combinedDropdown').value;
+            
+            if (version === 'operational') {
+                const cigLevel = document.getElementById('day3CigLevel').value;
+                
+                if (combinedProb !== '' && cigLevel !== '') {
+                    const cigEntry = operationalCombinedTableDay3[combinedProb]?.[cigLevel];
+                    const combinedResult = cigEntry ? cigEntry.category : 'Not Found';
+                    const combinedElement = document.getElementById('combinedResult');
+                    combinedElement.textContent = combinedResult;
+                    combinedElement.className = 'result-value ' + getCategoryClass(combinedResult);
 
-            if (combinedProb !== '') {
-                const combinedResult = combinedTableDay12[combinedProb] || 'Not Found';
-                const combinedElement = document.getElementById('combinedResult');
-                combinedElement.textContent = combinedResult;
-                combinedElement.className = 'result-value ' + getCategoryClass(combinedResult);
-
-                // For Day 3, overall risk is just the combined risk
-                const overallElement = document.getElementById('overallRiskDay3');
-                overallElement.textContent = combinedResult;
-                overallElement.className = 'result-value overall-risk-value ' + getCategoryClass(combinedResult);
+                    // For Day 3, overall risk is just the combined risk
+                    const overallElement = document.getElementById('overallRiskDay3');
+                    overallElement.textContent = combinedResult;
+                    overallElement.className = 'result-value overall-risk-value ' + getCategoryClass(combinedResult);
+                } else {
+                    document.getElementById('combinedResult').textContent = '-';
+                    document.getElementById('combinedResult').className = 'result-value';
+                    document.getElementById('overallRiskDay3').textContent = '-';
+                    document.getElementById('overallRiskDay3').className = 'result-value overall-risk-value';
+                }
             } else {
-                document.getElementById('combinedResult').textContent = '-';
-                document.getElementById('combinedResult').className = 'result-value';
-                document.getElementById('overallRiskDay3').textContent = '-';
-                document.getElementById('overallRiskDay3').className = 'result-value overall-risk-value';
+                // Legacy version
+                if (combinedProb !== '') {
+                    const combinedResult = legacyCombinedTableDay12[combinedProb] || 'Not Found';
+                    const combinedElement = document.getElementById('combinedResult');
+                    combinedElement.textContent = combinedResult;
+                    combinedElement.className = 'result-value ' + getCategoryClass(combinedResult);
+
+                    // For Day 3, overall risk is just the combined risk
+                    const overallElement = document.getElementById('overallRiskDay3');
+                    overallElement.textContent = combinedResult;
+                    overallElement.className = 'result-value overall-risk-value ' + getCategoryClass(combinedResult);
+                } else {
+                    document.getElementById('combinedResult').textContent = '-';
+                    document.getElementById('combinedResult').className = 'result-value';
+                    document.getElementById('overallRiskDay3').textContent = '-';
+                    document.getElementById('overallRiskDay3').className = 'result-value overall-risk-value';
+                }
             }
         }
 
@@ -4049,6 +4667,10 @@
             document.getElementById('windDropdown').value = '';
             document.getElementById('hailDropdown').value = '';
             document.getElementById('combinedDropdown').value = '';
+            document.getElementById('tornadoCigLevel').value = 'None';
+            document.getElementById('windCigLevel').value = 'None';
+            document.getElementById('hailCigLevel').value = 'None';
+            document.getElementById('day3CigLevel').value = 'None';
             document.getElementById('tornadoResult').textContent = '-';
             document.getElementById('windResult').textContent = '-';
             document.getElementById('hailResult').textContent = '-';
@@ -4062,6 +4684,112 @@
             document.getElementById('overallRiskDay12').className = 'result-value overall-risk-value';
             document.getElementById('overallRiskDay3').className = 'result-value overall-risk-value';
         }
+
+        // Regional outlooks page logic
+        function initRegionalPage() {
+            const scopeSelect = document.getElementById('scopeSelect');
+            const natControls = document.getElementById('nationalControls');
+            const stateControls = document.getElementById('stateControls');
+            const nationalSelect = document.getElementById('nationalOutlookSelect');
+            const stateAbbrev = document.getElementById('stateAbbrev');
+            const stateType = document.getElementById('stateType');
+            const stateDay = document.getElementById('stateDay');
+            const loadStateBtn = document.getElementById('loadStateBtn');
+
+            scopeSelect.addEventListener('change', () => {
+                if (scopeSelect.value === 'national') {
+                    natControls.style.display = 'block';
+                    stateControls.style.display = 'none';
+                    updateNationalImage();
+                } else {
+                    natControls.style.display = 'none';
+                    stateControls.style.display = 'block';
+                    updateStateDayOptions();
+                }
+            });
+
+            nationalSelect.addEventListener('change', updateNationalImage);
+            stateType.addEventListener('change', updateStateDayOptions);
+            loadStateBtn.addEventListener('click', updateStateImage);
+
+            // initialize default view
+            updateNationalImage();
+        }
+
+        const nationalOutlooks = {
+            day1: "https://www.spc.noaa.gov/partners/outlooks/national/swody1.png",
+            day2: "https://www.spc.noaa.gov/partners/outlooks/national/swody2.png",
+            day3: "https://www.spc.noaa.gov/partners/outlooks/national/swody3.png",
+            day4: "https://www.spc.noaa.gov/products/exper/day4-8/day4prob.gif",
+            day5: "https://www.spc.noaa.gov/products/exper/day4-8/day5prob.gif",
+            day6: "https://www.spc.noaa.gov/products/exper/day4-8/day6prob.gif",
+            day7: "https://www.spc.noaa.gov/products/exper/day4-8/day7prob.gif",
+            day8: "https://www.spc.noaa.gov/products/exper/day4-8/day8prob.gif",
+            day1tornado: "https://www.spc.noaa.gov/partners/outlooks/national/swody1_TORN.png",
+            day2tornado: "https://www.spc.noaa.gov/partners/outlooks/national/swody2_TORN.png",
+            day1hail: "https://www.spc.noaa.gov/partners/outlooks/national/swody1_HAIL.png",
+            day1wind: "https://www.spc.noaa.gov/partners/outlooks/national/swody1_WIND.png",
+            day2hail: "https://www.spc.noaa.gov/partners/outlooks/national/swody2_HAIL.png",
+            day2wind: "https://www.spc.noaa.gov/partners/outlooks/national/swody2_WIND.png",
+            day3probalistic: "https://www.spc.noaa.gov/partners/outlooks/national/swody3_PROB.png",
+        };
+
+        function updateNationalImage() {
+            const select = document.getElementById('nationalOutlookSelect');
+            const url = nationalOutlooks[select.value];
+            document.getElementById('regionalDisplay').src = url;
+        }
+
+        function updateStateDayOptions() {
+            const type = document.getElementById('stateType').value;
+            const stateDay = document.getElementById('stateDay');
+            let days = [];
+            if (type === 'conv13') days = [1,2,3];
+            else if (type === 'conv48') days = [4,5,6,7,8];
+            else if (['tornado','hail','wind'].includes(type)) days = [1,2];
+            else if (type === 'combined3') days = [3];
+            stateDay.innerHTML = '';
+            days.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = 'Day ' + d;
+                stateDay.appendChild(opt);
+            });
+        }
+
+        function updateStateImage() {
+            const state = document.getElementById('stateAbbrev').value;
+            const type = document.getElementById('stateType').value;
+            const day = document.getElementById('stateDay').value;
+            if (!state) {
+                alert('Please select a state or region');
+                return;
+            }
+            let url = '';
+            switch(type) {
+                case 'conv13':
+                    url = `https://www.spc.noaa.gov/partners/outlooks/state/images/${state}_swody${day}.png`;
+                    break;
+                case 'conv48':
+                    url = `https://www.spc.noaa.gov/partners/outlooks/state/images/${state}_swody${day}_PROB.png`;
+                    break;
+                case 'tornado':
+                    url = `https://www.spc.noaa.gov/partners/outlooks/state/images/${state}_swody${day}_TORN.png`;
+                    break;
+                case 'hail':
+                    url = `https://www.spc.noaa.gov/partners/outlooks/state/images/${state}_swody${day}_HAIL.png`;
+                    break;
+                case 'wind':
+                    url = `https://www.spc.noaa.gov/partners/outlooks/state/images/${state}_swody${day}_WIND.png`;
+                    break;
+                case 'combined3':
+                    url = `https://www.spc.noaa.gov/partners/outlooks/state/images/${state}_swody3_PROB.png`;
+                    break;
+            }
+            document.getElementById('regionalDisplay').src = url;
+        }
+
+        document.addEventListener('DOMContentLoaded', initRegionalPage);
     </script>
     <footer class="site-footer">
         <div class="container footer-inner">
