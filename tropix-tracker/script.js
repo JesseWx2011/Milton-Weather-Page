@@ -661,7 +661,7 @@ function loadSeason(year) {
         if (year === "2025") {
             document.getElementById('stat-most-active').textContent = '2 (Humberto & Imelda)';
             document.getElementById('stat-lowest-pressure').textContent = 'Melissa (892 mb)';
-            document.getElementById('stat-highest-wind').textContent = 'Melissa (185 mph)';
+            document.getElementById('stat-highest-wind').textContent = 'Melissa (190 mph)';
             document.getElementById('stat-landfalling').textContent = 'Barry, Chantal, Melissa';
             document.getElementById('stat-us-landfalling').textContent = 'Chantal';
             document.getElementById('stat-costliest').textContent = 'Melissa (>$10B USD)';
@@ -1242,5 +1242,6 @@ async function displayStorms(features) {
       container.appendChild(stormDiv);
    }
 }
+
 
 setInterval(() => { Dates(); fetchTropicalData(); }, 300000);
