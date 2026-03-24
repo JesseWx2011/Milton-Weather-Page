@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Severe Weather Tracker</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 
     <meta name="author" content="JesseLikesWeather">
-    <meta name="date" content="2026-03-02"/>
+    <meta name="date" content="2026-03-24"/>
     <style>
         * {
             margin: 0;
@@ -925,6 +926,109 @@
             border-width: 3px;
         }
 
+        /* Tornado warning — confirmed/observed: dark red background */
+        .alert-card.tor-observed {
+            background: linear-gradient(135deg, #3a0808 0%, #1a0404 100%);
+            border-color: #cc0000;
+            border-width: 3px;
+            box-shadow: 0 0 30px rgba(200, 0, 0, 0.4), 0 8px 30px rgba(0,0,0,0.7);
+        }
+        .alert-card.tor-observed .alert-title { color: #ff4444; }
+
+        /* Tornado Emergency / Catastrophic: deep purple */
+        .alert-card.tor-catastrophic {
+            background: linear-gradient(135deg, #2a0040 0%, #120020 100%);
+            border-color: #cc00ff;
+            border-width: 3px;
+            box-shadow: 0 0 40px rgba(180, 0, 255, 0.5), 0 8px 30px rgba(0,0,0,0.8);
+            animation: torEmergencyPulse 2s ease-in-out infinite;
+        }
+        .alert-card.tor-catastrophic .alert-title { color: #dd88ff; }
+        @keyframes torEmergencyPulse {
+            0%, 100% { box-shadow: 0 0 30px rgba(180,0,255,0.4), 0 8px 30px rgba(0,0,0,0.8); }
+            50%       { box-shadow: 0 0 60px rgba(200,0,255,0.7), 0 8px 30px rgba(0,0,0,0.8); }
+        }
+
+        /* Alert expandable drawer */
+        .alert-drawer-btn {
+            background: rgba(255,87,51,0.15);
+            border: 1px solid rgba(255,87,51,0.5);
+            color: #ff9966;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        .alert-drawer-btn:hover { background: rgba(255,87,51,0.3); color:#fff; }
+        .alert-drawer-btn i.adrawer-chevron { transition: transform 0.3s ease; }
+        .alert-drawer-btn.open i.adrawer-chevron { transform: rotate(180deg); }
+        .alert-extra-drawer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s cubic-bezier(.4,0,.2,1);
+        }
+        .alert-extra-drawer.open { max-height: 1600px; }
+        .alert-drawer-inner {
+            padding-top: 14px;
+            border-top: 1px solid rgba(255,87,51,0.25);
+            margin-top: 12px;
+        }
+        .alert-param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-bottom: 12px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.82em;
+        }
+        .alert-param-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 7px;
+            padding: 8px 12px;
+            border-left: 3px solid #ff5733;
+        }
+        .alert-param-label { color: #ffd93d; font-weight: bold; font-size: 0.85em; margin-bottom: 3px; }
+        .alert-param-value { color: #e0e0e0; }
+        .alert-motion-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,87,51,0.15);
+            border: 1px solid rgba(255,87,51,0.4);
+            border-radius: 8px;
+            padding: 5px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82em;
+            color: #ff9966;
+            margin-top: 6px;
+            margin-right: 6px;
+        }
+        .alert-full-text {
+            background: rgba(0,0,0,0.4);
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 10px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.85em;
+            line-height: 1.65;
+            white-space: pre-wrap;
+            color: #d0d0d0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .alert-full-text::-webkit-scrollbar { width: 6px; }
+        .alert-full-text::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); border-radius:3px; }
+        .alert-full-text::-webkit-scrollbar-thumb { background: #ff5733; border-radius:3px; }
+
         .alert-card.updated {
             animation: alertPulse 10s ease-out;
         }
@@ -1395,6 +1499,626 @@
             color: #ff1744;
             border: 1px solid #ff1744;
         }
+
+        /* ===== WARNING SCORE STYLES ===== */
+        .warning-score-container {
+            margin: 14px 0 6px 0;
+            background: rgba(0,0,0,0.35);
+            border-radius: 10px;
+            padding: 12px 16px;
+            border: 1px solid rgba(255,87,51,0.3);
+        }
+        .warning-score-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.82em;
+            font-weight: bold;
+            color: #ffd93d;
+            letter-spacing: 0.05em;
+        }
+        .warning-score-value {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        .warning-score-bar-bg {
+            width: 100%;
+            height: 14px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 7px;
+            overflow: hidden;
+            position: relative;
+        }
+        .warning-score-bar-fill {
+            height: 100%;
+            border-radius: 7px;
+            transition: width 0.8s cubic-bezier(.4,0,.2,1);
+            position: relative;
+        }
+        .warning-score-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, transparent 60%, rgba(255,255,255,0.25));
+            border-radius: 7px;
+        }
+        .warning-score-label {
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.78em;
+            color: #aaa;
+            margin-top: 5px;
+        }
+        /* Score Legend */
+        .score-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 16px 0 0 0;
+            padding: 12px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 8px;
+            border: 1px solid rgba(255,87,51,0.2);
+        }
+        .score-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.78em;
+            color: #ccc;
+        }
+        .score-legend-swatch {
+            width: 14px; height: 14px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+
+        /* ===== WARNING DRAWER EXPANSION ===== */
+        .warning-drawer-btn {
+            background: rgba(255,87,51,0.15);
+            border: 1px solid rgba(255,87,51,0.5);
+            color: #ff9966;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 0.85em;
+            transition: all 0.3s ease;
+            margin-top: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        .warning-drawer-btn:hover {
+            background: rgba(255,87,51,0.35);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(255,87,51,0.4);
+        }
+        .warning-drawer-btn i {
+            transition: transform 0.3s ease;
+        }
+        .warning-drawer-btn.open i.drawer-chevron {
+            transform: rotate(180deg);
+        }
+        .warning-extra-drawer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.55s cubic-bezier(.4,0,.2,1);
+        }
+        .warning-extra-drawer.open {
+            max-height: 2400px;
+        }
+        .warning-drawer-inner {
+            padding-top: 16px;
+            border-top: 1px solid rgba(255,87,51,0.2);
+            margin-top: 14px;
+        }
+
+        /* ===== HISTORICAL WEATHER TABLE ===== */
+        .hist-weather-section {
+            margin-bottom: 18px;
+        }
+        .hist-weather-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            color: #ffd93d;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hist-weather-table-wrap {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid rgba(255,87,51,0.25);
+        }
+        .hist-weather-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.78em;
+            color: #ddd;
+            min-width: 580px;
+        }
+        .hist-weather-table thead tr {
+            background: rgba(255,87,51,0.2);
+            color: #ffd93d;
+        }
+        .hist-weather-table th, .hist-weather-table td {
+            padding: 6px 10px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .hist-weather-table tbody tr:hover {
+            background: rgba(255,87,51,0.1);
+        }
+        .hist-weather-table td:first-child {
+            font-weight: bold;
+            color: #ff9966;
+        }
+
+        /* ===== MESOANALYSIS SECTION ===== */
+        .meso-section {
+            margin-bottom: 18px;
+        }
+        .meso-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            color: #ffd93d;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .meso-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .meso-controls label {
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.82em;
+            color: #bbb;
+        }
+        .meso-controls select {
+            font-family: 'Verdana', sans-serif;
+            background: rgba(0,0,0,0.5);
+            color: #fff;
+            border: 1px solid rgba(255,87,51,0.5);
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.82em;
+        }
+        .meso-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 10px;
+        }
+        .meso-panel {
+            background: rgba(0,0,0,0.3);
+            border-radius: 8px;
+            border: 1px solid rgba(255,87,51,0.25);
+            overflow: hidden;
+        }
+        .meso-panel-label {
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.75em;
+            color: #ffd93d;
+            padding: 5px 10px;
+            background: rgba(255,87,51,0.15);
+            font-weight: bold;
+        }
+        .meso-panel img {
+            width: 100%;
+            display: block;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .meso-panel img:hover { opacity: 0.85; }
+
+        /* ===== SCORE BADGE ON ACTIVE ALERTS ===== */
+        .alert-score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82em;
+            font-weight: bold;
+            margin-top: 6px;
+            border: 1px solid;
+        }
+
+        /* ===== FAVORITES SYSTEM ===== */
+        .favorites-btn {
+            position: relative;
+            background: rgba(255,217,61,0.15);
+            border: 2px solid rgba(255,217,61,0.5);
+            color: #ffd93d;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .favorites-btn:hover {
+            background: rgba(255,217,61,0.3);
+            box-shadow: 0 0 15px rgba(255,217,61,0.4);
+        }
+        .favorites-count-badge {
+            background: #ff5733;
+            color: #fff;
+            border-radius: 10px;
+            padding: 1px 6px;
+            font-size: 0.75em;
+            font-family: 'Courier New', monospace;
+            min-width: 18px;
+            text-align: center;
+            display: inline-block;
+        }
+        .favorites-panel {
+            position: fixed;
+            top: 0; right: -420px;
+            width: 400px;
+            height: 100vh;
+            background: linear-gradient(160deg,#1a1a1a 0%,#0a0a0a 100%);
+            border-left: 3px solid #ffd93d;
+            z-index: 20000;
+            transition: right 0.4s cubic-bezier(.4,0,.2,1);
+            overflow-y: auto;
+            box-shadow: -8px 0 40px rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+        }
+        .favorites-panel.open { right: 0; }
+        .favorites-panel-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,217,61,0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky; top: 0;
+            background: linear-gradient(160deg,#1a1a1a 0%,#0a0a0a 100%);
+            z-index: 1;
+        }
+        .favorites-panel-title {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            color: #ffd93d;
+            font-size: 1.1em;
+        }
+        .favorites-close-btn {
+            background: rgba(255,87,51,0.2);
+            border: 1px solid #ff5733;
+            color: #ff5733;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        .favorites-close-btn:hover { background: #ff5733; color: #fff; }
+        .favorites-list { padding: 16px; flex: 1; }
+        .favorite-item {
+            background: rgba(42,42,42,0.8);
+            border: 1px solid rgba(255,217,61,0.3);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .favorite-item:hover { border-color: rgba(255,217,61,0.7); background: rgba(55,55,55,0.9); }
+        .favorite-item-title {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            color: #ff5733;
+            font-size: 0.95em;
+            margin-bottom: 6px;
+        }
+        .favorite-item-meta {
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.78em;
+            color: #aaa;
+            line-height: 1.5;
+        }
+        .favorite-item-score {
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+        .favorite-remove-btn {
+            position: absolute;
+            top: 10px; right: 10px;
+            background: rgba(255,87,51,0.2);
+            border: 1px solid rgba(255,87,51,0.5);
+            color: #ff5733;
+            padding: 3px 8px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.75em;
+            transition: all 0.2s;
+        }
+        .favorite-remove-btn:hover { background: #ff5733; color: #fff; }
+        .favorites-empty {
+            text-align: center;
+            color: #666;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.9em;
+            padding: 40px 20px;
+        }
+        .favorites-empty i { font-size: 2.5em; margin-bottom: 12px; display: block; color: #444; }
+        .star-btn {
+            background: rgba(255,217,61,0.1);
+            border: 1px solid rgba(255,217,61,0.4);
+            color: #ffd93d;
+            padding: 7px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 0.82em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 10px;
+        }
+        .star-btn:hover { background: rgba(255,217,61,0.25); box-shadow: 0 0 12px rgba(255,217,61,0.3); }
+        .star-btn.starred { background: rgba(255,217,61,0.25); border-color: #ffd93d; color: #ffd93d; }
+        .star-btn.starred i { color: #ffd93d; }
+        .favorites-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 19999;
+            display: none;
+        }
+        .favorites-overlay.open { display: block; }
+
+        /* ===== GEOLOCATION BUTTON ===== */
+        .geo-btn {
+            background: rgba(100,180,255,0.15);
+            border: 2px solid rgba(100,180,255,0.5);
+            color: #64b4ff;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .geo-btn:hover { background: rgba(100,180,255,0.28); box-shadow: 0 0 15px rgba(100,180,255,0.4); }
+
+        /* ===== LSR SECTION ===== */
+        .lsr-section { margin-bottom: 16px; }
+        .lsr-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            color: #ffd93d;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lsr-list { display: flex; flex-direction: column; gap: 8px; }
+        .lsr-item {
+            background: rgba(0,0,0,0.3);
+            border-radius: 7px;
+            padding: 9px 12px;
+            border-left: 3px solid #ffd93d;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.8em;
+            color: #ddd;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .lsr-item-event {
+            font-weight: bold;
+            color: #ff9966;
+            min-width: 120px;
+            flex-shrink: 0;
+        }
+        .lsr-item-details { line-height: 1.5; }
+        .lss-magnitude { color: #ff5733; font-weight: bold; }
+
+        /* ===== LOCATION SEVERE SCORE PAGE ===== */
+        .lss-disclaimer {
+            background: rgba(139,0,0,0.25);
+            border: 2px solid #c70039;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.88em;
+            color: #ffcccc;
+            margin-bottom: 22px;
+            line-height: 1.6;
+        }
+        .lss-disclaimer i { color: #ff5733; margin-right: 8px; font-size: 1.1em; }
+        .lss-disclaimer a { color: #ffd93d; }
+        .lss-card {
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border-radius: 15px;
+            padding: 22px;
+            margin-bottom: 22px;
+            border: 2px solid rgba(255,87,51,0.3);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+        }
+        .lss-section-header {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            color: #ff5733;
+            font-size: 1.1em;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .lss-window-btn {
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            background: rgba(42,42,42,0.8);
+            color: #e0e0e0;
+            border: 2px solid rgba(255,87,51,0.4);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lss-window-btn:hover { border-color: #ff5733; color: #fff; background: rgba(255,87,51,0.2); }
+        .lss-window-btn.active {
+            background: linear-gradient(135deg,#ff5733,#c70039);
+            border-color: #ffd93d;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(255,87,51,0.5);
+        }
+        .lss-big-score {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 4em;
+            line-height: 1;
+            text-shadow: 0 0 30px currentColor;
+            transition: color 0.1s ease;
+        }
+        .lss-big-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1em;
+            color: #aaa;
+            margin-top: 6px;
+        }
+        .lss-score-summary-card {
+            border-width: 3px;
+        }
+        .lss-export-btn {
+            background: linear-gradient(135deg, #ff8c00, #ff5733);
+            border: none;
+            color: #fff;
+            padding: 11px 22px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            font-size: 0.92em;
+            letter-spacing: 0.5px;
+            transition: all 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 12px;
+            box-shadow: 0 4px 15px rgba(255,140,0,0.4);
+        }
+        .lss-export-btn:hover {
+            background: linear-gradient(135deg, #ffaa00, #ff6633);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255,140,0,0.6);
+        }
+        .lss-export-btn:active { transform: translateY(0); }
+        .lss-graphic-factors {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .lss-factor-group-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 0.72em;
+            font-weight: bold;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 8px;
+            margin-bottom: 2px;
+        }
+        .lss-factor-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.78em;
+            margin: 2px 3px 2px 0;
+        }
+        .lss-factor-pill.primary {
+            background: rgba(255,140,0,0.18);
+            border: 1px solid rgba(255,140,0,0.55);
+            color: #ffa040;
+        }
+        .lss-factor-pill.additional {
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: #bbb;
+        }
+        .lss-param-note {
+            margin-top: 10px;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.78em;
+            color: #888;
+            font-style: italic;
+            line-height: 1.5;
+        }
+        .lss-timeline-wrap {
+            width: 100%;
+            overflow-x: auto;
+            padding-bottom: 6px;
+        }
+        .lss-timeline-wrap canvas { min-width: 600px; width: 100%; }
+        .lss-param-legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-family: 'Verdana', sans-serif;
+            font-size: 0.8em;
+            color: #bbb;
+        }
+        /* SPC Outlook badge */
+        .lss-outlook-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: bold;
+            font-size: 0.95em;
+            margin-right: 10px;
+            margin-bottom: 8px;
+            border: 2px solid;
+        }
+        .lss-outlook-TSTM  { background:rgba(192,192,192,0.15); color:#c0c0c0; border-color:#c0c0c0; }
+        .lss-outlook-MRGL  { background:rgba(0,128,0,0.2);      color:#4caf50; border-color:#4caf50; }
+        .lss-outlook-SLGT  { background:rgba(255,255,0,0.15);   color:#ffd93d; border-color:#ffd93d; }
+        .lss-outlook-ENH   { background:rgba(241,152,55,0.2);   color:#f19837; border-color:#f19837; }
+        .lss-outlook-MDT   { background:rgba(255,0,0,0.2);      color:#ff4444; border-color:#ff4444; }
+        .lss-outlook-HIGH  { background:rgba(245,69,250,0.2);   color:#f545fa; border-color:#f545fa; }
+        .lss-outlook-NONE  { background:rgba(80,80,80,0.2);     color:#888;    border-color:#666; }
 
         .warnings-list {
             max-width: 1200px;
@@ -1928,10 +2652,28 @@
     <div class="header">
         <h1><i class="fas fa-cloud-bolt"></i> SEVERE WEATHER TRACKER</h1>
         <p>Real-Time Storm Prediction Center Data</p>
-        <div style="margin-top:12px;">
+        <div style="margin-top:12px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; align-items:center;">
             <a href="../" class="control-btn" style="text-decoration:none; display:inline-block;">
                 <i class="fas fa-arrow-left"></i> Back To Weather Dashboard
             </a>
+            <button class="favorites-btn" onclick="openFavoritesPanel()">
+                <i class="fas fa-star"></i> Saved Alerts
+                <span class="favorites-count-badge" id="favCountBadge">0</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Favorites Overlay -->
+    <div class="favorites-overlay" id="favOverlay" onclick="closeFavoritesPanel()"></div>
+
+    <!-- Favorites Panel -->
+    <div class="favorites-panel" id="favPanel">
+        <div class="favorites-panel-header">
+            <div class="favorites-panel-title"><i class="fas fa-star"></i> Saved Alerts</div>
+            <button class="favorites-close-btn" onclick="closeFavoritesPanel()"><i class="fas fa-times"></i> Close</button>
+        </div>
+        <div class="favorites-list" id="favList">
+            <div class="favorites-empty"><i class="fas fa-star"></i>No saved alerts yet.<br>Star a warning card to save it here.</div>
         </div>
     </div>
 
@@ -1939,12 +2681,13 @@
         <div class="nav-container">
             <div class="dropdown" id="dropdown1">
                 <button class="dropdown-btn" onclick="toggleDropdown('dropdown1')">
-                    <span><i class="fas fa-map"></i> SPC Outlooks</span> <i class="fas fa-caret-down"></i>
+                    <span><i class="fas fa-map"></i>Outlooks</span> <i class="fas fa-caret-down"></i>
                 </button>
                 <div class="dropdown-content">
                     <a href="#" onclick="showPage('outlooks'); closeAllDropdowns(); return false;">Current Outlooks</a>
                     <a href="#" onclick="showPage('archive'); closeAllDropdowns(); return false;">Outlook Archive</a>
                     <a href="#" onclick="showPage('regional'); closeAllDropdowns(); return false;">Regional Outlooks</a>
+                    <a href="jlw-outlooks.html" onclick="closeAllDropdowns();"><i class="fas fa-user" style="color:#ff5733"></i> JLW Outlooks</a>
                 </div>
             </div>
             <div class="dropdown" id="dropdown2">
@@ -1963,7 +2706,7 @@
                     <a href="#" onclick="showPage('alerts'); closeAllDropdowns(); return false;">Active NWS Alerts</a>
                     <a href="#" onclick="showPage('reports'); closeAllDropdowns(); return false;">Local Storm Reports</a>
                     <a href="#" onclick="showPage('warnings'); closeAllDropdowns(); return false;">Warning Archive</a>
-                    <a class="button-grey" href="#">Area Forecast Discussions (Coming Soon)</a>
+                    <a href="#" onclick="showPage('severescore'); closeAllDropdowns(); return false;"><i class="fas fa-gauge-high" style="color:#ff5733"></i> Location Severe Score</a>
                 </div>
             </div>
             <div class="dropdown" id="dropdown4">
@@ -2331,6 +3074,9 @@
                     </label>
                     <input type="text" id="locationSearch" placeholder="Search for a city (e.g., Des Moines, IA)" oninput="searchLocation()">
                     <div class="search-results" id="searchResults"></div>
+                    <button class="geo-btn" onclick="useGeolocation()">
+                        <i class="fas fa-location-crosshairs"></i> Use My Location
+                    </button>
                 </div>
 
                 <div class="filter-row">
@@ -2976,6 +3722,187 @@
             </div>
         </div>
 
+        <!-- Location Severe Score Page -->
+        <div id="severescore" class="page">
+            <h2 class="section-title">
+                <i class="fas fa-gauge-high"></i>
+                Location Severe Score
+            </h2>
+
+            <div class="lss-disclaimer">
+                <i class="fas fa-triangle-exclamation"></i>
+                <strong>STRICTLY FOR EDUCATIONAL & HOBBYIST USE ONLY.</strong>
+                This score is a <em>model-derived estimate</em> and <strong>must NOT be used for life-saving decisions.</strong>
+                Always refer to <a href="https://www.weather.gov" target="_blank">weather.gov</a> and <a href="https://www.spc.noaa.gov" target="_blank">spc.noaa.gov</a> for official guidance.
+            </div>
+
+            <!-- Location Search -->
+            <div class="lss-card">
+                <h3 style="font-family:'Roboto',sans-serif;color:#ff5733;margin-bottom:16px;font-size:1.2em;"><i class="fas fa-map-marker-alt"></i> Select Location</h3>
+                <div class="location-search" style="margin-bottom:12px;">
+                    <label style="font-family:'Montserrat',sans-serif;color:#ffd93d;font-weight:bold;font-size:0.9em;display:block;margin-bottom:8px;">Search City:</label>
+                    <input type="text" id="lssLocationSearch" placeholder="Search for a city (e.g., Nashville, TN)" oninput="lssSearchLocation()">
+                    <div class="search-results" id="lssSearchResults"></div>
+                    <button class="geo-btn" onclick="lssUseGeolocation()">
+                        <i class="fas fa-location-crosshairs"></i> Use My Location
+                    </button>
+                </div>
+                <div class="filter-row" style="margin-top:12px;">
+                    <div class="filter-group">
+                        <label>Latitude:</label>
+                        <input type="number" id="lssLat" step="0.0001" placeholder="e.g., 36.1627" readonly>
+                    </div>
+                    <div class="filter-group">
+                        <label>Longitude:</label>
+                        <input type="number" id="lssLon" step="0.0001" placeholder="e.g., -86.7816" readonly>
+                    </div>
+                    <div class="filter-group">
+                        <label>Timezone:</label>
+                        <input type="text" id="lssTimezone" value="America/Chicago" placeholder="America/Chicago">
+                    </div>
+                </div>
+
+                <!-- Time Window -->
+                <div style="margin-top:16px;">
+                    <label style="font-family:'Montserrat',sans-serif;color:#ffd93d;font-weight:bold;font-size:0.9em;display:block;margin-bottom:10px;">Forecast Window:</label>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;" id="lssWindowBtns">
+                        <button class="lss-window-btn active" data-window="today" onclick="selectLSSWindow(this)">
+                            <i class="fas fa-sun"></i> <span id="lssWindowLabel0">Today</span>
+                        </button>
+                        <button class="lss-window-btn" data-window="tomorrow" onclick="selectLSSWindow(this)">
+                            <i class="fas fa-cloud-sun"></i> <span id="lssWindowLabel1">Tomorrow</span>
+                        </button>
+                        <button class="lss-window-btn" data-window="day3" onclick="selectLSSWindow(this)">
+                            <i class="fas fa-cloud"></i> <span id="lssWindowLabel2">Day After</span>
+                        </button>
+                    </div>
+
+                    <!-- After-midnight notice -->
+                    <div id="lssAfterMidnightNotice" style="display:none;margin-top:12px;background:rgba(255,217,61,0.1);border:1px solid rgba(255,217,61,0.4);border-radius:8px;padding:12px 16px;font-family:'Verdana',sans-serif;font-size:0.82em;color:#ffd93d;line-height:1.6;">
+                        <i class="fas fa-circle-info"></i>
+                        <strong>Heads up:</strong> If your severe weather threat occurs <strong>after midnight</strong> (e.g., an overnight squall line that pushes into the early morning hours of the next day), select this option to capture that window.
+                        <div style="margin-top:8px;">
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:#fff;">
+                                <input type="checkbox" id="lssIncludeOvernight" style="width:16px;height:16px;accent-color:#ffd93d;" onchange="lssOvernightToggle()">
+                                Also include the <strong>2 hours before midnight</strong> of the previous day (captures late-night convection onset)
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls" style="margin-top:18px;">
+                    <button class="control-btn" onclick="runLSS()">
+                        <i class="fas fa-bolt"></i> Calculate Severe Score
+                    </button>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div id="lssResults" style="display:none;">
+
+                <!-- SPC Outlook Panel -->
+                <div class="lss-card" id="lssOutlookPanel">
+                    <h3 class="lss-section-header"><i class="fas fa-map"></i> SPC Convective Outlook at Location</h3>
+                    <div id="lssOutlookContent" class="loading"><i class="fas fa-spinner fa-spin"></i> Checking SPC outlooks...</div>
+                </div>
+
+                <!-- Score Summary -->
+                <div class="lss-card lss-score-summary-card" id="lssScoreSummaryCard">
+                    <h3 class="lss-section-header"><i class="fas fa-gauge-high"></i> Peak Severe Score</h3>
+                    <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;">
+                        <div style="min-width:110px;text-align:center;">
+                            <div class="lss-big-score" id="lssBigScore">—</div>
+                            <div class="lss-big-label" id="lssBigLabel">—</div>
+                        </div>
+                        <div style="flex:1;min-width:200px;">
+                            <div class="warning-score-bar-bg" style="height:20px;border-radius:10px;">
+                                <div class="warning-score-bar-fill" id="lssScoreBar" style="width:0%;height:20px;border-radius:10px;transition:width 0.1s ease;"></div>
+                            </div>
+                            <div style="font-family:'Verdana',sans-serif;font-size:0.82em;color:#aaa;margin-top:6px;" id="lssScoreReason">—</div>
+                            <div style="margin-top:14px;font-family:'Verdana',sans-serif;font-size:0.82em;color:#ccc;" id="lssPeakTime"></div>
+
+                            <!-- Contributing parameter factors -->
+                            <div class="lss-graphic-factors" id="lssFactorsPanel" style="display:none;">
+                                <div class="lss-factor-group-label">Primary Factors</div>
+                                <div id="lssPrimaryFactors" style="display:flex;flex-wrap:wrap;gap:2px;"></div>
+                                <div class="lss-factor-group-label" id="lssAddlLabel" style="display:none;">Additional Factors</div>
+                                <div id="lssAdditionalFactors" style="display:flex;flex-wrap:wrap;gap:2px;"></div>
+                            </div>
+                            <div class="lss-param-note" id="lssParamNote" style="display:none;">
+                                <i class="fas fa-circle-info"></i> Not all parameters need to be in place for a severe weather event.
+                            </div>
+
+                            <button class="lss-export-btn" id="lssExportBtn" onclick="exportLSSGraphic()" style="display:none;">
+                                <i class="fas fa-image"></i> Export Weather Graphic
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden canvas for graphic export -->
+                <canvas id="lssGraphicCanvas" style="display:none;"></canvas>
+
+                <!-- Timeline Chart -->
+                <div class="lss-card">
+                    <h3 class="lss-section-header"><i class="fas fa-chart-line"></i> Score Timeline</h3>
+                    <div class="lss-timeline-wrap">
+                        <canvas id="lssChart" height="160"></canvas>
+                    </div>
+                    <div id="lssChartLegend" style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-family:'Verdana',sans-serif;font-size:0.75em;color:#bbb;"></div>
+                </div>
+
+                <!-- Parameter Breakdown Table -->
+                <div class="lss-card">
+                    <h3 class="lss-section-header"><i class="fas fa-table"></i> Parameter Breakdown</h3>
+                    <div class="lss-param-legend">
+                        <span><i class="fas fa-circle" style="color:#e03030"></i> CAPE / CIN</span>
+                        <span><i class="fas fa-circle" style="color:#ffd93d"></i> Dewpoint</span>
+                        <span><i class="fas fa-circle" style="color:#64b4ff"></i> T/Dp Spread</span>
+                        <span><i class="fas fa-circle" style="color:#a78bfa"></i> 500mb Wind</span>
+                        <span><i class="fas fa-circle" style="color:#34d399"></i> Precip</span>
+                        <span><i class="fas fa-circle" style="color:#fbbf24"></i> Sunshine / Day</span>
+                        <span><i class="fas fa-circle" style="color:#fb923c"></i> Temp Drop / Gust</span>
+                    </div>
+                    <div class="hist-weather-table-wrap" style="margin-top:10px;">
+                        <table class="hist-weather-table" id="lssParamTable">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Score</th>
+                                    <th>CAPE (J/kg)</th>
+                                    <th>CIN (J/kg)</th>
+                                    <th>Dewpoint (°F)</th>
+                                    <th>T/Dp Spread</th>
+                                    <th>500mb (mph)</th>
+                                    <th>Rain (trigger)</th>
+                                    <th>Gust (mph)</th>
+                                    <th>Day/Sun</th>
+                                    <th>Ltng</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lssParamBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Score Legend -->
+                <div class="lss-card">
+                    <h3 class="lss-section-header"><i class="fas fa-info-circle"></i> Score Legend</h3>
+                    <div class="score-legend" style="margin-top:0;">
+                        <div class="score-legend-item"><div class="score-legend-swatch" style="background:#888"></div>0–1.9 — Negligible / No Active Convection</div>
+                        <div class="score-legend-item"><div class="score-legend-swatch" style="background:#ff8c00"></div>2–3.9 — Marginal / Limited Severe Potential</div>
+                        <div class="score-legend-item"><div class="score-legend-swatch" style="background:#e03030"></div>4–5.9 — Moderate Severe Potential</div>
+                        <div class="score-legend-item"><div class="score-legend-swatch" style="background:#8b0000"></div>6–7.9 — High Severe Potential</div>
+                        <div class="score-legend-item"><div class="score-legend-swatch" style="background:linear-gradient(90deg,#8b0000,#cc0033,#cc33ff)"></div>8–10 — Extreme — Significant Event Possible</div>
+                    </div>
+                    <div style="margin-top:12px;font-family:'Verdana',sans-serif;font-size:0.78em;color:#888;line-height:1.6;">
+                        <i class="fas fa-circle-info" style="color:#666;margin-right:6px;"></i>
+                        <strong style="color:#aaa;">Score interpretation:</strong> This reflects the estimated <em>intensity</em> of severe weather during slots when convection is active. Precipitation acts as a yes/no confirmation that storms are firing — the <em>amount</em> of rain has no effect on the score. A single trace of rain with extreme CAPE and a strong jet stream will score the same as a torrential downpour with those same conditions. Dry slots read low (0–2) even when conditions are perfectly primed.
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Radar Expanded View -->
         <div class="radar-expanded" id="radarExpanded" onclick="closeRadar()">
             <button class="radar-close"><i class="fas fa-times"></i> Close</button>
@@ -3208,6 +4135,8 @@
                 alertsInterval = setInterval(loadAlerts, 15000);
             } else if (pageId === 'spcConverter') {
                 initializeProbabilitySelectors();
+            } else if (pageId === 'severescore') {
+                // nothing auto-runs; user triggers it
             } else {
                 if (alertsInterval) {
                     clearInterval(alertsInterval);
@@ -3772,9 +4701,11 @@
                         const context = data.location.displayContext[i];
                         const lat = data.location.latitude[i];
                         const lon = data.location.longitude[i];
+                        // Capture state code from adminDistrictCode
+                        const stateCode = (data.location.adminDistrictCode && data.location.adminDistrictCode[i]) || '';
                         
                         html += `
-                            <div class="search-result-item" onclick="selectLocation(${lat}, ${lon}, '${name}, ${context}')">
+                            <div class="search-result-item" onclick="selectLocation(${lat}, ${lon}, '${name}, ${context}', '${stateCode}')">
                                 <div class="search-result-name">${name}</div>
                                 <div class="search-result-context">${context}</div>
                             </div>
@@ -3791,11 +4722,58 @@
             }, 300);
         }
 
-        function selectLocation(lat, lon, locationName) {
+        function selectLocation(lat, lon, locationName, stateCode) {
             document.getElementById('warningLat').value = lat.toFixed(4);
             document.getElementById('warningLon').value = lon.toFixed(4);
             document.getElementById('locationSearch').value = locationName;
             document.getElementById('searchResults').classList.remove('visible');
+            // Store the selected state for scoring
+            window._selectedStateCode = stateCode || '';
+        }
+
+        function useGeolocation() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser.');
+                return;
+            }
+            const btn = document.querySelector('.geo-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
+            btn.disabled = true;
+            navigator.geolocation.getCurrentPosition(
+                async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lon = pos.coords.longitude;
+                    document.getElementById('warningLat').value = lat.toFixed(4);
+                    document.getElementById('warningLon').value = lon.toFixed(4);
+                    // Reverse geocode to get city name and state
+                    try {
+                        const url = `https://api.weather.com/v3/location/search?query=${lat.toFixed(3)},${lon.toFixed(3)}&locationType=city&language=en-US&format=json&countryCode=US&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909`;
+                        const resp = await fetch(url);
+                        const data = await resp.json();
+                        if (data.location && data.location.displayName && data.location.displayName[0]) {
+                            const name = data.location.displayName[0];
+                            const ctx = data.location.displayContext[0];
+                            const sc = (data.location.adminDistrictCode && data.location.adminDistrictCode[0]) || '';
+                            document.getElementById('locationSearch').value = `${name}, ${ctx}`;
+                            window._selectedStateCode = sc;
+                        } else {
+                            document.getElementById('locationSearch').value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                            window._selectedStateCode = '';
+                        }
+                    } catch(e) {
+                        document.getElementById('locationSearch').value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                        window._selectedStateCode = '';
+                    }
+                    btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Use My Location';
+                    btn.disabled = false;
+                },
+                (err) => {
+                    alert('Could not get your location: ' + err.message);
+                    btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Use My Location';
+                    btn.disabled = false;
+                },
+                { timeout: 10000 }
+            );
         }
 
         // Close search results when clicking outside
@@ -3966,10 +4944,27 @@
                     }
 
                     const movementSpeed = warning.tml_sknt ? Math.round(warning.tml_sknt * 1.15078) : null; // Convert knots to mph
+                    const cardinalDir = warning.tml_direction != null ? degreesToCardinal(warning.tml_direction) : null;
 
                     // Build VTEC code for radar
                     const vtecCode = `${warningYear}.K${warning.wfo}.${warning.phenomena}.${warning.significance}.${String(warning.eventid).padStart(4, '0')}`;
                     const radarUrl = `https://mesonet.agron.iastate.edu/GIS/radmap.php?layers[]=nexrad&layers[]=sbw&layers[]=sbwh&layers[]=uscounties&vtec=${vtecCode}`;
+
+                    // Compute warning score
+                    const scoreData = computeWarningScore(warning);
+                    const scoreBarStyle = getScoreBarStyle(scoreData.score);
+                    const drawerId = `wdrawer-${index}`;
+                    const drawerBtnId = `wdbtn-${index}`;
+
+                    // Mesoanalysis date/hour
+                    const issueUTC = issueDate;
+                    const mesoDateStr = `${issueUTC.getUTCFullYear()}${String(issueUTC.getUTCMonth()+1).padStart(2,'0')}${String(issueUTC.getUTCDate()).padStart(2,'0')}`;
+                    const mesoHH = String(Math.floor(issueUTC.getUTCHours() / 1) * 1).padStart(2,'0');
+
+                    // Historical weather fetch key
+                    const histDateStr = `${issueUTC.getUTCFullYear()}-${String(issueUTC.getUTCMonth()+1).padStart(2,'0')}-${String(issueUTC.getUTCDate()).padStart(2,'0')}`;
+                    const wLat = lat;
+                    const wLon = lon;
 
                     card.innerHTML = `
                         <div class="warning-header">
@@ -3992,28 +4987,97 @@
                                 <i class="fas fa-hashtag"></i>
                                 <span>#${warning.eventid} ${getWarningTypeName(warning.phenomena)} of ${warningYear}</span>
                             </div>
-                            ${warning.tml_direction && movementSpeed ? `
+                            ${cardinalDir && movementSpeed ? `
                                 <div class="warning-detail">
                                     <i class="fas fa-compass"></i>
-                                    <span>Movement: ${warning.tml_direction}° at ${movementSpeed} mph</span>
+                                    <span>Movement: ${cardinalDir} (${warning.tml_direction}°) at ${movementSpeed} mph</span>
                                 </div>
                             ` : ''}
                         </div>
 
                         ${tags.length > 0 ? `<div class="warning-tags">${tags.join('')}</div>` : ''}
+
+                        <!-- Warning Score Meter -->
+                        <div class="warning-score-container">
+                            <div class="warning-score-header">
+                                <span><i class="fas fa-gauge-high"></i> WARNING SCORE</span>
+                                <span class="warning-score-value" style="color:${scoreBarStyle.color}">${scoreData.score.toFixed(1)}<span style="font-size:0.6em;color:#aaa;">/10</span></span>
+                            </div>
+                            <div class="warning-score-bar-bg">
+                                <div class="warning-score-bar-fill" style="width:${scoreData.score*10}%;background:${scoreBarStyle.gradient}"></div>
+                            </div>
+                            <div class="warning-score-label">${scoreData.label} — ${scoreData.reason}</div>
+                        </div>
                         
                         <div class="radar-preview" onclick="expandRadar('${radarUrl}'); event.stopPropagation();">
                             <img src="${radarUrl}" alt="Warning Radar" title="Click to expand">
                         </div>
-                        
-                        <a href="https://mesonet.agron.iastate.edu${warning.url}" target="_blank" class="expand-alert-btn" style="display: inline-flex; text-decoration: none; margin-top: 15px;">
-                            <i class="fas fa-external-link-alt"></i>
-                            <span>View Full Details</span>
-                        </a>
+
+                        <button class="warning-drawer-btn" id="${drawerBtnId}" onclick="toggleWarningDrawer('${drawerId}','${drawerBtnId}')">
+                            <i class="fas fa-chart-area"></i> Historical Data &amp; Mesoanalysis <i class="fas fa-chevron-down drawer-chevron"></i>
+                        </button>
+                        <div class="warning-extra-drawer" id="${drawerId}">
+                            <div class="warning-drawer-inner">
+                                <div id="${drawerId}-hist" class="hist-weather-section">
+                                    <div class="hist-weather-title"><i class="fas fa-temperature-half"></i> Loading historical weather...</div>
+                                </div>
+                                <div id="${drawerId}-lsr" class="lsr-section">
+                                    <div class="lsr-title"><i class="fas fa-clipboard-list"></i> Loading Local Storm Reports...</div>
+                                </div>
+                                <div class="meso-section">
+                                    <div class="meso-title"><i class="fas fa-satellite"></i> Mesoanalysis — ${issueUTC.toISOString().slice(0,10)} ~${mesoHH}Z</div>
+                                    <div class="meso-controls">
+                                        <label>Hour (UTC):</label>
+                                        <select onchange="updateMesoHour(this,'${drawerId}-meso','${mesoDateStr}')">
+                                            ${generateMesoHourOptions(mesoHH)}
+                                        </select>
+                                    </div>
+                                    <div id="${drawerId}-meso">
+                                        ${buildMesoPanels(mesoDateStr, mesoHH)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center;">
+                            <a href="https://mesonet.agron.iastate.edu${warning.url}" target="_blank" class="expand-alert-btn" style="display: inline-flex; text-decoration: none;">
+                                <i class="fas fa-external-link-alt"></i>
+                                <span>View Full Details</span>
+                            </a>
+                            <button class="star-btn" id="star-${index}" onclick="toggleStarWarning(${index}, this)">
+                                <i class="far fa-star"></i> Save Alert
+                            </button>
+                        </div>
                     `;
+
+                    // After card appended, lazily load historical weather when drawer opens
+                    card._histLoaded = false;
+                    card._histLat = wLat;
+                    card._histLon = wLon;
+                    card._histDate = histDateStr;
+                    card._histDivId = `${drawerId}-hist`;
+                    card._lsrLoaded = false;
+                    card._lsrUrl = warning.url;
+                    card._lsrDivId = `${drawerId}-lsr`;
+                    card._warningData = warning;
+                    card._warningIndex = index;
+                    card._scoreData = scoreData;
 
                     container.appendChild(card);
                 });
+
+                // Add score legend at top
+                const legend = document.createElement('div');
+                legend.className = 'score-legend animate-in';
+                legend.innerHTML = `
+                    <span style="font-family:'Montserrat',sans-serif;font-weight:bold;color:#ffd93d;font-size:0.82em;width:100%;display:block;margin-bottom:6px;"><i class="fas fa-info-circle"></i> Warning Score Legend</span>
+                    <div class="score-legend-item"><div class="score-legend-swatch" style="background:#888"></div>0–1.9 — Very Minor / Common</div>
+                    <div class="score-legend-item"><div class="score-legend-swatch" style="background:#ff8c00"></div>2–3.9 — Base/Radar-Indicated Tornado or Common Severe</div>
+                    <div class="score-legend-item"><div class="score-legend-swatch" style="background:#e03030"></div>4–5.9 — Confirmed Tornado / Destructive SVR</div>
+                    <div class="score-legend-item"><div class="score-legend-swatch" style="background:#8b0000"></div>6–7.9 — PDS Tornado / EDS SVR / Rare Location</div>
+                    <div class="score-legend-item"><div class="score-legend-swatch" style="background:linear-gradient(90deg,#8b0000,#ff00ff)"></div>8–10 — Tornado Emergency / Confirmed PDS in Extremely Rare Spot</div>
+                `;
+                container.insertBefore(legend, container.firstChild);
 
             } catch (error) {
                 console.error('Error searching warnings:', error);
@@ -4037,6 +5101,451 @@
             return icons[phenomena] || 'fa-triangle-exclamation';
         }
 
+        // ======= CARDINAL DIRECTION =======
+        function degreesToCardinal(deg) {
+            const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE','S','SSW','SW','WSW','W','WNW','NW','NNW'];
+            return dirs[Math.round(deg / 22.5) % 16];
+        }
+
+        // ======= STATE RARITY TABLE =======
+        const STATE_RARITY = {
+            // Tornado Alley — very common, minimal bump
+            OK: 0,   TX: 0.2, KS: 0.3, NE: 0.3,
+            // Plains / SE — common
+            AR: 0.6, MS: 0.7, AL: 0.8, MO: 0.7, LA: 0.8, TN: 0.9, FL: 1.3,
+            IA: 0.7, IL: 0.7, IN: 0.8, OH: 0.9, MN: 0.7, SD: 0.7, ND: 0.7,
+            // Mid-South / Southeast — moderate
+            GA: 1.4, SC: 1.5, NC: 1.5, VA: 1.7, WV: 1.8, KY: 0.9,
+            // Northeast — rarer
+            PA: 2.0, NY: 2.2, NJ: 2.2, CT: 2.3, MA: 2.5, RI: 2.5,
+            NH: 2.7, VT: 2.8, ME: 3.0, MD: 2.0, DE: 2.0,
+            // Upper Midwest
+            MI: 1.4, WI: 1.1,
+            // Mountain West — rare
+            CO: 2.0, WY: 3.0, MT: 3.5, ID: 3.5, UT: 2.8, NM: 2.2, AZ: 2.5,
+            // Pacific — very rare
+            NV: 3.5, CA: 3.5, OR: 3.8, WA: 3.8,
+            // Hawaii/Alaska — extremely rare
+            HI: 4.5, AK: 5.0
+        };
+
+        function computeWarningScore(warning) {
+            const phenomena = warning.phenomena;
+            const torTag = (warning.issue_tornadotag || '').toUpperCase();
+            const torDmgTag = (warning.issue_tornadodamagetag || '').toUpperCase();
+            const svDmgTag = (warning.issue_damagetag || '').toUpperCase();
+            const svTstmDmgTag = (warning.issue_thunderstormdamagetag || '').toUpperCase();
+            const windTag = parseFloat(warning.issue_windtag) || 0;
+            const hailTag = parseFloat(warning.issue_hailtag) || 0;
+
+            // Get state from the globally stored selected state code (set when user picks location)
+            const state = (window._selectedStateCode || '').toUpperCase();
+            const rarityMod = STATE_RARITY[state] !== undefined ? STATE_RARITY[state] : 1.0;
+
+            let score = 0;
+            let reason = '';
+
+            if (phenomena === 'TO') {
+                // Base score by tornado tag
+                if (torTag === 'OBSERVED') {
+                    score = 3.5; reason = 'Confirmed/Observed Tornado';
+                } else if (torTag === 'RADAR INDICATED') {
+                    score = 1.5; reason = 'Radar-Indicated Tornado';
+                } else {
+                    score = 1.2; reason = 'Tornado Warning';
+                }
+                // Damage tag
+                if (torDmgTag === 'CONSIDERABLE') {
+                    score += 1.8; reason += ' — Considerable Damage Threat';
+                } else if (torDmgTag === 'CATASTROPHIC') {
+                    score += 4.5; reason = 'TORNADO EMERGENCY — Catastrophic Damage';
+                }
+                // Hail with tornado
+                if (hailTag >= 2.0) score += 0.3;
+                if (hailTag >= 3.0) score += 0.4;
+                // Apply rarity
+                score += rarityMod * 0.75;
+                // Hard caps
+                if (torDmgTag === 'CATASTROPHIC') score = Math.max(score, 9.0);
+                if (torDmgTag === 'CATASTROPHIC' && state === 'CA') score = 10.0;
+                if (torDmgTag === 'CATASTROPHIC' && ['AK','HI'].includes(state)) score = 10.0;
+
+            } else if (phenomena === 'SV') {
+                score = 1.0; reason = 'Severe Thunderstorm Warning';
+
+                // --- HAIL scoring ---
+                if (hailTag < 0.75)       { score += 0.0; }
+                else if (hailTag < 1.0)   { score += 0.3; }
+                else if (hailTag < 1.5)   { score += 0.6; }
+                else if (hailTag < 2.0)   { score += 1.0; }
+                else if (hailTag < 2.75)  { score += 1.4; }
+                else if (hailTag < 3.0)   { score += 2.0; reason = 'Destructive Hail Warning'; }
+                else if (hailTag < 4.0)   { score += 2.6; reason = 'Large Destructive Hail'; }
+                else if (hailTag < 5.0)   { score += 4.0; reason = 'EDS — 4"+ Giant Hail'; }
+                else                       { score += 5.0; reason = 'EDS — Historic 5"+ Hail'; }
+
+                // --- WIND scoring ---
+                if (windTag <= 0)          { /* no wind tag */ }
+                else if (windTag < 60)     { score += 0.1; }
+                else if (windTag < 70)     { score += 0.4; }
+                else if (windTag < 80)     { score += 0.8; }
+                else if (windTag < 90)     { score += 1.4; reason = reason.includes('EDS') ? reason : 'High-End Severe Wind'; }
+                else if (windTag < 100)    { score += 2.2; reason = 'Destructive Wind'; }
+                else                       { score += 3.5; reason = 'EDS — 100+ MPH Wind'; }
+
+                // Damage tags override/enhance
+                const dmgTagEff = svDmgTag || svTstmDmgTag;
+                if (dmgTagEff === 'CONSIDERABLE') score = Math.max(score, 3.0);
+                if (dmgTagEff === 'DESTRUCTIVE')  score = Math.max(score, 3.5);
+
+                // EDS detection (4"+ hail OR 100+ mph)
+                if (hailTag >= 4.0 || windTag >= 100) {
+                    score = Math.max(score, 6.0);
+                    reason = reason.includes('EDS') ? reason : 'EDS Severe Thunderstorm Warning';
+                }
+
+                // Apply rarity
+                score += rarityMod * 0.55;
+
+            } else {
+                score = 1.0 + rarityMod * 0.3;
+                reason = warning.name || 'Warning';
+            }
+
+            score = Math.min(10.0, Math.max(0.0, score));
+
+            let label = '';
+            if (score < 2)       label = 'Very Minor / Common';
+            else if (score < 4)  label = 'Noteworthy';
+            else if (score < 6)  label = 'Significant';
+            else if (score < 8)  label = 'Highly Unusual';
+            else                  label = 'Extremely Rare / High-Impact';
+
+            return { score, label, reason };
+        }
+
+        function getScoreBarStyle(score) {
+            if (score < 2) return { color: '#aaa', gradient: 'linear-gradient(90deg,#666,#888)' };
+            if (score < 4) return { color: '#ff8c00', gradient: 'linear-gradient(90deg,#cc5500,#ff8c00)' };
+            if (score < 6) return { color: '#e03030', gradient: 'linear-gradient(90deg,#aa0000,#e03030)' };
+            if (score < 8) return { color: '#cc0033', gradient: 'linear-gradient(90deg,#660000,#cc0033)' };
+            return { color: '#ff44ff', gradient: 'linear-gradient(90deg,#8b0000,#cc0033,#ff44ff)' };
+        }
+
+        // Same scoring for active NWS alerts
+        function computeAlertScore(props) {
+            const event = (props.event || '').toLowerCase();
+            const desc = (props.description || '').toUpperCase();
+            const areaDesc = props.areaDesc || '';
+
+            // Determine state(s) from areaDesc
+            const stateMatches = [...areaDesc.matchAll(/,\s*([A-Z]{2})\b/g)].map(m => m[1]);
+            let rarityMod = 1.0;
+            if (stateMatches.length > 0) {
+                const mods = stateMatches.map(s => STATE_RARITY[s] !== undefined ? STATE_RARITY[s] : 1.0);
+                rarityMod = mods.reduce((a,b) => a+b, 0) / mods.length;
+            }
+
+            let score = 1.0;
+            let reason = props.event;
+
+            if (event.includes('tornado warning')) {
+                const isCatastrophic = desc.includes('CATASTROPHIC');
+                const isObserved = desc.includes('OBSERVED');
+                const isConsiderable = desc.includes('CONSIDERABLE');
+                const isPDS = desc.includes('PARTICULARLY DANGEROUS SITUATION');
+                const hasCA = stateMatches.includes('CA');
+                const hasExtreme = stateMatches.some(s => ['AK','HI'].includes(s));
+
+                if (isCatastrophic) {
+                    score = 9.0 + rarityMod * 0.35;
+                    reason = 'Tornado Emergency';
+                    if (hasCA || hasExtreme) score = 10.0;
+                } else if (isPDS) {
+                    score = 6.5 + rarityMod * 0.55;
+                    reason = 'PDS Tornado Warning';
+                } else if (isObserved || isConsiderable) {
+                    score = 3.5 + rarityMod * 0.75;
+                    reason = isConsiderable ? 'Confirmed Tornado — Considerable Damage' : 'Confirmed/Observed Tornado Warning';
+                } else {
+                    score = 1.5 + rarityMod * 0.75;
+                    reason = 'Radar-Indicated Tornado Warning';
+                }
+
+            } else if (event.includes('severe thunderstorm')) {
+                score = 1.0;
+                reason = 'Severe Thunderstorm Warning';
+
+                // Parse hail/wind from description
+                const hailMatch = desc.match(/(\d+(?:\.\d+)?)\s*INCH(?:ES)?\s*(?:DIAMETER)?\s*HAIL/);
+                const windMatch = desc.match(/(\d+)\s*MPH/);
+                const hailVal = hailMatch ? parseFloat(hailMatch[1]) : 0;
+                const windVal = windMatch ? parseFloat(windMatch[1]) : 0;
+
+                // Hail contribution
+                if (hailVal >= 5.0)       { score += 5.0; reason = 'EDS — Historic 5"+ Hail'; }
+                else if (hailVal >= 4.0)  { score += 4.0; reason = 'EDS — 4"+ Giant Hail'; }
+                else if (hailVal >= 3.0)  { score += 2.6; reason = 'Large Destructive Hail'; }
+                else if (hailVal >= 2.75) { score += 2.0; reason = 'Destructive Hail'; }
+                else if (hailVal >= 2.0)  { score += 1.4; }
+                else if (hailVal >= 1.5)  { score += 1.0; }
+                else if (hailVal >= 1.0)  { score += 0.6; }
+                else if (hailVal >= 0.75) { score += 0.3; }
+
+                // Wind contribution
+                if (windVal >= 100)       { score += 3.5; reason = 'EDS — 100+ MPH Wind'; }
+                else if (windVal >= 90)   { score += 2.2; }
+                else if (windVal >= 80)   { score += 1.4; }
+                else if (windVal >= 70)   { score += 0.8; }
+                else if (windVal >= 60)   { score += 0.4; }
+
+                const isDestructive = desc.includes('DESTRUCTIVE');
+                const isEDS = hailVal >= 4.0 || windVal >= 100;
+                if (isEDS) {
+                    score = Math.max(score, 6.0);
+                    reason = reason.includes('EDS') ? reason : 'EDS Severe Thunderstorm Warning';
+                } else if (isDestructive) {
+                    score = Math.max(score, 3.5);
+                }
+
+                score += rarityMod * 0.55;
+            }
+
+            score = Math.min(10, Math.max(0, score));
+            let label = '';
+            if (score < 2)       label = 'Common';
+            else if (score < 4)  label = 'Noteworthy';
+            else if (score < 6)  label = 'Significant';
+            else if (score < 8)  label = 'Highly Unusual';
+            else                  label = 'Extremely Rare';
+            return { score, label, reason };
+        }
+
+        // ======= MESOANALYSIS HELPERS =======
+        const MESO_PRODUCTS = [
+            { key: '500mb', label: '500mb Wind' },
+            { key: '850mb', label: '850mb Wind' },
+            { key: 'pmsl', label: 'MSLP Contours' },
+            { key: 'sbcp', label: 'Surface CAPE' },
+            { key: 'stpc', label: 'Sig. Tornado Param (STPC)' },
+            { key: 'eshr', label: 'Effective Shear' }
+        ];
+
+        function generateMesoHourOptions(selectedHH) {
+            let html = '';
+            for (let h = 0; h <= 23; h++) {
+                const hh = String(h).padStart(2,'0');
+                html += `<option value="${hh}" ${hh === selectedHH ? 'selected' : ''}>${hh}:00 UTC</option>`;
+            }
+            return html;
+        }
+
+        function buildMesoPanels(dateStr, hh) {
+            return MESO_PRODUCTS.map(p => `
+                <div class="meso-panel">
+                    <div class="meso-panel-label">${p.label}</div>
+                    <img src="https://www.spc.noaa.gov/exper/ma_archive/images_s4/${dateStr}/${hh}_${p.key}.gif"
+                         alt="${p.label}" title="${p.label} — click to expand"
+                         onclick="expandRadar(this.src)" onerror="this.parentElement.style.display='none'">
+                </div>
+            `).join('');
+        }
+
+        function updateMesoHour(selectEl, mesoContainerId, dateStr) {
+            const hh = selectEl.value;
+            const container = document.getElementById(mesoContainerId);
+            if (container) container.innerHTML = buildMesoPanels(dateStr, hh);
+        }
+
+        // ======= HISTORICAL WEATHER FETCH =======
+        async function fetchAndRenderHistoricalWeather(lat, lon, dateStr, divId) {
+            const div = document.getElementById(divId);
+            if (!div) return;
+            div.innerHTML = '<div class="hist-weather-title"><i class="fas fa-spinner fa-spin"></i> Loading historical weather data...</div>';
+            try {
+                const url = `https://archive-api.open-meteo.com/v1/archive?latitude=${lat}&longitude=${lon}&start_date=${dateStr}&end_date=${dateStr}&hourly=temperature_2m,dew_point_2m,rain,surface_pressure,pressure_msl,wind_speed_10m&timezone=America%2FChicago&temperature_unit=fahrenheit&wind_speed_unit=mph&precipitation_unit=inch`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (!data.hourly) throw new Error('No hourly data');
+                const h = data.hourly;
+                let rows = '';
+                for (let i = 0; i < h.time.length; i++) {
+                    const t = h.time[i].slice(11,16); // HH:MM
+                    const temp = h.temperature_2m[i] != null ? h.temperature_2m[i].toFixed(1) + '°F' : '—';
+                    const dew = h.dew_point_2m[i] != null ? h.dew_point_2m[i].toFixed(1) + '°F' : '—';
+                    const rain = h.rain[i] != null ? h.rain[i].toFixed(2) + '"' : '—';
+                    const pres = h.pressure_msl[i] != null ? h.pressure_msl[i].toFixed(1) + ' mb' : '—';
+                    const wind = h.wind_speed_10m[i] != null ? h.wind_speed_10m[i].toFixed(1) + ' mph' : '—';
+                    rows += `<tr><td>${t}</td><td>${temp}</td><td>${dew}</td><td>${rain}</td><td>${pres}</td><td>${wind}</td></tr>`;
+                }
+                div.innerHTML = `
+                    <div class="hist-weather-title"><i class="fas fa-temperature-half"></i> Historical Surface Data — ${dateStr} (Local/Chicago time)</div>
+                    <div class="hist-weather-table-wrap">
+                        <table class="hist-weather-table">
+                            <thead><tr><th>Time</th><th>Temp</th><th>Dewpoint</th><th>Rain</th><th>MSLP</th><th>Wind Spd</th></tr></thead>
+                            <tbody>${rows}</tbody>
+                        </table>
+                    </div>`;
+            } catch(e) {
+                div.innerHTML = '<div class="hist-weather-title" style="color:#ff5733"><i class="fas fa-exclamation-triangle"></i> Could not load historical weather data.</div>';
+            }
+        }
+
+        function toggleWarningDrawer(drawerId, btnId) {
+            const drawer = document.getElementById(drawerId);
+            const btn = document.getElementById(btnId);
+            if (!drawer || !btn) return;
+            const isOpen = drawer.classList.toggle('open');
+            btn.classList.toggle('open', isOpen);
+            // Lazy-load on first open
+            const card = btn.closest('.warning-card');
+            if (isOpen && card) {
+                if (!card._histLoaded) {
+                    card._histLoaded = true;
+                    fetchAndRenderHistoricalWeather(card._histLat, card._histLon, card._histDate, card._histDivId);
+                }
+                if (!card._lsrLoaded) {
+                    card._lsrLoaded = true;
+                    fetchAndRenderLSR(card._lsrUrl, card._lsrDivId);
+                }
+            }
+        }
+
+        // ======= LSR FETCH =======
+        async function fetchAndRenderLSR(warningUrl, divId) {
+            const div = document.getElementById(divId);
+            if (!div) return;
+            div.innerHTML = '<div class="lsr-title"><i class="fas fa-spinner fa-spin"></i> Loading Local Storm Reports...</div>';
+            try {
+                // warningUrl is like "/vtec/?year=2024&wfo=KMOB&phenomena=TO&significance=W&eventid=0013"
+                const url = `https://mesonet.agron.iastate.edu/geojson/vtec_event.py?${warningUrl.replace(/^\/vtec\/\?/, '')}&sbw=0&lsrs=1`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (!data.features || data.features.length === 0) {
+                    div.innerHTML = '<div class="lsr-title"><i class="fas fa-info-circle"></i> No Local Storm Reports found for this warning.</div>';
+                    return;
+                }
+                let html = `<div class="lsr-title"><i class="fas fa-clipboard-list"></i> Local Storm Reports (${data.features.length})</div><div class="lsr-list">`;
+                data.features.forEach(f => {
+                    const p = f.properties;
+                    const time = p.utc_valid ? new Date(p.utc_valid).toLocaleString() : '—';
+                    const mag = p.magnitude ? `<span class="lsr-magnitude">${p.magnitude} ${p.type === 'H' ? '"' : p.type === 'G' || p.type === 'N' ? 'mph' : ''}</span>` : '';
+                    html += `<div class="lsr-item">
+                        <div class="lsr-item-event"><i class="fas fa-circle-exclamation"></i> ${p.event || p.type}</div>
+                        <div class="lsr-item-details">
+                            ${mag ? mag + ' — ' : ''}<strong>${p.city || ''}</strong>${p.county ? ', ' + p.county : ''}<br>
+                            <span style="color:#aaa;font-size:0.9em">${time}</span><br>
+                            ${p.remark ? `<em style="color:#bbb">${p.remark}</em>` : ''}
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+                div.innerHTML = html;
+            } catch(e) {
+                div.innerHTML = '<div class="lsr-title" style="color:#ff5733"><i class="fas fa-exclamation-triangle"></i> Could not load LSR data.</div>';
+            }
+        }
+
+        // ======= FAVORITES SYSTEM =======
+        let savedAlerts = JSON.parse(localStorage.getItem('wx_saved_alerts') || '[]');
+
+        function saveFavoritesToStorage() {
+            try { localStorage.setItem('wx_saved_alerts', JSON.stringify(savedAlerts)); } catch(e) {}
+        }
+
+        function updateFavCountBadge() {
+            const badge = document.getElementById('favCountBadge');
+            if (badge) badge.textContent = savedAlerts.length;
+        }
+
+        function openFavoritesPanel() {
+            document.getElementById('favPanel').classList.add('open');
+            document.getElementById('favOverlay').classList.add('open');
+            renderFavoritesPanel();
+        }
+
+        function closeFavoritesPanel() {
+            document.getElementById('favPanel').classList.remove('open');
+            document.getElementById('favOverlay').classList.remove('open');
+        }
+
+        function renderFavoritesPanel() {
+            const list = document.getElementById('favList');
+            if (savedAlerts.length === 0) {
+                list.innerHTML = '<div class="favorites-empty"><i class="fas fa-star"></i>No saved alerts yet.<br>Star a warning card to save it here.</div>';
+                return;
+            }
+            list.innerHTML = savedAlerts.map((a, i) => {
+                const scoreStyle = getScoreBarStyle(a.score);
+                return `<div class="favorite-item">
+                    <button class="favorite-remove-btn" onclick="removeFavorite(${i})"><i class="fas fa-times"></i></button>
+                    <div class="favorite-item-title"><i class="fas ${a.phenomena === 'TO' ? 'fa-tornado' : 'fa-cloud-bolt'}"></i> ${a.name}</div>
+                    <div class="favorite-item-meta">
+                        WFO: ${a.wfo} &nbsp;|&nbsp; #${a.eventid}<br>
+                        Issued: ${formatWarningTimestamp(a.issue)}<br>
+                        ${a.windTag ? `Wind: ${a.windTag} MPH &nbsp;` : ''}${a.hailTag ? `Hail: ${a.hailTag}"` : ''}
+                    </div>
+                    <div class="favorite-item-score" style="color:${scoreStyle.color}">
+                        Score: ${a.score.toFixed(1)}/10 — ${a.label}
+                    </div>
+                    <div style="margin-top:6px;">
+                        <div class="warning-score-bar-bg" style="height:8px;">
+                            <div class="warning-score-bar-fill" style="width:${a.score*10}%;background:${scoreStyle.gradient};height:8px;"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function removeFavorite(index) {
+            savedAlerts.splice(index, 1);
+            saveFavoritesToStorage();
+            updateFavCountBadge();
+            renderFavoritesPanel();
+        }
+
+        function toggleStarWarning(cardIndex, btn) {
+            const card = btn.closest('.warning-card');
+            if (!card || !card._warningData) return;
+            const w = card._warningData;
+            const sd = card._scoreData || { score: 0, label: '', reason: '' };
+
+            const existingIdx = savedAlerts.findIndex(a => a.eventid === w.eventid && a.wfo === w.wfo && a.phenomena === w.phenomena);
+            if (existingIdx >= 0) {
+                // Un-star
+                savedAlerts.splice(existingIdx, 1);
+                btn.classList.remove('starred');
+                btn.innerHTML = '<i class="far fa-star"></i> Save Alert';
+            } else {
+                // Star
+                savedAlerts.push({
+                    name: w.name,
+                    phenomena: w.phenomena,
+                    wfo: w.wfo,
+                    eventid: w.eventid,
+                    issue: w.issue,
+                    expire: w.expire,
+                    windTag: w.issue_windtag,
+                    hailTag: w.issue_hailtag,
+                    torTag: w.issue_tornadotag,
+                    torDmgTag: w.issue_tornadodamagetag,
+                    score: sd.score,
+                    label: sd.label,
+                    reason: sd.reason
+                });
+                btn.classList.add('starred');
+                btn.innerHTML = '<i class="fas fa-star"></i> Saved!';
+            }
+            saveFavoritesToStorage();
+            updateFavCountBadge();
+        }
+
+        // Initialize favorites count on load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateFavCountBadge();
+            getLSSWindowBounds('today', false); // set button labels on load
+        });
+
         function clearWarningFilters() {
             document.getElementById('warningLat').value = '';
             document.getElementById('warningLon').value = '';
@@ -4059,7 +5568,8 @@
         // Alerts functionality
         async function loadAlerts() {
             try {
-                const response = await fetch('https://api.weather.gov/alerts/active');
+                // Use targeted codes: TOR, SVR, SPS, SVS
+                const response = await fetch('https://api.weather.gov/alerts/active?code=SVR,TOR,SPS,SVS');
                 const data = await response.json();
                 
                 if (!data.features || data.features.length === 0) {
@@ -4073,19 +5583,14 @@
                     return;
                 }
 
-                // Filter for only convective alerts
+                // Filter for convective events
                 const convectiveAlerts = [];
-                
                 data.features.forEach(alert => {
                     const eventType = alert.properties.event;
-                    // Include standard convective events
                     if (convectiveEvents.includes(eventType)) {
                         convectiveAlerts.push(alert);
-                    }
-                    // For Special Weather Statements, check description for convective keywords
-                    else if (eventType === 'Special Weather Statement') {
-                        const description = alert.properties.description;
-                        if (isConvectiveSpecialWeatherStatement(description)) {
+                    } else if (eventType === 'Special Weather Statement') {
+                        if (isConvectiveSpecialWeatherStatement(alert.properties.description)) {
                             convectiveAlerts.push(alert);
                         }
                     }
@@ -4102,112 +5607,222 @@
                     return;
                 }
 
-                // Update stats - now only showing convective alerts
-                const statsHTML = `
-                    <div class="stat-box">
-                        <div class="stat-number">${convectiveAlerts.length}</div>
-                        <div class="stat-label">Convective Alerts</div>
-                    </div>
-                `;
+                // Sort: Tornado Warnings first, then SVR, then others
+                const alertOrder = { 'Tornado Warning': 0, 'Severe Thunderstorm Warning': 1, 'Severe Weather Statement': 2, 'Special Weather Statement': 3 };
+                convectiveAlerts.sort((a, b) => {
+                    const ao = alertOrder[a.properties.event] ?? 9;
+                    const bo = alertOrder[b.properties.event] ?? 9;
+                    if (ao !== bo) return ao - bo;
+                    return new Date(b.properties.sent) - new Date(a.properties.sent);
+                });
+
+                // Stats
+                const torCount = convectiveAlerts.filter(a => a.properties.event === 'Tornado Warning').length;
+                const svrCount = convectiveAlerts.filter(a => a.properties.event === 'Severe Thunderstorm Warning').length;
+                const otherCount = convectiveAlerts.length - torCount - svrCount;
+                let statsHTML = `<div class="stat-box"><div class="stat-number">${convectiveAlerts.length}</div><div class="stat-label">Active Alerts</div></div>`;
+                if (torCount > 0) statsHTML += `<div class="stat-box" style="border-color:rgba(200,0,0,0.6)"><div class="stat-number" style="color:#ff4444">${torCount}</div><div class="stat-label">Tornado Warnings</div></div>`;
+                if (svrCount > 0) statsHTML += `<div class="stat-box" style="border-color:rgba(255,165,0,0.5)"><div class="stat-number" style="color:#ff8c00">${svrCount}</div><div class="stat-label">Severe T-Storm Warnings</div></div>`;
                 document.getElementById('alertsStats').innerHTML = statsHTML;
 
-                // Use only convective alerts
-                const sortedAlerts = convectiveAlerts;
-                
-                // Build alerts HTML
                 const container = document.getElementById('alertsContainer');
                 container.innerHTML = '';
 
-                sortedAlerts.forEach((alert, index) => {
+                convectiveAlerts.forEach((alert, index) => {
                     const props = alert.properties;
+                    const params = props.parameters || {};
                     const alertId = props.id;
                     
-                    // Check if alert was updated
-                    const isUpdated = previousAlerts[alertId] && 
-                                    previousAlerts[alertId] !== props.sent;
-                    
-                    // Store current sent time
+                    const isUpdated = previousAlerts[alertId] && previousAlerts[alertId] !== props.sent;
                     previousAlerts[alertId] = props.sent;
 
-                    const severityClass = `severity-${props.severity.toLowerCase()}`;
-                    
-                    const onset = new Date(props.onset || props.effective);
+                    const onset   = new Date(props.onset || props.effective);
                     const expires = new Date(props.expires);
-                    const ends = props.ends ? new Date(props.ends) : null;
-                    
-                    // Format area description - show more locations
+                    const ends    = props.ends ? new Date(props.ends) : null;
+
+                    // Area display
                     const areas = props.areaDesc.split(';').map(a => a.trim());
-                    let areaDisplay = '';
-                    if (areas.length <= 2) {
-                        areaDisplay = areas.join('; ');
-                    } else if (areas.length <= 5) {
-                        areaDisplay = areas.slice(0, 3).join('; ') + ` and ${areas.length - 3} more`;
-                    } else {
-                        areaDisplay = areas.slice(0, 3).join('; ') + ` and ${areas.length - 3} more areas`;
+                    const areaDisplay = areas.length <= 2 ? areas.join('; ')
+                        : areas.slice(0, 3).join('; ') + ` and ${areas.length - 3} more`;
+
+                    // Determine tornado card class
+                    const torDetection = (params.tornadoDetection?.[0] || '').toUpperCase();
+                    const torDmgTag    = (params.tornadoDamageThreat?.[0] || params.tornadodamagetag?.[0] || '').toUpperCase();
+                    // Also check description for CATASTROPHIC / OBSERVED
+                    const descUpper = (props.description || '').toUpperCase();
+                    const isTorCatastrophic = torDmgTag === 'CATASTROPHIC' || descUpper.includes('CATASTROPHIC') || descUpper.includes('TORNADO EMERGENCY');
+                    const isTorObserved = !isTorCatastrophic && (torDetection === 'OBSERVED' || torDetection === 'CONFIRMED' || descUpper.includes('\nSOURCE...CONFIRMED') || descUpper.includes('SOURCE...OBSERVED'));
+
+                    let cardClass = `alert-card convective ${isUpdated ? 'updated' : ''} animate-in`;
+                    if (props.event === 'Tornado Warning') {
+                        if (isTorCatastrophic)    cardClass += ' tor-catastrophic';
+                        else if (isTorObserved)   cardClass += ' tor-observed';
                     }
-                    
+
                     const alertCard = document.createElement('div');
-                    alertCard.className = `alert-card convective ${isUpdated ? 'updated' : ''} animate-in`;
-                    alertCard.style.animationDelay = `${index * 0.05}s`;
-                    
+                    alertCard.className = cardClass;
+                    alertCard.style.animationDelay = `${index * 0.04}s`;
+
+                    // Score badge
+                    let scoreBadgeHTML = '';
+                    if (['Tornado Warning','Severe Thunderstorm Warning'].includes(props.event)) {
+                        const alertScore = computeAlertScore(props);
+                        const alertScoreStyle = getScoreBarStyle(alertScore.score);
+                        scoreBadgeHTML = `
+                            <div class="warning-score-container" style="margin-top:10px;">
+                                <div class="warning-score-header">
+                                    <span><i class="fas fa-gauge-high"></i> WARNING SCORE</span>
+                                    <span class="warning-score-value" style="color:${alertScoreStyle.color}">${alertScore.score.toFixed(1)}<span style="font-size:0.6em;color:#aaa;">/10</span></span>
+                                </div>
+                                <div class="warning-score-bar-bg">
+                                    <div class="warning-score-bar-fill" style="width:${alertScore.score*10}%;background:${alertScoreStyle.gradient}"></div>
+                                </div>
+                                <div class="warning-score-label">${alertScore.label} — ${alertScore.reason}</div>
+                            </div>`;
+                    }
+
+                    // Special label for tor emergency
+                    let specialBadge = '';
+                    if (isTorCatastrophic) {
+                        specialBadge = `<span style="background:rgba(180,0,255,0.3);border:1px solid #cc00ff;color:#ee88ff;padding:4px 12px;border-radius:12px;font-family:'Montserrat',sans-serif;font-weight:bold;font-size:0.85em;margin-left:8px;"><i class="fas fa-skull-crossbones"></i> TORNADO EMERGENCY</span>`;
+                    } else if (isTorObserved && props.event === 'Tornado Warning') {
+                        specialBadge = `<span style="background:rgba(180,0,0,0.3);border:1px solid #cc0000;color:#ff8888;padding:4px 12px;border-radius:12px;font-family:'Montserrat',sans-serif;font-weight:bold;font-size:0.85em;margin-left:8px;"><i class="fas fa-eye"></i> OBSERVED/CONFIRMED</span>`;
+                    }
+
+                    // Storm motion from eventMotionDescription
+                    let motionHTML = '';
+                    const motionRaw = params.eventMotionDescription?.[0] || '';
+                    if (motionRaw) {
+                        const motionMatch = motionRaw.match(/(\d+)DEG\.\.\.(\d+)KT/);
+                        if (motionMatch) {
+                            const deg = parseInt(motionMatch[1]);
+                            const kts = parseInt(motionMatch[2]);
+                            const mph = Math.round(kts * 1.15078);
+                            const cardinal = degreesToCardinal(deg);
+                            motionHTML = `<span class="alert-motion-tag"><i class="fas fa-compass"></i> ${cardinal} (${deg}°) at ${mph} mph</span>`;
+                        }
+                    }
+
+                    // Hail / wind tags from parameters
+                    const maxHail = params.maxHailSize?.[0];
+                    const maxWind = params.maxWindGust?.[0];
+                    let paramTagsHTML = '';
+                    if (maxHail && parseFloat(maxHail) > 0) paramTagsHTML += `<span class="warning-tag tag-hail" style="margin-right:6px"><i class="fas fa-cloud-meatball"></i> ${maxHail}" Hail</span>`;
+                    if (maxWind) paramTagsHTML += `<span class="warning-tag tag-wind" style="margin-right:6px"><i class="fas fa-wind"></i> ${maxWind} Wind</span>`;
+
+                    // Draw drawer id
+                    const drawerId = `alert-drawer-${index}`;
+                    const drawerBtnId = `alert-dbtn-${index}`;
+
                     alertCard.innerHTML = `
                         <div class="alert-header">
                             <div class="alert-title">
-                                <i class="fas ${getAlertIcon(props.event)}"></i> ${props.event}
+                                <i class="fas ${getAlertIcon(props.event)}"></i> ${props.event}${specialBadge}
                             </div>
-                            <div class="alert-severity ${severityClass}">
-                                ${props.severity}
-                            </div>
+                            <div class="alert-severity severity-${props.severity.toLowerCase()}">${props.severity}</div>
                         </div>
-                        
+
                         <div class="alert-info">
-                            <div class="alert-info-item">
-                                <i class="fas fa-map-marker-alt"></i>
-                                <span>${areaDisplay}</span>
-                            </div>
-                            <div class="alert-info-item">
-                                <i class="fas fa-clock"></i>
-                                <span>Effective: ${onset.toLocaleString()}</span>
-                            </div>
-                            <div class="alert-info-item">
-                                <i class="fas fa-hourglass-end"></i>
-                                <span>Expires: ${expires.toLocaleString()}</span>
-                            </div>
-                            ${ends ? `
-                                <div class="alert-info-item">
-                                    <i class="fas fa-flag-checkered"></i>
-                                    <span>Ends: ${ends.toLocaleString()}</span>
-                                </div>
-                            ` : ''}
-                            <div class="alert-info-item">
-                                <i class="fas fa-building"></i>
-                                <span>${props.senderName}</span>
-                            </div>
+                            <div class="alert-info-item"><i class="fas fa-map-marker-alt"></i><span>${areaDisplay}</span></div>
+                            <div class="alert-info-item"><i class="fas fa-clock"></i><span>Effective: ${onset.toLocaleString()}</span></div>
+                            <div class="alert-info-item"><i class="fas fa-hourglass-end"></i><span>Expires: ${expires.toLocaleString()}</span></div>
+                            ${ends ? `<div class="alert-info-item"><i class="fas fa-flag-checkered"></i><span>Ends: ${ends.toLocaleString()}</span></div>` : ''}
+                            <div class="alert-info-item"><i class="fas fa-building"></i><span>${props.senderName}</span></div>
                         </div>
 
-                        <button class="expand-alert-btn" onclick="toggleAlertDescription('alert-desc-${index}')">
-                            <i class="fas fa-chevron-down"></i>
-                            <span id="alert-btn-text-${index}">Show Details</span>
-                        </button>
+                        ${paramTagsHTML ? `<div class="warning-tags" style="margin-bottom:8px;">${paramTagsHTML}</div>` : ''}
+                        ${motionHTML ? `<div style="margin-bottom:8px;">${motionHTML}</div>` : ''}
 
-                        <div class="alert-description collapsed" id="alert-desc-${index}">
-                            ${props.description || 'No additional details available.'}
-                            ${props.instruction ? `\n\nINSTRUCTIONS:\n${props.instruction}` : ''}
+                        ${scoreBadgeHTML}
+
+                        <button class="alert-drawer-btn" id="${drawerBtnId}" onclick="toggleAlertDrawer('${drawerId}','${drawerBtnId}')">
+                            <i class="fas fa-chevron-down adrawer-chevron"></i> More Details
+                        </button>
+                        <div class="alert-extra-drawer" id="${drawerId}">
+                            <div class="alert-drawer-inner">
+                                ${buildAlertDrawerContent(props, params)}
+                            </div>
                         </div>
                     `;
-                    
+
                     container.appendChild(alertCard);
                 });
 
             } catch (error) {
                 console.error('Error loading alerts:', error);
                 document.getElementById('alertsContainer').innerHTML = `
-                    <div class="error">
-                        <i class="fas fa-exclamation-circle"></i>
-                        Error loading weather alerts. Please try again later.
-                    </div>
+                    <div class="error"><i class="fas fa-exclamation-circle"></i> Error loading weather alerts. Please try again later.</div>
                 `;
             }
+        }
+
+        function toggleAlertDrawer(drawerId, btnId) {
+            const drawer = document.getElementById(drawerId);
+            const btn    = document.getElementById(btnId);
+            if (!drawer || !btn) return;
+            const isOpen = drawer.classList.toggle('open');
+            btn.classList.toggle('open', isOpen);
+            btn.innerHTML = isOpen
+                ? '<i class="fas fa-chevron-up adrawer-chevron" style="transform:none"></i> Less Details'
+                : '<i class="fas fa-chevron-down adrawer-chevron"></i> More Details';
+        }
+
+        function buildAlertDrawerContent(props, params) {
+            const p = params;
+            let html = '<div class="alert-param-grid">';
+
+            // Tornado specifics
+            if (p.tornadoDetection?.[0]) {
+                html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-tornado"></i> Tornado Detection</div><div class="alert-param-value">${p.tornadoDetection[0]}</div></div>`;
+            }
+            if (p.tornadoDamageThreat?.[0]) {
+                html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-skull-crossbones"></i> Damage Threat</div><div class="alert-param-value">${p.tornadoDamageThreat[0]}</div></div>`;
+            }
+            // Wind
+            if (p.windThreat?.[0] || p.maxWindGust?.[0]) {
+                html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-wind"></i> Wind</div><div class="alert-param-value">${p.maxWindGust?.[0] ? p.maxWindGust[0] + ' gust' : ''} ${p.windThreat?.[0] ? '(' + p.windThreat[0] + ')' : ''}</div></div>`;
+            }
+            // Hail
+            if (p.hailThreat?.[0] || p.maxHailSize?.[0]) {
+                html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-cloud-meatball"></i> Hail</div><div class="alert-param-value">${p.maxHailSize?.[0] ? p.maxHailSize[0] + '"' : ''} ${p.hailThreat?.[0] ? '(' + p.hailThreat[0] + ')' : ''}</div></div>`;
+            }
+            // SVR damage threat
+            if (p.thunderstormDamageThreat?.[0]) {
+                html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-house-damage"></i> T-Storm Damage</div><div class="alert-param-value">${p.thunderstormDamageThreat[0]}</div></div>`;
+            }
+            // Tornado possible on SVR
+            if (p.tornadoDetection?.[0] === 'POSSIBLE') {
+                html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-exclamation-triangle"></i> Tornado</div><div class="alert-param-value">Possible</div></div>`;
+            }
+            // Message type
+            html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-tag"></i> Message Type</div><div class="alert-param-value">${props.messageType}</div></div>`;
+            // Certainty / urgency
+            html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-circle-check"></i> Certainty</div><div class="alert-param-value">${props.certainty}</div></div>`;
+            html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-bell"></i> Urgency</div><div class="alert-param-value">${props.urgency}</div></div>`;
+            // VTEC
+            if (p.VTEC?.[0]) {
+                html += `<div class="alert-param-item"><div class="alert-param-label"><i class="fas fa-code"></i> VTEC</div><div class="alert-param-value" style="font-family:'Courier New',monospace;font-size:0.85em;">${p.VTEC[0]}</div></div>`;
+            }
+
+            html += '</div>';
+
+            // NWS Headline if present
+            if (p.NWSheadline?.[0]) {
+                html += `<div style="font-family:'Montserrat',sans-serif;font-size:0.82em;font-weight:bold;color:#ffd93d;margin-bottom:8px;padding:8px 12px;background:rgba(255,217,61,0.08);border-radius:6px;border-left:3px solid #ffd93d;">
+                    <i class="fas fa-bullhorn"></i> ${p.NWSheadline[0]}
+                </div>`;
+            }
+
+            // Full description + instruction
+            const fullText = [
+                props.description,
+                props.instruction ? '\n— INSTRUCTIONS —\n' + props.instruction : ''
+            ].filter(Boolean).join('\n');
+            if (fullText) {
+                html += `<div class="alert-full-text">${fullText}</div>`;
+            }
+
+            return html;
         }
 
         function getAlertIcon(eventType) {
@@ -4813,6 +6428,1045 @@
         
         // Load outlook metadata when page loads
         loadAllOutlookMetadata();
+    </script>
+
+
+    <!-- ========= LOCATION SEVERE SCORE JS ========= -->
+    <script>
+        // ---- LSS State ----
+        let lssSelectedWindow = 'today';
+        let lssChart = null;
+        let lssSearchTimeout = null;
+
+        // Compute midnight-based window boundaries using local browser time.
+        // Returns { start: Date, end: Date, label: string }
+        function getLSSWindowBounds(windowKey, includeOvernight) {
+            const now = new Date();
+            const midnightTonight = new Date(now);
+            midnightTonight.setHours(24, 0, 0, 0);
+            const midnightTomorrow = new Date(midnightTonight);
+            midnightTomorrow.setDate(midnightTomorrow.getDate() + 1);
+            const midnightDay3 = new Date(midnightTomorrow);
+            midnightDay3.setDate(midnightDay3.getDate() + 1);
+
+            const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+            const tomorrowName = DAYS[midnightTonight.getDay()];
+            const day3Name     = DAYS[midnightTomorrow.getDay()];
+
+            // Update button labels live
+            const l0 = document.getElementById('lssWindowLabel0');
+            const l1 = document.getElementById('lssWindowLabel1');
+            const l2 = document.getElementById('lssWindowLabel2');
+            if (l0) l0.textContent = 'Today';
+            if (l1) l1.textContent = tomorrowName;
+            if (l2) l2.textContent = day3Name;
+
+            let start, end, label;
+            if (windowKey === 'today') {
+                start = now;
+                end   = midnightTonight;
+                label = 'Today (now → midnight)';
+            } else if (windowKey === 'tomorrow') {
+                start = includeOvernight
+                    ? new Date(midnightTonight.getTime() - 2 * 3600000)
+                    : new Date(midnightTonight);
+                end   = midnightTomorrow;
+                label = includeOvernight ? `${tomorrowName} (incl. late tonight)` : tomorrowName;
+            } else {
+                start = includeOvernight
+                    ? new Date(midnightTomorrow.getTime() - 2 * 3600000)
+                    : new Date(midnightTomorrow);
+                end   = midnightDay3;
+                label = includeOvernight ? `${day3Name} (incl. late ${tomorrowName} night)` : day3Name;
+            }
+            return { start, end, label };
+        }
+
+        function selectLSSWindow(btn) {
+            document.querySelectorAll('.lss-window-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            lssSelectedWindow = btn.dataset.window;
+            // Show after-midnight notice only for non-today windows
+            const notice = document.getElementById('lssAfterMidnightNotice');
+            if (notice) notice.style.display = (lssSelectedWindow !== 'today') ? 'block' : 'none';
+            const cb = document.getElementById('lssIncludeOvernight');
+            if (cb) cb.checked = false;
+        }
+
+        function lssOvernightToggle() { /* runLSS reads checkbox state directly */ }
+
+        // ---- CONUS bounds check ----
+        function isOutsideCONUS(lat, lon) {
+            if (lat < 24.4 || lat > 49.4) return true;
+            if (lon < -125.0 || lon > -66.9) return true;
+            return false;
+        }
+
+        // ---- Location Search ----
+        async function lssSearchLocation() {
+            const query = document.getElementById('lssLocationSearch').value.trim();
+            const resultsDiv = document.getElementById('lssSearchResults');
+            if (query.length < 2) { resultsDiv.classList.remove('visible'); return; }
+            clearTimeout(lssSearchTimeout);
+            lssSearchTimeout = setTimeout(async () => {
+                try {
+                    const url = `https://api.weather.com/v3/location/search?query=${encodeURIComponent(query)}&locationType=city&language=en-US&format=json&countryCode=US&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909`;
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    if (!data.location || !data.location.address || data.location.address.length === 0) {
+                        resultsDiv.innerHTML = '<div style="padding:12px;color:#b0b0b0;">No results found</div>';
+                        resultsDiv.classList.add('visible');
+                        return;
+                    }
+                    const max = Math.min(5, data.location.address.length);
+                    let html = '';
+                    for (let i = 0; i < max; i++) {
+                        const name = data.location.displayName[i];
+                        const ctx  = data.location.displayContext[i];
+                        const lat  = data.location.latitude[i];
+                        const lon  = data.location.longitude[i];
+                        const tz   = (data.location.ianaTimeZone && data.location.ianaTimeZone[i]) || 'auto';
+                        const sc   = (data.location.adminDistrictCode && data.location.adminDistrictCode[i]) || '';
+                        html += `<div class="search-result-item" onclick="lssSelectLocation(${lat},${lon},'${name}, ${ctx}','${tz}','${sc}')">
+                            <div class="search-result-name">${name}</div>
+                            <div class="search-result-context">${ctx}</div>
+                        </div>`;
+                    }
+                    resultsDiv.innerHTML = html;
+                    resultsDiv.classList.add('visible');
+                } catch(e) {
+                    console.error('LSS location search error:', e);
+                    resultsDiv.innerHTML = '<div style="padding:12px;color:#ff5733;">Error searching locations</div>';
+                    resultsDiv.classList.add('visible');
+                }
+            }, 300);
+        }
+
+        function lssSelectLocation(lat, lon, name, tz, stateCode) {
+            document.getElementById('lssLat').value = lat.toFixed(4);
+            document.getElementById('lssLon').value = lon.toFixed(4);
+            document.getElementById('lssLocationSearch').value = name;
+            document.getElementById('lssTimezone').value = tz || 'auto';
+            document.getElementById('lssSearchResults').classList.remove('visible');
+            window._selectedStateCode = stateCode || '';
+        }
+
+        document.addEventListener('click', e => {
+            if (!e.target.closest('#severescore .location-search')) {
+                document.getElementById('lssSearchResults')?.classList.remove('visible');
+            }
+        });
+
+        function lssUseGeolocation() {
+            if (!navigator.geolocation) { alert('Geolocation not supported.'); return; }
+            const btn = document.querySelector('#severescore .geo-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Locating...';
+            btn.disabled = true;
+            navigator.geolocation.getCurrentPosition(async pos => {
+                const lat = pos.coords.latitude, lon = pos.coords.longitude;
+                document.getElementById('lssLat').value = lat.toFixed(4);
+                document.getElementById('lssLon').value = lon.toFixed(4);
+                try {
+                    const url = `https://api.weather.com/v3/location/search?query=${lat.toFixed(3)},${lon.toFixed(3)}&locationType=city&language=en-US&format=json&countryCode=US&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909`;
+                    const resp = await fetch(url);
+                    const data = await resp.json();
+                    if (data.location?.displayName?.[0]) {
+                        document.getElementById('lssLocationSearch').value = `${data.location.displayName[0]}, ${data.location.displayContext[0]}`;
+                        const tz = data.location.ianaTimeZone?.[0] || 'auto';
+                        document.getElementById('lssTimezone').value = tz;
+                    } else {
+                        document.getElementById('lssLocationSearch').value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+                    }
+                } catch(e) { document.getElementById('lssLocationSearch').value = `${lat.toFixed(4)}, ${lon.toFixed(4)}`; }
+                btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Use My Location';
+                btn.disabled = false;
+            }, err => {
+                alert('Could not get location: ' + err.message);
+                btn.innerHTML = '<i class="fas fa-location-crosshairs"></i> Use My Location';
+                btn.disabled = false;
+            }, { timeout: 10000 });
+        }
+
+        // ---- SPC Outlook Point-in-Polygon ----
+        function pointInPolygon(point, polygon) {
+            let inside = false;
+            const [x, y] = point;
+            for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+                const [xi, yi] = polygon[i], [xj, yj] = polygon[j];
+                if (((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi)) inside = !inside;
+            }
+            return inside;
+        }
+
+        function getOutlookForPoint(geojson, lat, lon) {
+            if (!geojson?.features) return null;
+            const riskOrder = ['HIGH','MDT','ENH','SLGT','MRGL','TSTM'];
+            let bestLabel = null;
+            for (const feat of geojson.features) {
+                const geom = feat.geometry;
+                const label = feat.properties.LABEL;
+                if (!geom) continue;
+                let rings = [];
+                if (geom.type === 'Polygon') rings = [geom.coordinates[0]];
+                else if (geom.type === 'MultiPolygon') rings = geom.coordinates.map(c => c[0]);
+                for (const ring of rings) {
+                    if (pointInPolygon([lon, lat], ring)) {
+                        if (bestLabel === null || riskOrder.indexOf(label) < riskOrder.indexOf(bestLabel)) bestLabel = label;
+                        break;
+                    }
+                }
+            }
+            return bestLabel;
+        }
+
+        async function fetchSPCOutlooks(lat, lon) {
+            const urls = [
+                { day: 'Today & Tonight',    url: 'https://www.spc.noaa.gov/products/outlook/day1otlk_cat.nolyr.geojson' },
+                { day: 'Tomorrow',           url: 'https://www.spc.noaa.gov/products/outlook/day2otlk_cat.nolyr.geojson' },
+                { day: 'Day After Tomorrow', url: 'https://www.spc.noaa.gov/products/outlook/day3otlk_cat.nolyr.geojson' }
+            ];
+            const results = await Promise.all(urls.map(async ({ day, url }) => {
+                try {
+                    const resp = await fetch(url);
+                    const gj = await resp.json();
+                    const label = getOutlookForPoint(gj, lat, lon) || 'NONE';
+                    return { day, label };
+                } catch { return { day, label: 'NONE' }; }
+            }));
+            return results;
+        }
+
+        const OUTLOOK_NAMES = {
+            HIGH: 'High', MDT: 'Moderate', ENH: 'Enhanced',
+            SLGT: 'Slight', MRGL: 'Marginal', TSTM: 'Gen. Thunderstorms', NONE: 'No Risk Area'
+        };
+        const OUTLOOK_CEILING = { HIGH: 10.0, MDT: 8.5, ENH: 7.0, SLGT: 5.5, MRGL: 4.0, TSTM: 2.5, NONE: 2.0 };
+        const OUTLOOK_FLOOR   = { HIGH: 5.5,  MDT: 4.0, ENH: 2.5, SLGT: 1.5, MRGL: 0.5, TSTM: 0.0, NONE: 0.0 };
+
+        function applyOutlookConstraint(rawScore, outlookLabel) {
+            const ceiling = OUTLOOK_CEILING[outlookLabel] ?? 10.0;
+            const floor   = OUTLOOK_FLOOR[outlookLabel]   ?? 0.0;
+            let s = Math.min(rawScore, ceiling);
+            if (s < floor) {
+                const nudge = Math.min((floor - s) * 0.3, 1.5);
+                s += nudge;
+            }
+            return Math.min(10.0, Math.max(0.0, s));
+        }
+
+        function renderSPCOutlooks(results, windowKey) {
+            let relevantIdx = 0;
+            if (windowKey === 'tomorrow') relevantIdx = 1;
+            else if (windowKey === 'day3') relevantIdx = 2;
+            const relevant = results[relevantIdx];
+            const ceiling = OUTLOOK_CEILING[relevant.label] ?? 10;
+            const floor   = OUTLOOK_FLOOR[relevant.label]   ?? 0;
+            let html = '<div style="margin-bottom:12px;font-family:\'Verdana\',sans-serif;font-size:0.85em;color:#aaa;">SPC outlook checked for your selected window and surrounding days:</div>';
+            html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+            results.forEach(r => {
+                const active = r === relevant ? 'box-shadow:0 0 15px rgba(255,217,61,0.6);outline:2px solid #ffd93d;' : '';
+                html += `<span class="lss-outlook-badge lss-outlook-${r.label}" style="${active}">
+                    <i class="fas fa-map"></i> ${r.day}: <strong>${OUTLOOK_NAMES[r.label] || r.label}</strong>
+                </span>`;
+            });
+            html += '</div>';
+            const ceilStr  = ceiling < 10 ? `Score capped at <strong>${ceiling.toFixed(1)}</strong>` : 'No score cap';
+            const floorStr = floor > 0 ? `; low scores nudged up to <strong>~${floor.toFixed(1)}</strong> if underpredicted` : '';
+            html += `<div style="margin-top:10px;font-family:'Verdana',sans-serif;font-size:0.81em;color:#c8a86b;">
+                <i class="fas fa-circle-info"></i> SPC constraint for this window (${OUTLOOK_NAMES[relevant.label]}): ${ceilStr}${floorStr}.
+            </div>`;
+            document.getElementById('lssOutlookContent').innerHTML = html;
+            return relevant.label;
+        }
+
+        // ================================================================
+        // CORE SCORING ENGINE v3
+        // Score = intensity of a severe event that WOULD occur if conditions
+        // trigger convection. Precipitation + lightning act as activity gates.
+        // ================================================================
+        function computeInstantSevereScore(params) {
+            const {
+                cape, cin, dewpoint, temp, rh,
+                wind500, wind700, wind850,
+                rain, gustMph,
+                sunshine, isDay,
+                lightningPot,
+                tempDropRate
+            } = params;
+
+            const reasons = [];
+
+            // --- 1. THERMODYNAMIC POTENTIAL ---
+            let thermoScore = 0;
+
+            // CAPE — primary updraft intensity driver
+            // Tiers are recalibrated so that 1000–2000 J/kg (real-world MDT/ENH range)
+            // contributes meaningfully. Max CAPE contribution: ~6.0
+            if      (cape >= 4000) { thermoScore += 6.0; reasons.push('Extreme CAPE (4000+ J/kg)'); }
+            else if (cape >= 3000) { thermoScore += 5.2; reasons.push('Very High CAPE (3000+)'); }
+            else if (cape >= 2500) { thermoScore += 4.5; reasons.push('High CAPE (2500+)'); }
+            else if (cape >= 2000) { thermoScore += 3.8; reasons.push('High CAPE (2000+)'); }
+            else if (cape >= 1500) { thermoScore += 3.2; reasons.push('Moderate-High CAPE (1500+)'); }
+            else if (cape >= 1000) { thermoScore += 2.5; reasons.push('Moderate CAPE (1000+)'); }
+            else if (cape >= 700)  { thermoScore += 1.7; }
+            else if (cape >= 400)  { thermoScore += 1.0; }
+            else if (cape >= 200)  { thermoScore += 0.5; }
+            // Sub-1000 graduated suppression — severe weather needs meaningful CAPE
+            if (cape < 1000) thermoScore *= Math.max(0.08, cape / 1000);
+
+            // CIN — convective inhibition: strong cap suppresses initiation
+            const cinAbs = Math.abs(cin ?? 0);
+            let cinFactor = 1.0;
+            if      (cinAbs >= 200) { cinFactor = 0.30; reasons.push('Strong CIN — initiation unlikely'); }
+            else if (cinAbs >= 100) { cinFactor = 0.55; reasons.push('Moderate CIN'); }
+            else if (cinAbs >= 50)  { cinFactor = 0.78; }
+            else if (cinAbs >= 25)  { cinFactor = 0.90; }
+            thermoScore *= cinFactor;
+
+            // Dewpoint — low-level moisture fuel
+            if      (dewpoint >= 72) { thermoScore += 1.8; reasons.push('Tropical dewpoint (72°F+)'); }
+            else if (dewpoint >= 68) { thermoScore += 1.4; reasons.push('High dewpoint'); }
+            else if (dewpoint >= 63) { thermoScore += 1.0; reasons.push('Good dewpoint'); }
+            else if (dewpoint >= 58) { thermoScore += 0.5; }
+            if (dewpoint < 58) {
+                // Hard minimizer — atmosphere too dry below 58°F
+                const dpFactor = Math.max(0.08, (dewpoint - 32) / 26);
+                thermoScore *= dpFactor;
+                if (dewpoint < 50) reasons.push('Very low dewpoint — severe weather unlikely');
+                else               reasons.push('Low dewpoint penalty');
+            }
+
+            // T/Dp spread — dry layer suppression
+            const spread = temp - dewpoint;
+            if      (spread >= 30) { thermoScore *= 0.22; reasons.push('Extreme T/Dp spread — very dry air'); }
+            else if (spread >= 25) { thermoScore *= 0.38; reasons.push('Large T/Dp spread'); }
+            else if (spread >= 20) { thermoScore *= 0.54; }
+            else if (spread >= 15) { thermoScore *= 0.72; reasons.push('T/Dp spread ≥15°F'); }
+            else if (spread >= 10) { thermoScore *= 0.88; }
+
+            // Sunshine / daytime heating — only applies during daylight hours
+            // sunshine_duration in seconds per 15-min window (max 900 s)
+            if (isDay) {
+                const sunFrac = Math.min(1, (sunshine ?? 0) / 900);
+                if      (sunFrac >= 0.8) { thermoScore += 0.6; reasons.push('Intense sunshine — strong surface heating'); }
+                else if (sunFrac >= 0.5) { thermoScore += 0.4; reasons.push('Moderate sunshine'); }
+                else if (sunFrac >= 0.2) { thermoScore += 0.2; }
+            }
+            // Night: no sunshine contribution
+
+            // --- 2. KINEMATIC COMPONENT (multi-level shear) ---
+            let kinemScore = 0;
+
+            // 500mb — upper-level steering and upper wind shear
+            if      (wind500 >= 100) { kinemScore += 2.2; reasons.push('Very strong 500mb flow (100+ mph)'); }
+            else if (wind500 >= 80)  { kinemScore += 1.8; reasons.push('Strong 500mb flow'); }
+            else if (wind500 >= 60)  { kinemScore += 1.3; reasons.push('Moderate 500mb flow'); }
+            else if (wind500 >= 40)  { kinemScore += 0.8; }
+            else if (wind500 >= 20)  { kinemScore += 0.4; }
+            else                     { kinemScore += 0.1; }
+
+            // 700mb — mid-level support for tilted updrafts
+            if      (wind700 >= 60) { kinemScore += 0.5; reasons.push('Strong 700mb flow'); }
+            else if (wind700 >= 40) { kinemScore += 0.3; }
+            else if (wind700 >= 20) { kinemScore += 0.1; }
+
+            // 850mb — low-level jet proxy: warm/moist advection and deep-layer shear
+            if      (wind850 >= 50) { kinemScore += 0.7; reasons.push('Strong low-level jet (850mb)'); }
+            else if (wind850 >= 35) { kinemScore += 0.45; reasons.push('Moderate LLJ'); }
+            else if (wind850 >= 20) { kinemScore += 0.2; }
+
+            // --- 3. COLD FRONT / TEMPERATURE DROP — lift source ---
+            // Significant temp drop per hour signals a frontal boundary passing.
+            let frontBonus = 0;
+            if (tempDropRate !== null && tempDropRate < 0) {
+                const dropAbs = Math.abs(tempDropRate);
+                if      (dropAbs >= 15) { frontBonus = 0.9;  reasons.push('Powerful cold front (15+°F/hr drop)'); }
+                else if (dropAbs >= 10) { frontBonus = 0.65; reasons.push('Significant cold front (10°F/hr)'); }
+                else if (dropAbs >= 6)  { frontBonus = 0.40; reasons.push('Cold front (6°F/hr drop)'); }
+                else if (dropAbs >= 3)  { frontBonus = 0.20; }
+                // Reduce front bonus if strong CIN is trapping air
+                frontBonus *= Math.min(1.0, Math.max(0, 1.0 - (cinAbs - 25) / 300));
+            }
+
+            // --- 4. SURFACE WIND GUST (10m) — broad model field ---
+            // Modest contribution above 40 mph; hard cap at 0.5 to avoid inflation.
+            let gustBonus = 0;
+            if      (gustMph >= 60) { gustBonus = 0.50; reasons.push('Strong surface gusts (60+ mph)'); }
+            else if (gustMph >= 50) { gustBonus = 0.35; reasons.push('Elevated surface gusts'); }
+            else if (gustMph >= 40) { gustBonus = 0.20; }
+
+            // --- 5. RAW POTENTIAL ---
+            // Perfect conditions: thermoScore ~7.3 + kinemScore ~3.4 + bonuses ~1.4 = ~12.1
+            // Capped at 9.0 so only precipitation gate can push final score to 9+.
+            const rawPotential = Math.min(9.0,
+                thermoScore + kinemScore + frontBonus + gustBonus
+            );
+
+            // --- 6. CONVECTION CONFIRMATION GATE ---
+            // Rain/lightning confirm convection is firing.
+            // Amount of rain does NOT affect score — it's a yes/no trigger.
+            // Even 0.004" is enough to confirm active convection is ongoing.
+            //
+            // Gate levels:
+            //   ACTIVE    (1.00) — any rain detected (incl. trace) OR high lightning
+            //   NEARBY    (0.60) — moderate lightning potential nearby, no rain yet
+            //   PRIMED    (0.05–0.22) — dry; score reflects atmosphere readiness only
+            const lp = Math.min(1, Math.max(0, lightningPot ?? 0));
+
+            let precipGate;
+
+            if (rain > 0) {
+                // Any rain at all: convection confirmed → full unlock
+                precipGate = 1.00;
+                reasons.push('Precipitation detected — convection active');
+            } else if (lp >= 0.6) {
+                // Strong lightning index, no rain yet → convection very nearby
+                precipGate = 0.65;
+                reasons.push('High lightning potential — convection imminent');
+            } else if (lp >= 0.3) {
+                // Moderate lightning nearby
+                precipGate = 0.40;
+                reasons.push('Elevated lightning potential — convection possible');
+            } else {
+                // Truly dry: show atmosphere readiness only
+                const readiness = Math.min(1, rawPotential / 9.0);
+                precipGate = 0.05 + readiness * 0.17;
+                // Note: for a perfect environment (raw ~8.5) this gives ~0.21
+                // For a MDT-risk environment with no rain yet: ~0.12–0.16
+            }
+
+            // --- 7. FINAL SCORE ---
+            let score = rawPotential * precipGate;
+            if      (rh >= 85) score *= 1.04;
+            else if (rh < 40)  score *= 0.88;
+
+            return { score: Math.min(10.0, Math.max(0.0, score)), reasons, rawPotential, precipGate };
+        }
+
+        // ---- Score visual helpers ----
+        function lssScoreColor(score) {
+            if (score < 1.5) return '#555555';
+            if (score < 3)   return '#888888';
+            if (score < 5)   return '#ff8c00';
+            if (score < 6.5) return '#e03030';
+            if (score < 8)   return '#8b0000';
+            if (score < 9)   return '#cc0033';
+            return '#cc33ff';
+        }
+        function lssScoreGradient(score) {
+            if (score < 3)   return 'linear-gradient(90deg,#333,#777)';
+            if (score < 5)   return 'linear-gradient(90deg,#cc5500,#ff8c00)';
+            if (score < 6.5) return 'linear-gradient(90deg,#aa0000,#e03030)';
+            if (score < 8)   return 'linear-gradient(90deg,#550000,#8b0000)';
+            if (score < 9)   return 'linear-gradient(90deg,#6b0000,#cc0033)';
+            return 'linear-gradient(90deg,#550033,#8b0000,#cc33ff)';
+        }
+        function lssScoreLabel(score) {
+            if (score < 1.5) return 'Negligible — Atmosphere Not Active';
+            if (score < 3)   return 'Very Low Severe Potential';
+            if (score < 5)   return 'Marginal / Limited Potential';
+            if (score < 6.5) return 'Moderate Severe Potential';
+            if (score < 8)   return 'High Severe Potential';
+            if (score < 9)   return 'Very High — Significant Severe Event Possible';
+            return 'Extreme — Potentially Life-Threatening Severe Weather';
+        }
+
+        // ---- Main Run Function ----
+        async function runLSS() {
+            const lat = parseFloat(document.getElementById('lssLat').value);
+            const lon = parseFloat(document.getElementById('lssLon').value);
+            const tz  = document.getElementById('lssTimezone').value.trim() || 'auto';
+
+            if (isNaN(lat) || isNaN(lon)) { alert('Please select a location first.'); return; }
+
+            if (isOutsideCONUS(lat, lon)) {
+                document.getElementById('lssResults').style.display = 'block';
+                document.getElementById('lssOutlookContent').innerHTML = `
+                    <div style="background:rgba(199,0,57,0.2);border:2px solid #c70039;border-radius:10px;padding:20px;font-family:'Verdana',sans-serif;color:#ffaaaa;line-height:1.7;">
+                        <i class="fas fa-triangle-exclamation" style="font-size:1.4em;margin-right:8px;color:#ff5733;"></i>
+                        <strong>Location Outside Supported Area</strong><br><br>
+                        Convective forecasting is <strong>not supported</strong> for this location.
+                        The Location Severe Score is designed for the <strong>contiguous 48 United States (CONUS) only</strong>.<br><br>
+                        This excludes Alaska, Hawaii, Puerto Rico, Guam, and all other U.S. territories,
+                        as well as international locations such as Canada, Mexico, and other countries.<br><br>
+                        Please enter a location within the continental United States.
+                    </div>`;
+                document.getElementById('lssScoreSummaryCard').style.display = 'none';
+                document.getElementById('lssResults').querySelectorAll('.lss-card:not(#lssOutlookPanel)').forEach(c => c.style.display = 'none');
+                document.getElementById('lssResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                return;
+            }
+
+            // Reset display
+            document.getElementById('lssScoreSummaryCard').style.display = '';
+            document.getElementById('lssResults').querySelectorAll('.lss-card').forEach(c => c.style.display = '');
+            document.getElementById('lssResults').style.display = 'block';
+            document.getElementById('lssOutlookContent').innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Checking SPC outlooks...</div>';
+            document.getElementById('lssBigScore').textContent = '…';
+            document.getElementById('lssBigLabel').textContent = 'Calculating…';
+            document.getElementById('lssParamBody').innerHTML = '<tr><td colspan="11" style="text-align:center;padding:20px;color:#ffd93d;"><i class="fas fa-spinner fa-spin"></i> Loading forecast data…</td></tr>';
+            document.getElementById('lssPeakTime').textContent = '';
+            document.getElementById('lssResults').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            const [outlooks, forecastData] = await Promise.all([
+                fetchSPCOutlooks(lat, lon),
+                fetchLSSForecast(lat, lon, tz)
+            ]);
+
+            if (!forecastData || !forecastData.minutely_15) {
+                document.getElementById('lssParamBody').innerHTML = '<tr><td colspan="11" style="text-align:center;color:#ff5733;padding:20px;">Error loading forecast data. Please try again.</td></tr>';
+                return;
+            }
+
+            const outlookLabel = renderSPCOutlooks(outlooks, lssSelectedWindow);
+            const times15 = forecastData.minutely_15.time;
+            const allData = buildDataRows(forecastData, times15);
+
+            // Compute window bounds using midnight boundaries
+            const includeOvernight = document.getElementById('lssIncludeOvernight')?.checked ?? false;
+            const windowBounds = getLSSWindowBounds(lssSelectedWindow, includeOvernight);
+            const windowData = allData.filter(row => {
+                const t = new Date(row.time);
+                return t >= windowBounds.start && t < windowBounds.end;
+            });
+
+            if (windowData.length === 0) {
+                document.getElementById('lssParamBody').innerHTML = '<tr><td colspan="11" style="text-align:center;color:#aaa;padding:20px;">No data available in selected window.</td></tr>';
+                return;
+            }
+
+            // Score each 15-min slot
+            const scored = windowData.map((row, idx, arr) => {
+                // Temp drop rate: compare to 1 hour ago (4 slots of 15 min)
+                let tempDropRate = null;
+                if (idx >= 4) tempDropRate = row.temp - arr[idx - 4].temp; // negative = cooling
+
+                const { score: rawScore, reasons, rawPotential, precipGate } = computeInstantSevereScore({
+                    cape: row.cape,         cin: row.cin,
+                    dewpoint: row.dew,      temp: row.temp,        rh: row.rh,
+                    wind500: row.wind500,   wind700: row.wind700,  wind850: row.wind850,
+                    rain: row.rain,         gustMph: row.gust,
+                    sunshine: row.sunshine, isDay: row.isDay,
+                    lightningPot: row.lightning,
+                    tempDropRate
+                });
+                const finalScore = applyOutlookConstraint(rawScore, outlookLabel);
+                return { ...row, rawScore, score: finalScore, reasons, rawPotential, precipGate, tempDropRate };
+            });
+
+            const peak = scored.reduce((a, b) => b.score > a.score ? b : a);
+            const peakColor = lssScoreColor(peak.score);
+            const peakGrad  = lssScoreGradient(peak.score);
+
+            // Populate static fields first
+            document.getElementById('lssBigLabel').textContent = lssScoreLabel(peak.score);
+            document.getElementById('lssBigLabel').style.color = peakColor;
+            document.getElementById('lssScoreBar').style.background = peakGrad;
+            document.getElementById('lssScoreReason').textContent = peak.reasons.join(' · ') || 'Low-activity parameters';
+            const peakTimeStr = new Date(peak.time).toLocaleString('en-US', {
+                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+            });
+            document.getElementById('lssPeakTime').innerHTML =
+                `<i class="fas fa-clock"></i> Peak expected around: <strong style="color:${peakColor}">${peakTimeStr}</strong>`;
+            document.getElementById('lssScoreSummaryCard').style.borderColor = peakColor;
+            document.getElementById('lssScoreSummaryCard').style.boxShadow   = `0 0 30px ${peakColor}44`;
+
+            // Build graphic factor pills from peak slot
+            buildLSSFactorPills(peak, outlookLabel);
+
+            // Animate score count-up
+            animateLSSScore(peak.score, peakColor, peakGrad);
+
+            renderLSSTable(scored);
+            renderLSSChart(scored);
+        }
+
+        // ---- Score Count-Up Animation ----
+        let _lssScoreAnimFrame = null;
+        function animateLSSScore(target, color, gradient) {
+            if (_lssScoreAnimFrame) cancelAnimationFrame(_lssScoreAnimFrame);
+            const el  = document.getElementById('lssBigScore');
+            const bar = document.getElementById('lssScoreBar');
+            const start = performance.now();
+            // Total duration: 1.4s, eased so it rushes early and crawls at end
+            const DURATION = 1400;
+            function step(now) {
+                const elapsed = now - start;
+                const t = Math.min(elapsed / DURATION, 1);
+                // Ease: fast start, slow end — cubic ease-out
+                const ease = 1 - Math.pow(1 - t, 3);
+                const current = 0.1 + ease * (target - 0.1);
+                el.textContent  = current.toFixed(1);
+                el.style.color  = lssScoreColor(current);
+                bar.style.width = (current * 10) + '%';
+                bar.style.background = gradient;
+                if (t < 1) {
+                    _lssScoreAnimFrame = requestAnimationFrame(step);
+                } else {
+                    el.textContent = target.toFixed(1);
+                    el.style.color = color;
+                    bar.style.width = (target * 10) + '%';
+                    // Reveal export button + factors after animation completes
+                    document.getElementById('lssExportBtn').style.display = 'inline-flex';
+                    document.getElementById('lssFactorsPanel').style.display = '';
+                    document.getElementById('lssParamNote').style.display = '';
+                }
+            }
+            _lssScoreAnimFrame = requestAnimationFrame(step);
+        }
+
+        // ---- Graphic Factor Pills ----
+        // Stored for export graphic use
+        let _lssGraphicData = null;
+
+        function buildLSSFactorPills(peak, outlookLabel) {
+            const cape  = peak.cape  ?? 0;
+            const cin   = Math.abs(peak.cin ?? 0);
+            const dew   = peak.dew   ?? 0;
+            const w500  = peak.wind500 ?? 0;
+            const w700  = peak.wind700 ?? 0;
+            const w850  = peak.wind850 ?? 0;
+            const w250  = peak.wind250 ?? (peak.wind250 ?? 0);
+            const rain  = peak.rain  ?? 0;
+            const tdr   = peak.tempDropRate ?? 0; // negative = cooling
+            const spread = (peak.temp ?? 0) - dew;
+
+            // Store for export
+            _lssGraphicData = { peak, outlookLabel, cape, cin, dew, w500, w700, w850, rain, tdr, spread };
+
+            const primary    = [];
+            const additional = [];
+
+            // PRIMARY
+            if (cape >= 1000) primary.push({ icon: '⚡', text: `${cape.toFixed(0)} J/kg CAPE` });
+            else if (cape >= 400) primary.push({ icon: '⚡', text: `${cape.toFixed(0)} J/kg CAPE (moderate)` });
+            else if (cape >= 100) primary.push({ icon: '⚡', text: `< 1000 J/kg CAPE` });
+            else primary.push({ icon: '⚡', text: 'Minimal CAPE' });
+
+            if (cin >= 200) primary.push({ icon: '🚧', text: 'Very Strong CIN Cap' });
+            else if (cin >= 100) primary.push({ icon: '🚧', text: 'Strong CIN Cap' });
+            else if (cin >= 50) primary.push({ icon: '🚧', text: 'Moderate CIN' });
+            else primary.push({ icon: '✅', text: 'Low CIN (Cap Weak)' });
+
+            if (dew >= 72) primary.push({ icon: '💧', text: `${dew.toFixed(0)}°F Dew (Exceptional)` });
+            else if (dew >= 68) primary.push({ icon: '💧', text: `${dew.toFixed(0)}°F Dew (High)` });
+            else if (dew >= 63) primary.push({ icon: '💧', text: `${dew.toFixed(0)}°F Dew (Good)` });
+            else if (dew >= 55) primary.push({ icon: '💧', text: `${dew.toFixed(0)}°F Dew (Marginal)` });
+            else primary.push({ icon: '💧', text: `Low Dew Point (${dew.toFixed(0)}°F)` });
+
+            if (w500 >= 100) primary.push({ icon: '🌬️', text: '100+ mph 500mb Lift' });
+            else if (w500 >= 80) primary.push({ icon: '🌬️', text: '80+ mph 500mb Lift' });
+            else if (w500 >= 60) primary.push({ icon: '🌬️', text: '500mb Lift' });
+            else if (w500 >= 40) primary.push({ icon: '🌬️', text: 'Moderate 500mb Lift' });
+            else primary.push({ icon: '🌬️', text: 'Low 500mb Flow' });
+
+            if (rain >= 0.01) primary.push({ icon: '🌧️', text: `${rain.toFixed(3)}" Precip Active` });
+            else if (rain > 0) primary.push({ icon: '🌧️', text: 'Trace Precip' });
+            else primary.push({ icon: '🌧️', text: 'No Active Precip' });
+
+            // SPC outlook always in primary if set
+            if (outlookLabel && outlookLabel !== 'General Thunder' && outlookLabel !== 'No Risk') {
+                primary.push({ icon: '🗺️', text: `SPC ${outlookLabel} Risk` });
+            }
+
+            // ADDITIONAL
+            if (w250 >= 80) additional.push({ icon: '🚀', text: '200mb Lift (Strong Jet)' });
+            else if (w250 >= 50) additional.push({ icon: '🚀', text: '200mb Lift' });
+
+            if (w700 >= 60) additional.push({ icon: '🌀', text: '700mb Lift (Strong)' });
+            else if (w700 >= 40) additional.push({ icon: '🌀', text: '700mb Lift' });
+
+            if (w850 >= 50) additional.push({ icon: '📐', text: '850mb Lift (Strong)' });
+            else if (w850 >= 35) additional.push({ icon: '📐', text: '850mb Lift' });
+
+            // Cold front drop (tdr is negative when cooling)
+            const dropRate = -tdr; // positive = temp falling
+            if (dropRate >= 10) additional.push({ icon: '🥶', text: `Powerful Cold Front (${dropRate.toFixed(1)}°F/hr drop)` });
+            else if (dropRate >= 6) additional.push({ icon: '🥶', text: `Strong Cold Front (${dropRate.toFixed(1)}°F/hr drop)` });
+            else if (dropRate >= 2) additional.push({ icon: '🥶', text: `Cold Front (${dropRate.toFixed(1)}°F/hr drop)` });
+
+            if (spread <= 5) additional.push({ icon: '↔️', text: `Very Close T/Dp Spread (${spread.toFixed(1)}°F)` });
+            else if (spread <= 10) additional.push({ icon: '↔️', text: `Close T/Dp Spread (${spread.toFixed(1)}°F)` });
+
+            // Render
+            const primEl  = document.getElementById('lssPrimaryFactors');
+            const addlEl  = document.getElementById('lssAdditionalFactors');
+            const addlLbl = document.getElementById('lssAddlLabel');
+            primEl.innerHTML  = primary.map(f =>
+                `<span class="lss-factor-pill primary">${f.icon} ${f.text}</span>`
+            ).join('');
+            if (additional.length > 0) {
+                addlEl.innerHTML  = additional.map(f =>
+                    `<span class="lss-factor-pill additional">${f.icon} ${f.text}</span>`
+                ).join('');
+                addlLbl.style.display = '';
+                addlEl.style.display  = '';
+            } else {
+                addlLbl.style.display = 'none';
+                addlEl.style.display  = 'none';
+            }
+        }
+
+        // ---- Export Graphic (Canvas 2D) ----
+        async function exportLSSGraphic() {
+            if (!_lssGraphicData) return;
+            const { peak, outlookLabel } = _lssGraphicData;
+
+            // Load Rubik into the canvas font environment
+            try {
+                const rubikFonts = [
+                    new FontFace('Rubik', 'url(https://fonts.gstatic.com/s/rubik/v28/iJWZBXyIfDnIV5PNhY1KTN7Z-Yh-B4iFV0U1.woff2)', { weight: '400' }),
+                    new FontFace('Rubik', 'url(https://fonts.gstatic.com/s/rubik/v28/iJWZBXyIfDnIV5PNhY1KTN7Z-Yh-NYiFV0U1.woff2)', { weight: '700' }),
+                    new FontFace('Rubik', 'url(https://fonts.gstatic.com/s/rubik/v28/iJWZBXyIfDnIV5PNhY1KTN7Z-Yh-NYiFV0U1.woff2)', { weight: '700', style: 'italic' }),
+                ];
+                await Promise.all(rubikFonts.map(f => f.load().then(loaded => document.fonts.add(loaded))));
+                await document.fonts.ready;
+            } catch(e) {
+                console.warn('Rubik font load failed, falling back:', e);
+            }
+
+            const W = 1920, H = 1080;
+            const canvas = document.getElementById('lssGraphicCanvas');
+            canvas.width  = W;
+            canvas.height = H;
+            const ctx = canvas.getContext('2d');
+
+            // ── Background ──────────────────────────────────────────
+            ctx.fillStyle = '#0d0d0d';
+            ctx.fillRect(0, 0, W, H);
+
+            // ── Copyright — top right ────────────────────────────────
+            const year = new Date().getFullYear();
+            ctx.fillStyle = '#aaaaaa';
+            ctx.font = 'italic 26px Rubik, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'bottom';
+            ctx.fillText(`©${year} JesseLikesWeather  –  God Seriously Loves You :)`, W - 40, 28);
+
+            // ── Orange accent bar ────────────────────────────────────
+            ctx.fillStyle = '#ff8c00';
+            ctx.fillRect(0, 100, W, 6);
+
+            // ── Location name ────────────────────────────────────────
+            const locRaw = (document.getElementById('lssLocationSearch')?.value || 'Unknown Location').toUpperCase();
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'alphabetic';
+            let locSize = 82;
+            ctx.font = `700 ${locSize}px Rubik, sans-serif`;
+            while (ctx.measureText(locRaw).width > W - 120 && locSize > 36) {
+                locSize -= 2;
+                ctx.font = `700 ${locSize}px Rubik, sans-serif`;
+            }
+            ctx.fillText(locRaw, W / 2, 86);
+
+            // ── "Severe Weather Score:" subheader ────────────────────
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '700 56px Rubik, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Severe Weather Score:', W / 2, 210);
+
+            // ── Score number ─────────────────────────────────────────
+            const scoreColor = lssScoreColor(peak.score);
+            ctx.font = '700 240px Rubik, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = scoreColor;
+            ctx.shadowColor = scoreColor;
+            ctx.shadowBlur  = 60;
+            ctx.fillText(peak.score.toFixed(1), 80, 580);
+            ctx.shadowBlur = 0;
+
+            // ── Score label ──────────────────────────────────────────
+            ctx.fillStyle = scoreColor;
+            ctx.font = '700 46px Rubik, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(lssScoreLabel(peak.score).split('—')[0].trim().toUpperCase(), 88, 648);
+
+            // ── Date — bottom left ───────────────────────────────────
+            const dateStr = new Date().toLocaleDateString('en-US', {
+                weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+            });
+            ctx.fillStyle = '#dddddd';
+            ctx.font = '700 italic 32px Rubik, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(dateStr, 60, H - 52);
+
+            // ── Window label — bottom left ───────────────────────────
+            const wb = getLSSWindowBounds(lssSelectedWindow, document.getElementById('lssIncludeOvernight')?.checked ?? false);
+            ctx.fillStyle = '#777777';
+            ctx.font = '400 24px Rubik, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText('Window: ' + wb.label, 60, H - 20);
+
+            // ── Factor bullets ───────────────────────────────────────
+            const bullets = buildGraphicBullets(peak, outlookLabel);
+            const bx = 960;
+            let by = 260;
+            const lineH = 96;
+            bullets.forEach((b) => {
+                const isPrimary = b.primary;
+                ctx.fillStyle  = isPrimary ? '#ff8c00' : '#cccccc';
+                ctx.font       = isPrimary
+                    ? '700 italic 42px Rubik, sans-serif'
+                    : '400 italic 36px Rubik, sans-serif';
+                ctx.textAlign  = 'left';
+                ctx.fillText('• ' + b.text, bx, by);
+                by += lineH;
+            });
+
+            // ── Bottom orange rule ───────────────────────────────────
+            ctx.fillStyle = '#ff8c00';
+            ctx.fillRect(0, H - 70, W, 4);
+
+            // ── Download ─────────────────────────────────────────────
+            const link = document.createElement('a');
+            const safeLocation = (document.getElementById('lssLocationSearch')?.value || 'location')
+                .replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            link.download = `severe_score_${safeLocation}_${new Date().toISOString().slice(0,10)}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function buildGraphicBullets(peak, outlookLabel) {
+            // Returns up to 7 most relevant bullets, primary first
+            const bullets = [];
+            const cape  = peak.cape   ?? 0;
+            const cin   = Math.abs(peak.cin ?? 0);
+            const dew   = peak.dew    ?? 0;
+            const w500  = peak.wind500 ?? 0;
+            const w700  = peak.wind700 ?? 0;
+            const w850  = peak.wind850 ?? 0;
+            const rain  = peak.rain   ?? 0;
+            const tdr   = peak.tempDropRate ?? 0;
+            const spread = (peak.temp ?? 0) - dew;
+
+            // SPC risk — highest prominence
+            if (outlookLabel && outlookLabel !== 'NONE' && outlookLabel !== 'GENERAL') {
+                bullets.push({ text: `SPC ${outlookLabel} Risk`, primary: true });
+            }
+            // CAPE
+            if (cape >= 2000) bullets.push({ text: `${cape.toFixed(0)} J/kg CAPE`, primary: true });
+            else if (cape >= 1000) bullets.push({ text: `${cape.toFixed(0)} J/kg CAPE`, primary: true });
+            else if (cape >= 200) bullets.push({ text: `< 1000 J/kg CAPE`, primary: true });
+
+            // CIN
+            if (cin >= 100) bullets.push({ text: `Strong CIN (${cin.toFixed(0)} J/kg)`, primary: true });
+
+            // Dewpoint
+            if (dew >= 68)      bullets.push({ text: `High Dew Point (${dew.toFixed(0)}°F)`, primary: true });
+            else if (dew < 50)  bullets.push({ text: `Low Dew Point`, primary: true });
+
+            // Precip
+            if (rain >= 0.01) bullets.push({ text: `Active Precip (${rain.toFixed(3)}")`, primary: true });
+
+            // 500mb
+            if (w500 >= 60) bullets.push({ text: '500mb Lift', primary: true });
+
+            // Additional — 200mb / 700mb / 850mb
+            if (w500 < 60 && peak.wind250 > 60) bullets.push({ text: '200mb Lift', primary: false });
+            if (w700 >= 40) bullets.push({ text: '700mb Lift', primary: false });
+            if (w850 >= 35) bullets.push({ text: '850mb Lift', primary: false });
+
+            // Cold front
+            const drop = -tdr;
+            if (drop >= 6)      bullets.push({ text: `Powerful Cold Front`, primary: false });
+            else if (drop >= 2) bullets.push({ text: `Cold Front Present`, primary: false });
+
+            // T/Dp spread
+            if (spread <= 10) bullets.push({ text: `Close T/Dp Spread (${spread.toFixed(1)}°F)`, primary: false });
+
+            return bullets.slice(0, 7); // max 7 fit on canvas
+        }
+
+        async function fetchLSSForecast(lat, lon, tz) {
+            try {
+                const tzParam = tz || 'auto';
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
+                    `&hourly=wind_speed_500hPa,wind_speed_700hPa,wind_speed_850hPa,wind_speed_250hPa,freezing_level_height,convective_inhibition` +
+                    `&minutely_15=temperature_2m,dew_point_2m,relative_humidity_2m,cape,sunshine_duration,is_day,lightning_potential,wind_speed_10m,rain,wind_gusts_10m` +
+                    `&timezone=${encodeURIComponent(tzParam)}&wind_speed_unit=mph&temperature_unit=fahrenheit&precipitation_unit=inch&cell_selection=sea`;
+                const resp = await fetch(url);
+                return await resp.json();
+            } catch(e) { return null; }
+        }
+
+        function buildDataRows(data, times15) {
+            const m = data.minutely_15;
+            const h = data.hourly;
+            const wind500Map = {}, wind700Map = {}, wind850Map = {}, wind250Map = {}, cinMap = {};
+            if (h?.time) {
+                h.time.forEach((t, i) => {
+                    const k = t.slice(0, 13);
+                    if (h.wind_speed_500hPa)     wind500Map[k] = h.wind_speed_500hPa[i];
+                    if (h.wind_speed_700hPa)     wind700Map[k] = h.wind_speed_700hPa[i];
+                    if (h.wind_speed_850hPa)     wind850Map[k] = h.wind_speed_850hPa[i];
+                    if (h.wind_speed_250hPa)     wind250Map[k] = h.wind_speed_250hPa[i];
+                    if (h.convective_inhibition) cinMap[k]     = h.convective_inhibition[i];
+                });
+            }
+            return times15.map((t, i) => {
+                const k = t.slice(0, 13);
+                return {
+                    time:     t,
+                    temp:     m.temperature_2m?.[i]       ?? 0,
+                    rh:       m.relative_humidity_2m?.[i] ?? 0,
+                    dew:      m.dew_point_2m?.[i]          ?? 0,
+                    cape:     m.cape?.[i]                  ?? 0,
+                    rain:     m.rain?.[i]                  ?? 0,
+                    gust:     m.wind_gusts_10m?.[i]        ?? 0,
+                    sunshine: m.sunshine_duration?.[i]     ?? 0,
+                    isDay:    (m.is_day?.[i] ?? 1) === 1,
+                    lightning: m.lightning_potential?.[i]  ?? 0,
+                    wind10m:  m.wind_speed_10m?.[i]        ?? 0,
+                    wind500:  wind500Map[k] ?? 0,
+                    wind700:  wind700Map[k] ?? 0,
+                    wind850:  wind850Map[k] ?? 0,
+                    wind250:  wind250Map[k] ?? 0,
+                    cin:      cinMap[k]     ?? 0
+                };
+            });
+        }
+
+        function renderLSSTable(scored) {
+            const tbody = document.getElementById('lssParamBody');
+            const rows = scored.filter((_, i) => i % 2 === 0); // every 30 min
+            tbody.innerHTML = rows.map(row => {
+                const color   = lssScoreColor(row.score);
+                const spread  = (row.temp - row.dew).toFixed(1);
+                const spColor = (row.temp - row.dew) >= 15 ? '#ff5733' : (row.temp - row.dew) >= 10 ? '#ff8c00' : '#aaa';
+                const capCol  = row.cape < 1000 ? '#ff5733' : row.cape >= 2000 ? '#ff8c00' : '#ddd';
+                const dpCol   = row.dew < 50 ? '#ff3333' : row.dew < 58 ? '#ff8c00' : row.dew >= 68 ? '#34d399' : '#ddd';
+                const cinAbs  = Math.abs(row.cin ?? 0);
+                const cinCol  = cinAbs >= 100 ? '#ff5733' : cinAbs >= 50 ? '#ff8c00' : '#aaa';
+                const timeStr = new Date(row.time).toLocaleString('en-US', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+                });
+                const rainDisp = row.rain > 0
+                    ? `<span style="color:#64b4ff">${row.rain.toFixed(3)}"</span>`
+                    : '<span style="color:#444">—</span>';
+                const gustCol  = row.gust >= 60 ? '#ff5733' : row.gust >= 40 ? '#ff8c00' : '#aaa';
+                const sunIcon  = row.isDay
+                    ? (row.sunshine > 600 ? '☀️' : row.sunshine > 150 ? '⛅' : '☁️')
+                    : '🌙';
+                const lpDisp   = row.lightning > 0
+                    ? `<span style="color:#ffd93d">${(row.lightning * 100).toFixed(0)}%</span>`
+                    : '<span style="color:#444">—</span>';
+                return `<tr>
+                    <td style="white-space:nowrap">${timeStr}</td>
+                    <td><span style="font-family:'Courier New',monospace;font-weight:bold;color:${color};background:${color}18;padding:2px 7px;border-radius:5px;">${row.score.toFixed(1)}</span></td>
+                    <td style="color:${capCol}">${row.cape.toFixed(0)}</td>
+                    <td style="color:${cinCol}">${row.cin != null ? row.cin.toFixed(0) : '—'}</td>
+                    <td style="color:${dpCol}">${row.dew.toFixed(1)}°F</td>
+                    <td style="color:${spColor}">${spread}°F</td>
+                    <td>${row.wind500.toFixed(1)}</td>
+                    <td>${rainDisp}</td>
+                    <td style="color:${gustCol}">${row.gust > 0 ? row.gust.toFixed(1) : '—'}</td>
+                    <td title="Sunshine this 15-min slot (seconds)">${sunIcon} ${row.isDay ? row.sunshine.toFixed(0) + 's' : '—'}</td>
+                    <td>${lpDisp}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function renderLSSChart(scored) {
+            const ctx = document.getElementById('lssChart').getContext('2d');
+            if (lssChart) { lssChart.destroy(); lssChart = null; }
+
+            const sampled    = scored.filter((_, i) => i % 4 === 0);
+            const labels     = sampled.map(r => new Date(r.time).toLocaleString('en-US', {
+                month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: true
+            }));
+            const scores     = sampled.map(r => r.score);
+            const capeNorm   = sampled.map(r => Math.min(10, r.cape / 500));
+            const wind500N   = sampled.map(r => Math.min(10, r.wind500 / 10));
+            const rainNorm   = sampled.map(r => Math.min(10, r.rain / 0.02));
+            const cinNorm    = sampled.map(r => Math.min(10, Math.abs(r.cin ?? 0) / 25));
+
+            lssChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Severe Score',
+                            data: scores,
+                            borderColor: '#ff5733',
+                            backgroundColor: 'rgba(255,87,51,0.12)',
+                            borderWidth: 3,
+                            pointBackgroundColor: scores.map(s => lssScoreColor(s)),
+                            pointRadius: 5, pointHoverRadius: 8,
+                            fill: true, tension: 0.35, yAxisID: 'y', order: 1
+                        },
+                        {
+                            label: 'CAPE (÷500)',
+                            data: capeNorm,
+                            borderColor: '#e03030', borderWidth: 1.5, borderDash: [5, 3],
+                            pointRadius: 0, fill: false, tension: 0.35, yAxisID: 'y', order: 2
+                        },
+                        {
+                            label: '500mb Wind (÷10)',
+                            data: wind500N,
+                            borderColor: '#a78bfa', borderWidth: 1.5, borderDash: [3, 4],
+                            pointRadius: 0, fill: false, tension: 0.35, yAxisID: 'y', order: 3
+                        },
+                        {
+                            label: 'Rain Rate (÷0.02)',
+                            data: rainNorm,
+                            borderColor: '#64b4ff', backgroundColor: 'rgba(100,180,255,0.10)',
+                            borderWidth: 2, borderDash: [2, 2],
+                            pointRadius: 0, fill: true, tension: 0.35, yAxisID: 'y', order: 4
+                        },
+                        {
+                            label: 'CIN (÷25)',
+                            data: cinNorm,
+                            borderColor: '#f97316', borderWidth: 1.5, borderDash: [1, 4],
+                            pointRadius: 0, fill: false, tension: 0.35, yAxisID: 'y', order: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(12,12,12,0.97)',
+                            borderColor: '#ff5733', borderWidth: 1,
+                            titleColor: '#ffd93d', bodyColor: '#e0e0e0',
+                            callbacks: {
+                                label: c => {
+                                    const v = c.parsed.y;
+                                    if (c.datasetIndex === 0) return ` Score: ${v.toFixed(2)}`;
+                                    if (c.datasetIndex === 1) return ` CAPE: ~${(v * 500).toFixed(0)} J/kg`;
+                                    if (c.datasetIndex === 2) return ` 500mb Wind: ~${(v * 10).toFixed(1)} mph`;
+                                    if (c.datasetIndex === 3) return ` Rain: ${(v * 0.02).toFixed(3)}" — presence triggers gate`;
+                                    return ` CIN: ~${(v * 25).toFixed(0)} J/kg`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#777', maxRotation: 45, font: { size: 10 } },
+                            grid:  { color: 'rgba(255,255,255,0.04)' }
+                        },
+                        y: {
+                            min: 0, max: 10,
+                            ticks: { color: '#999', font: { size: 11 } },
+                            grid:  { color: 'rgba(255,255,255,0.06)' },
+                            title: { display: true, text: 'Score / Normalised (0–10)', color: '#777', font: { size: 11 } }
+                        }
+                    }
+                }
+            });
+
+            document.getElementById('lssChartLegend').innerHTML = `
+                <span><span style="display:inline-block;width:22px;height:3px;background:#ff5733;vertical-align:middle;margin-right:4px;border-radius:2px;"></span>Severe Score</span>
+                <span><span style="display:inline-block;width:22px;height:0;border-top:2px dashed #e03030;vertical-align:middle;margin-right:4px;"></span>CAPE (÷500)</span>
+                <span><span style="display:inline-block;width:22px;height:0;border-top:2px dashed #a78bfa;vertical-align:middle;margin-right:4px;"></span>500mb Wind (÷10)</span>
+                <span><span style="display:inline-block;width:22px;height:0;border-top:2px dashed #64b4ff;vertical-align:middle;margin-right:4px;"></span>Rain Rate (÷0.02)</span>
+                <span><span style="display:inline-block;width:22px;height:0;border-top:2px dashed #f97316;vertical-align:middle;margin-right:4px;"></span>CIN (÷25)</span>
+            `;
+        }
     </script>
 </body>
 </html>
