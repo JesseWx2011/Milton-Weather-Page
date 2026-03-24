@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seismic Monitor — Milton, Florida</title>
+  <meta name="authors" content="JesseLikesWeather"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <meta name="date" content="2026-03-24"/>
+
+  <style>
+    /* ══ THEME TOKENS ══ */
+    :root {
+      --transition-theme: background 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    [data-theme="dark"] {
+      --bg:           #0a0c0f;
+      --bg2:          #0e1117;
+      --surface:      #121620;
+      --surface2:     #181e2a;
+      --surface3:     #1e2535;
+      --border:       #242c3d;
+      --border2:      #2e3a50;
+      --border3:      #3a4a62;
+      --accent:       #e84040;
+      --accent-dim:   rgba(232,64,64,0.15);
+      --accent-glow:  rgba(232,64,64,0.35);
+      --cyan:         #2dd4bf;
+      --cyan-dim:     rgba(45,212,191,0.12);
+      --green:        #22d35a;
+      --green-dim:    rgba(34,211,90,0.12);
+      --amber:        #f59e0b;
+      --amber-dim:    rgba(245,158,11,0.12);
+      --red:          #e84040;
+      --text:         #e8edf5;
+      --text-dim:     #7a8ba8;
+      --text-faint:   #3d4e68;
+      --grid-lines:   rgba(255,255,255,0.03);
+      --scan-line:    rgba(255,255,255,0.015);
+      --alert-bg:     rgba(232,64,64,0.08);
+      --alert-border: rgba(232,64,64,0.4);
+    }
+
+    [data-theme="light"] {
+      --bg:           #dfe4ec;
+      --bg2:          #e8ecf3;
+      --surface:      #f4f6fb;
+      --surface2:     #eaeff8;
+      --surface3:     #e0e6f2;
+      --border:       #c8d0e0;
+      --border2:      #aab8ce;
+      --border3:      #8fa0bb;
+      --accent:       #c0392b;
+      --accent-dim:   rgba(192,57,43,0.1);
+      --accent-glow:  rgba(192,57,43,0.25);
+      --cyan:         #0d7a6d;
+      --cyan-dim:     rgba(13,122,109,0.1);
+      --green:        #0f7a38;
+      --green-dim:    rgba(15,122,56,0.1);
+      --amber:        #b45309;
+      --amber-dim:    rgba(180,83,9,0.1);
+      --red:          #c0392b;
+      --text:         #1a2235;
+      --text-dim:     #4a5c78;
+      --text-faint:   #8fa0bb;
+      --grid-lines:   rgba(0,0,0,0.04);
+      --scan-line:    rgba(0,0,0,0.02);
+      --alert-bg:     rgba(192,57,43,0.06);
+      --alert-border: rgba(192,57,43,0.35);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Barlow', sans-serif;
+      font-weight: 400;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      transition: var(--transition-theme);
+    }
+
+    /* CRT scanlines overlay — dark mode only */
+    [data-theme="dark"] body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 9999;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        var(--scan-line) 2px,
+        var(--scan-line) 4px
+      );
+      pointer-events: none;
+    }
+
+    /* ══ HEADER ══ */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 16px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 10;
+    }
+    [data-theme="dark"] header {
+      box-shadow: 0 1px 0 var(--border), 0 0 30px rgba(0,0,0,0.5);
+    }
+    .header-inner {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 10px 0; gap: 12px;
+    }
+    .header-left { display: flex; align-items: center; gap: 11px; }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: var(--accent);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 16px; flex-shrink: 0;
+      box-shadow: 0 0 16px var(--accent-glow);
+      position: relative; overflow: hidden;
+    }
+    .logo-icon::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.25) 0%, transparent 60%);
+    }
+
+    .site-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 18px; font-weight: 700;
+      letter-spacing: 0.08em; color: var(--text);
+      text-transform: uppercase; line-height: 1;
+    }
+    .site-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px; color: var(--text-dim);
+      letter-spacing: 0.1em; margin-top: 3px;
+    }
+
+    .header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .hbtn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px; padding: 6px 12px;
+      font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 500;
+      color: var(--text-dim); cursor: pointer; text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .hbtn:hover {
+      border-color: var(--border2); color: var(--text);
+      background: var(--surface3);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .hbtn i { font-size: 10px; }
+
+    .utc-clock {
+      font-family: 'Share Tech Mono', monospace; font-size: 12px;
+      color: var(--cyan);
+      background: var(--cyan-dim);
+      border: 1px solid rgba(45,212,191,0.2);
+      border-radius: 5px; padding: 6px 12px; letter-spacing: 0.1em;
+    }
+
+    .live-badge {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--green-dim);
+      border: 1px solid rgba(34,211,90,0.25);
+      border-radius: 5px; padding: 6px 11px;
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      color: var(--green); letter-spacing: 0.12em;
+    }
+    .live-dot {
+      width: 6px; height: 6px; background: var(--green);
+      border-radius: 50%; animation: pulse-green 2s ease-in-out infinite;
+    }
+    @keyframes pulse-green {
+      0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,90,0.5)}
+      50%{opacity:0.7;box-shadow:0 0 0 5px rgba(34,211,90,0)}
+    }
+
+    /* Theme toggle */
+    .theme-toggle {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 34px; height: 34px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px; cursor: pointer;
+      color: var(--text-dim); font-size: 13px;
+      transition: all 0.2s ease;
+    }
+    .theme-toggle:hover {
+      border-color: var(--border2); color: var(--amber);
+      background: var(--amber-dim);
+    }
+
+    .refresh-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(232,64,64,0.3);
+      border-radius: 5px; padding: 6px 13px;
+      font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 600;
+      color: var(--accent); cursor: pointer;
+      transition: all 0.2s ease;
+      letter-spacing: 0.03em;
+    }
+    .refresh-btn:hover {
+      background: rgba(232,64,64,0.22);
+      box-shadow: 0 0 14px var(--accent-glow);
+    }
+    .refresh-btn.spinning .fa-rotate-right { animation: spin 0.6s linear infinite; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* ══ NOTE BANNER ══ */
+    .note-banner {
+      background: var(--amber-dim);
+      border-bottom: 1px solid rgba(245,158,11,0.2);
+      padding: 7px 16px;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11.5px; color: var(--amber); line-height: 1.5;
+      flex-shrink: 0;
+      font-family: 'Barlow', sans-serif;
+    }
+    .note-banner strong { font-weight: 600; }
+
+    /* ══ ALERT BANNER ══ */
+    .alert-banner {
+      background: var(--alert-bg);
+      border-bottom: 1px solid var(--alert-border);
+      padding: 7px 16px;
+      display: none; align-items: center; gap: 10px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px; color: var(--accent); letter-spacing: 0.08em;
+      flex-shrink: 0;
+      animation: blink-border 1.5s ease-in-out infinite;
+    }
+    .alert-banner.visible { display: flex; }
+    .alert-banner i { font-size: 13px; }
+    @keyframes blink-border {
+      0%,100%{ border-bottom-color: var(--alert-border); }
+      50%{ border-bottom-color: transparent; }
+    }
+
+    /* ══ BODY LAYOUT ══ */
+    .page-body {
+      display: flex; flex: 1; min-height: 0;
+    }
+
+    /* ══ MAIN PANEL ══ */
+    .main-panel {
+      flex: 1; display: flex; flex-direction: column;
+      padding: 12px; gap: 10px; min-height: 0; overflow: hidden;
+    }
+
+    /* Primary station card */
+    .primary-card {
+      flex: 0 0 auto;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    [data-theme="dark"] .primary-card {
+      box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03);
+    }
+    .primary-card.alert {
+      border-color: var(--alert-border);
+      box-shadow: 0 0 30px var(--accent-glow), 0 4px 24px rgba(0,0,0,0.4);
+    }
+    .primary-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent 60%);
+    }
+    .primary-card.alert::before {
+      background: linear-gradient(90deg, var(--accent), var(--accent) 40%, transparent);
+      animation: sweep 2s ease-in-out infinite;
+    }
+    @keyframes sweep {
+      0%,100%{ opacity:1; } 50%{ opacity:0.4; }
+    }
+
+    .primary-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px 9px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      gap: 10px;
+    }
+    .pch-left { display: flex; align-items: center; gap: 10px; }
+    .station-icon {
+      width: 30px; height: 30px;
+      background: var(--accent-dim); border: 1px solid rgba(232,64,64,0.25);
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      color: var(--accent); font-size: 13px; flex-shrink: 0;
+    }
+    .station-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 15px; font-weight: 600; color: var(--text);
+      letter-spacing: 0.04em; line-height: 1;
+    }
+    .station-meta {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 8.5px; color: var(--text-dim);
+      margin-top: 3px; letter-spacing: 0.05em;
+    }
+    .pch-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+    .channel-tag {
+      font-family: 'Share Tech Mono', monospace; font-size: 8px;
+      letter-spacing: 0.08em; padding: 2px 6px;
+      border-radius: 3px; text-transform: uppercase;
+    }
+    .channel-tag.hhz { color: var(--cyan); background: var(--cyan-dim); border: 1px solid rgba(45,212,191,0.2); }
+    .channel-tag.bhz { color: var(--amber); background: var(--amber-dim); border: 1px solid rgba(245,158,11,0.2); }
+
+    .status-pill {
+      display: flex; align-items: center; gap: 5px;
+      font-family: 'Share Tech Mono', monospace; font-size: 9.5px;
+      letter-spacing: 0.08em; padding: 3px 9px;
+      border-radius: 20px; border: 1px solid;
+    }
+    .status-pill.active  { color: var(--green); background: var(--green-dim); border-color: rgba(34,211,90,0.25); }
+    .status-pill.loading { color: var(--amber); background: var(--amber-dim); border-color: rgba(245,158,11,0.25); }
+    .status-pill.error   { color: var(--red);   background: var(--accent-dim); border-color: rgba(232,64,64,0.25); }
+    .status-dot {
+      width: 5px; height: 5px; border-radius: 50;
+      border-radius: 50%; flex-shrink: 0;
+    }
+    .status-pill.active  .status-dot { background: var(--green); animation: pulse-green 2.2s ease-in-out infinite; }
+    .status-pill.loading .status-dot { background: var(--amber); animation: pulse-amber 1.2s ease-in-out infinite; }
+    .status-pill.error   .status-dot { background: var(--red); }
+    @keyframes pulse-amber { 0%,100%{opacity:1} 50%{opacity:0.25} }
+
+    .amplitude-badge {
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      letter-spacing: 0.06em; padding: 2px 7px;
+      border-radius: 4px; color: var(--text-dim);
+      background: var(--surface3); border: 1px solid var(--border2);
+      transition: all 0.4s ease;
+    }
+    .amplitude-badge.shaking {
+      color: var(--accent); background: var(--accent-dim);
+      border-color: rgba(232,64,64,0.4);
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .primary-graph-wrap {
+      padding: 10px 12px 12px;
+      height: 180px;
+    }
+    .primary-graph-wrap sp-organized-display {
+      display: block; width: 100%; height: 100%;
+      --seis-foreground-color: #e84040;
+      --seis-axis-color: #2a3448;
+      --seis-background-color: transparent;
+      --seis-label-color: #4a5c78;
+    }
+    [data-theme="light"] .primary-graph-wrap sp-organized-display {
+      --seis-foreground-color: #c0392b;
+      --seis-axis-color: #c8d0e0;
+      --seis-label-color: #7a8ba8;
+    }
+
+    /* Grid area */
+    .grid-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .grid-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-dim);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .grid-title i { color: var(--cyan); font-size: 10px; }
+
+    .cycle-controls { display: flex; align-items: center; gap: 6px; }
+    .page-indicator {
+      font-family: 'Share Tech Mono', monospace; font-size: 10px;
+      color: var(--text-faint); letter-spacing: 0.06em;
+    }
+    .page-indicator span { color: var(--cyan); }
+
+    .cycle-btn {
+      width: 26px; height: 26px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-dim);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: 10px;
+      transition: all 0.2s ease;
+    }
+    .cycle-btn:hover:not(:disabled) {
+      background: var(--surface3); border-color: var(--border2); color: var(--text);
+    }
+    .cycle-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .auto-cycle-btn {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-family: 'Barlow', sans-serif; font-size: 10px; font-weight: 500;
+      padding: 4px 9px; border-radius: 4px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface2);
+      color: var(--text-dim); letter-spacing: 0.03em;
+      transition: all 0.2s ease;
+    }
+    .auto-cycle-btn.active {
+      background: var(--cyan-dim); border-color: rgba(45,212,191,0.3);
+      color: var(--cyan);
+    }
+
+    .stations-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .scard {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 7px; overflow: hidden;
+      transition: all 0.25s ease;
+      display: flex; flex-direction: column;
+      position: relative; min-height: 0;
+    }
+    [data-theme="dark"] .scard {
+      box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .scard:hover {
+      border-color: var(--border2);
+      transform: translateY(-2px);
+    }
+    [data-theme="dark"] .scard:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    .scard.alert-card {
+      border-color: var(--alert-border);
+      animation: card-alert 1.5s ease-in-out infinite;
+    }
+    @keyframes card-alert {
+      0%,100%{ box-shadow: 0 0 0 0 rgba(232,64,64,0); }
+      50%{ box-shadow: 0 0 16px var(--accent-glow); }
+    }
+
+    .scard::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1.5px;
+      background: linear-gradient(90deg, var(--cyan), transparent 70%);
+      opacity: 0.5;
+    }
+    .scard.alert-card::before {
+      background: linear-gradient(90deg, var(--accent), transparent 70%);
+      opacity: 1;
+    }
+
+    .scard-header {
+      padding: 6px 8px 5px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 4px; flex-shrink: 0;
+    }
+    .scard-name {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 600;
+      color: var(--text); line-height: 1.2;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .scard-meta {
+      font-family: 'Share Tech Mono', monospace; font-size: 7.5px;
+      color: var(--text-faint); margin-top: 1px; letter-spacing: 0.04em;
+    }
+    .scard-right { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+
+    .mini-status-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      transition: all 0.4s ease;
+    }
+    .mini-status-dot.active  { background: var(--green); box-shadow: 0 0 5px rgba(34,211,90,0.6); animation: pulse-green 2.2s ease-in-out infinite; }
+    .mini-status-dot.loading { background: var(--amber); animation: pulse-amber 1.2s ease-in-out infinite; }
+    .mini-status-dot.error   { background: var(--red); }
+
+    .scard-body {
+      flex: 1; padding: 5px 7px 7px; min-height: 0;
+    }
+    .scard-body sp-organized-display {
+      display: block; width: 100%; height: 80px;
+      --seis-foreground-color: #2dd4bf;
+      --seis-axis-color: #242c3d;
+      --seis-background-color: transparent;
+      --seis-label-color: #3d4e68;
+    }
+    [data-theme="light"] .scard-body sp-organized-display {
+      --seis-foreground-color: #0d7a6d;
+      --seis-axis-color: #c8d0e0;
+      --seis-label-color: #8fa0bb;
+    }
+    .scard.alert-card .scard-body sp-organized-display {
+      --seis-foreground-color: #e84040;
+    }
+
+    .no-data-msg {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 5px; height: 80px;
+      color: var(--text-faint);
+      font-family: 'Share Tech Mono', monospace; font-size: 9px; letter-spacing: 0.06em;
+    }
+    .no-data-msg i { font-size: 16px; color: var(--border2); }
+
+    /* ══ SIDEBAR (primary station list / event log) ══ */
+    .right-sidebar {
+      width: 230px; flex-shrink: 0;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+    .rsb-title {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-dim);
+      background: var(--surface2);
+      display: flex; align-items: center; gap: 6px;
+      flex-shrink: 0;
+    }
+    .rsb-title i { color: var(--accent); font-size: 10px; }
+
+    .event-log {
+      flex: 1; overflow-y: auto; padding: 8px;
+      display: flex; flex-direction: column; gap: 5px;
+    }
+    .event-log::-webkit-scrollbar { width: 3px; }
+    .event-log::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+    .event-item {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px; padding: 7px 8px;
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      letter-spacing: 0.04em; color: var(--text-dim);
+      transition: all 0.3s ease;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { opacity:0; transform: translateX(10px); }
+      to   { opacity:1; transform: translateX(0); }
+    }
+    .event-item.alert {
+      background: var(--alert-bg); border-color: var(--alert-border);
+      color: var(--accent);
+    }
+    .event-time {
+      font-size: 8px; color: var(--text-faint); display: block; margin-bottom: 3px;
+    }
+    .event-sta { font-weight: 700; color: var(--text); font-size: 10px; }
+    .event-amp { color: var(--amber); }
+
+    .no-events {
+      text-align: center; padding: 20px 10px;
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      color: var(--text-faint); letter-spacing: 0.06em;
+    }
+    .no-events i { display: block; font-size: 20px; margin-bottom: 8px; opacity: 0.3; }
+
+    /* ══ FOOTER ══ */
+    footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 6px 16px; flex-shrink: 0;
+    }
+    .footer-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: 'Share Tech Mono', monospace; font-size: 9px;
+      color: var(--text-faint); letter-spacing: 0.06em; gap: 10px;
+    }
+    .footer-left { display: flex; align-items: center; gap: 16px; }
+    .footer-item { display: flex; align-items: center; gap: 5px; }
+
+    /* ══ RESPONSIVE ══ */
+    @media (max-width: 1100px) {
+      .right-sidebar { display: none; }
+    }
+    @media (max-width: 860px) {
+      body { overflow: auto; }
+      .page-body { flex-direction: column; }
+      .stations-grid { grid-template-columns: repeat(2, 1fr); }
+      .utc-clock, .live-badge { display: none; }
+    }
+    @media (max-width: 500px) {
+      .stations-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ══ HEADER ══ -->
+  <header>
+    <div class="header-inner">
+      <div class="header-left">
+        <div class="logo-icon"><i class="fa-solid fa-wave-square"></i></div>
+        <div>
+          <div class="site-name">Seismic Monitor</div>
+          <div class="site-sub">Milton, Florida &mdash; Global Network v2</div>
+        </div>
+      </div>
+      <div class="header-right">
+        <a class="hbtn" href="../">
+          <i class="fa-solid fa-arrow-left"></i>
+          Back
+        </a>
+        <div class="utc-clock" id="live-clock">--:--:-- UTC</div>
+        <div class="live-badge"><div class="live-dot"></div>Live</div>
+        <button class="theme-toggle" id="themeBtn" title="Toggle light/dark mode">
+          <i class="fa-solid fa-moon" id="theme-icon"></i>
+        </button>
+        <button class="refresh-btn" id="refreshBtn">
+          <i class="fa-solid fa-rotate-right"></i> Refresh
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ══ NOTE BANNER ══ -->
+  <div class="note-banner">
+    <i class="fa-solid fa-circle-info"></i>
+    Florida is seismically stable — this monitor primarily tracks <strong>long-range global earthquakes</strong>.
+  </div>
+
+  <!-- ══ ALERT BANNER ══ -->
+  <div class="alert-banner" id="alertBanner">
+    <i class="fa-solid fa-triangle-exclamation"></i>
+    <span id="alertText">Seismic activity detected — </span>
+  </div>
+
+  <!-- ══ PAGE BODY ══ -->
+  <div class="page-body">
+
+    <!-- ── MAIN ── -->
+    <div class="main-panel">
+
+      <!-- Primary card -->
+      <div class="primary-card" id="primaryCard">
+        <div class="primary-card-header">
+          <div class="pch-left">
+            <div class="station-icon"><i class="fa-solid fa-chart-line"></i></div>
+            <div>
+              <div class="station-name" id="primary-name">Vernon, Florida — Station 451A</div>
+              <div class="station-meta" id="primary-meta">NET: N4 &nbsp;|&nbsp; STA: 451A &nbsp;|&nbsp; CHAN: HHZ &nbsp;|&nbsp; 30.625°N, 85.850°W</div>
+            </div>
+          </div>
+          <div class="pch-right">
+            <div class="amplitude-badge" id="primary-amp">AMP: —</div>
+            <span class="channel-tag hhz" id="primary-chan">HHZ</span>
+            <div class="status-pill loading" id="primary-status">
+              <div class="status-dot"></div>
+              <span id="primary-status-text">Loading…</span>
+            </div>
+          </div>
+        </div>
+        <div class="primary-graph-wrap">
+          <sp-organized-display id="graph-primary" overlay="component"></sp-organized-display>
+        </div>
+      </div>
+
+      <!-- Grid header -->
+      <div class="grid-header">
+        <div class="grid-title">
+          <i class="fa-solid fa-globe"></i>
+          Global Stations
+        </div>
+        <div class="cycle-controls">
+          <div class="page-indicator">Page <span id="page-current">1</span> / <span id="page-total">3</span></div>
+          <button class="cycle-btn" id="prevBtn" title="Previous page"><i class="fa-solid fa-chevron-left"></i></button>
+          <button class="cycle-btn" id="nextBtn" title="Next page"><i class="fa-solid fa-chevron-right"></i></button>
+          <button class="auto-cycle-btn" id="autoCycleBtn">
+            <i class="fa-solid fa-play"></i> Auto
+          </button>
+        </div>
+      </div>
+
+      <!-- Station grid (4 cards) -->
+      <div class="stations-grid" id="stationsGrid"></div>
+
+    </div>
+
+    <!-- ── RIGHT SIDEBAR (event log) ── -->
+    <div class="right-sidebar">
+      <div class="rsb-title">
+        <i class="fa-solid fa-bell"></i>
+        Seismic Events
+      </div>
+      <div class="event-log" id="eventLog">
+        <div class="no-events" id="noEventsMsg">
+          <i class="fa-solid fa-satellite-dish"></i>
+          No events detected
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ FOOTER ══ -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-item">
+          <i class="fa-regular fa-copyright"></i>
+          <span>2022–2026 JesseLikesWeather</span>
+        </div>
+        <div class="footer-item">
+          <i class="fa-solid fa-database"></i>
+          <span>seisplotjs v3.2.1 — IRIS FDSN</span>
+        </div>
+      </div>
+      <span id="footer-updated">Last updated: —</span>
+    </div>
+  </footer>
+
+  <!-- ══ SCRIPT ══ -->
+  <script type="module">
+    import * as sp from "https://www.seis.sc.edu/downloads/seisplotjs/seisplotjs_3.2.1_standalone.mjs";
+
+    // ── Stations ────────────────────────────────────────────────────────
+    const PRIMARY_STA = "451A";
+    const stations = [
+      { net:"N4",  sta:"451A",  loc:"00", chan:"HHZ", name:"Vernon, Florida",    isPrimary:true,  lat:30.625, lon:-85.850 },
+      { net:"AV",  sta:"GAKI",  loc:"--",   chan:"BHZ", name:"Kavalga Is., Alaska" },
+      { net:"JP",  sta:"JMM",   loc:"--",   chan:"BHZ", name:"Marumori, Japan"     },
+      { net:"JP",  sta:"JOW",   loc:"--",   chan:"BHZ", name:"Okinawa, Japan"      },
+      { net:"MM",  sta:"TGI",   loc:"00", chan:"BHZ", name:"Taung Gyi, Myanmar"  },
+      { net:"MY",  sta:"SBM",   loc:"00", chan:"BHZ", name:"Sibu, Malaysia"      },
+      { net:"OI",  sta:"FNUL",  loc:"00", chan:"BHZ", name:"Labasa, Fiji"        },
+      { net:"NZ",  sta:"HIZ",   loc:"10", chan:"HHZ", name:"Hauti, New Zealand"  },
+      { net:"AU",  sta:"KDU",   loc:"00", chan:"BHZ", name:"Kakadu, Australia"   },
+      { net:"II",  sta:"SHEL",  loc:"00", chan:"BHZ", name:"St. Helena Island"   },
+      { net:"CI",  sta:"MUR",   loc:"--",   chan:"BHZ", name:"Murrieta, CA"     },
+      { net:"AU",  sta:"NIUE",  loc:"00",   chan:"BHZ", name:"Niue Island"      },
+      { net:"CO",  sta:"TEEBA", loc:"00", chan:"HHZ", name:"Mateeba, SC"         },
+      { net:"CC",  sta:"STD",  loc:"01",   chan:"BHZ", name:"Mount St. Helens, WA"},
+    ];
+    const globalStations = stations.filter(s => !s.isPrimary);
+    const PER_PAGE = 4;
+
+    // ── State ────────────────────────────────────────────────────────────
+    let currentPage = 0;
+    const totalPages = Math.ceil(globalStations.length / PER_PAGE);
+    let autoCycleTimer = null;
+    let autoCycleActive = false;
+    const amplitudes = {};      // sta -> latest peak amplitude
+    const drawPending = new Map();
+
+    // ── Spike detection — per-station rolling baseline ──────────────────
+    // We keep a short history of recent peak amplitudes (one per 30-s poll).
+    // A "dramatic spike" requires BOTH:
+    //   1. current peak ≥ SPIKE_RATIO × median of recent history  (relative)
+    //   2. current peak ≥ MIN_ABS_AMPLITUDE                       (absolute floor, filters dead/near-zero channels)
+    const SPIKE_RATIO       = 5;    // must be 5× the recent baseline
+    const MIN_ABS_AMPLITUDE = 50;   // ignore channels quieter than this (flat/dead)
+    const BASELINE_WINDOW   = 8;    // number of past readings to keep per station
+    const SHAKE_THRESHOLD = 0.0010;
+    const baselineHistory   = {};   // sta -> Float64Array ring-buffer (as plain array)
+
+    function recordBaseline(sta, peak) {
+      if (!baselineHistory[sta]) baselineHistory[sta] = [];
+      const h = baselineHistory[sta];
+      h.push(peak);
+      if (h.length > BASELINE_WINDOW) h.shift();
+    }
+
+    function medianBaseline(sta) {
+      const h = baselineHistory[sta];
+      if (!h || h.length < 2) return null; // not enough history yet
+      const sorted = [...h].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      return sorted.length % 2 === 0
+        ? (sorted[mid - 1] + sorted[mid]) / 2
+        : sorted[mid];
+    }
+
+    function isSpike(sta, peak) {
+      if (peak < MIN_ABS_AMPLITUDE) return false;
+      const baseline = medianBaseline(sta);
+      if (baseline === null) return false;          // need history first
+      if (baseline < MIN_ABS_AMPLITUDE) return false; // baseline itself is flat
+      return peak >= baseline * SPIKE_RATIO;
+    }
+
+    // ── Promoted station (shown at top if shaking) ──────────────────────
+    let promotedSta = null;  // if set, overrides primary display
+
+    // ── Theme ────────────────────────────────────────────────────────────
+    const themeBtn = document.getElementById('themeBtn');
+    const themeIcon = document.getElementById('theme-icon');
+    function getTheme() { return document.documentElement.getAttribute('data-theme'); }
+    function setTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      themeIcon.className = t === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      localStorage.setItem('seis-theme', t);
+      // Update seisplot colours for all graphs
+      updateGraphColors();
+    }
+    themeBtn.addEventListener('click', () => setTheme(getTheme() === 'dark' ? 'light' : 'dark'));
+    // Restore saved theme
+    const saved = localStorage.getItem('seis-theme');
+    if (saved) setTheme(saved);
+    else setTheme('dark');
+
+    function updateGraphColors() {
+      const isDark = getTheme() === 'dark';
+      const primary_fg   = isDark ? '#e84040' : '#c0392b';
+      const global_fg    = isDark ? '#2dd4bf' : '#0d7a6d';
+      const axis_dark    = isDark ? '#2a3448' : '#c8d0e0';
+      const label_dark   = isDark ? '#4a5c78' : '#7a8ba8';
+      const axis_mini    = isDark ? '#242c3d' : '#c8d0e0';
+      const label_mini   = isDark ? '#3d4e68' : '#8fa0bb';
+
+      const pg = document.getElementById('graph-primary');
+      if (pg) {
+        pg.style.setProperty('--seis-foreground-color', primary_fg);
+        pg.style.setProperty('--seis-axis-color', axis_dark);
+        pg.style.setProperty('--seis-label-color', label_dark);
+      }
+      document.querySelectorAll('.scard-body sp-organized-display').forEach(el => {
+        const sta = el.id.replace('graph-', '');
+        const isAlert = amplitudes[sta] > SHAKE_THRESHOLD;
+        el.style.setProperty('--seis-foreground-color', isAlert ? '#e84040' : global_fg);
+        el.style.setProperty('--seis-axis-color', axis_mini);
+        el.style.setProperty('--seis-label-color', label_mini);
+      });
+    }
+
+    // ── UTC Clock ────────────────────────────────────────────────────────
+    function updateClock() {
+      const n = new Date();
+      const p = v => String(v).padStart(2,'0');
+      document.getElementById('live-clock').textContent =
+        `${p(n.getUTCHours())}:${p(n.getUTCMinutes())}:${p(n.getUTCSeconds())} UTC`;
+    }
+    setInterval(updateClock, 1000); updateClock();
+
+    // ── Grid rendering ──────────────────────────────────────────────────
+    await customElements.whenDefined('sp-organized-display');
+
+    function renderPage() {
+      const grid = document.getElementById('stationsGrid');
+      grid.innerHTML = '';
+
+      const start = currentPage * PER_PAGE;
+      const page  = globalStations.slice(start, start + PER_PAGE);
+
+      document.getElementById('page-current').textContent = currentPage + 1;
+      document.getElementById('page-total').textContent   = totalPages;
+      document.getElementById('prevBtn').disabled = currentPage === 0;
+      document.getElementById('nextBtn').disabled = currentPage === totalPages - 1;
+
+      const isDark = getTheme() === 'dark';
+      const global_fg = isDark ? '#2dd4bf' : '#0d7a6d';
+      const axis_col  = isDark ? '#242c3d' : '#c8d0e0';
+      const label_col = isDark ? '#3d4e68' : '#8fa0bb';
+
+      page.forEach(s => {
+        const isAlert = (amplitudes[s.sta] || 0) > SHAKE_THRESHOLD;
+        const card = document.createElement('div');
+        card.className = 'scard' + (isAlert ? ' alert-card' : '');
+        card.id = 'card-' + s.sta;
+
+        const hdr = document.createElement('div');
+        hdr.className = 'scard-header';
+        const cc = c => c === 'HHZ' ? 'hhz' : 'bhz';
+        hdr.innerHTML = `
+          <div style="overflow:hidden;min-width:0;flex:1;">
+            <div class="scard-name">${s.name}</div>
+            <div class="scard-meta">${s.sta} · ${s.net} · ${s.chan}</div>
+          </div>
+          <div class="scard-right">
+            <span class="channel-tag ${cc(s.chan)}">${s.chan}</span>
+            <div class="mini-status-dot loading" id="dot-${s.sta}"></div>
+          </div>`;
+        card.appendChild(hdr);
+
+        const body = document.createElement('div');
+        body.className = 'scard-body';
+        const disp = document.createElement('sp-organized-display');
+        disp.id = 'graph-' + s.sta;
+        disp.style.setProperty('--seis-foreground-color', isAlert ? '#e84040' : global_fg);
+        disp.style.setProperty('--seis-axis-color', axis_col);
+        disp.style.setProperty('--seis-background-color', 'transparent');
+        disp.style.setProperty('--seis-label-color', label_col);
+        body.appendChild(disp);
+        card.appendChild(body);
+        grid.appendChild(card);
+
+        // If we have cached data, inject it
+        const pending = drawPending.get(s.sta);
+        if (pending) {
+          requestAnimationFrame(() => {
+            disp.seismographConfig = pending.cfg;
+            disp.seisData = pending.loaded;
+            try { disp.draw(); } catch(e) {}
+            observer.observe(disp);
+          });
+          setDot(s.sta, 'active');
+        } else {
+          loadStation(s);
+        }
+      });
+    }
+
+    // ── Navigation ──────────────────────────────────────────────────────
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      if (currentPage > 0) { currentPage--; renderPage(); }
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      if (currentPage < totalPages - 1) { currentPage++; renderPage(); }
+    });
+
+    // Auto-cycle
+    const autoCycleBtn = document.getElementById('autoCycleBtn');
+    function startAutoCycle() {
+      autoCycleActive = true;
+      autoCycleBtn.classList.add('active');
+      autoCycleBtn.innerHTML = '<i class="fa-solid fa-pause"></i> Auto';
+      autoCycleTimer = setInterval(() => {
+        currentPage = (currentPage + 1) % totalPages;
+        renderPage();
+      }, 8000);
+    }
+    function stopAutoCycle() {
+      autoCycleActive = false;
+      autoCycleBtn.classList.remove('active');
+      autoCycleBtn.innerHTML = '<i class="fa-solid fa-play"></i> Auto';
+      clearInterval(autoCycleTimer);
+    }
+    autoCycleBtn.addEventListener('click', () => {
+      autoCycleActive ? stopAutoCycle() : startAutoCycle();
+    });
+
+    // ── Status helpers ──────────────────────────────────────────────────
+    function setDot(sta, state) {
+      const dot = document.getElementById(`dot-${sta}`);
+      if (dot) dot.className = `mini-status-dot ${state}`;
+    }
+    function setPrimaryStatus(state, text) {
+      const pill = document.getElementById('primary-status');
+      const txt  = document.getElementById('primary-status-text');
+      if (pill) pill.className = `status-pill ${state}`;
+      if (txt)  txt.textContent = text;
+    }
+
+    // ── Amplitude analysis ──────────────────────────────────────────────
+    function peakAmplitude(loaded) {
+      let peak = 0;
+      for (const sdd of loaded) {
+        if (!sdd.seismogram) continue;
+        // seisplotjs stores samples in segment(s); each segment has a .y typed array
+        const segments = sdd.seismogram.segments ?? [sdd.seismogram];
+        for (const seg of segments) {
+          const y = seg.y;
+          if (!y) continue;
+          for (let i = 0; i < y.length; i++) {
+            const v = Math.abs(y[i]);
+            if (v > peak) peak = v;
+          }
+        }
+      }
+      return peak;
+    }
+
+    function formatAmp(v) {
+      if (v === 0) return '—';
+      if (v > 1e6) return (v/1e6).toFixed(1)+'M';
+      if (v > 1e3) return (v/1e3).toFixed(1)+'k';
+      return Math.round(v).toString();
+    }
+
+    // ── Event log ───────────────────────────────────────────────────────
+    let eventCount = 0;
+    function logEvent(sta, name, amp, ratio) {
+      const log = document.getElementById('eventLog');
+      const noEvt = document.getElementById('noEventsMsg');
+      if (noEvt) noEvt.remove();
+
+      const now = new Date();
+      const p = v => String(v).padStart(2,'0');
+      const timeStr = `${p(now.getUTCHours())}:${p(now.getUTCMinutes())}:${p(now.getUTCSeconds())} UTC`;
+
+      const item = document.createElement('div');
+      item.className = 'event-item alert';
+      item.innerHTML = `
+        <span class="event-time">${timeStr}</span>
+        <span class="event-sta">${sta}</span> — ${name}<br>
+        <span class="event-amp">AMP: ${formatAmp(amp)} &nbsp;(${ratio}× baseline)</span>`;
+      log.insertBefore(item, log.firstChild);
+      eventCount++;
+      // Keep max 30 events
+      while (log.children.length > 30) log.removeChild(log.lastChild);
+    }
+
+    // ── Alert banner ────────────────────────────────────────────────────
+    let alertTimeout = null;
+    function triggerAlert(sta, name, amp, ratio) {
+      const banner = document.getElementById('alertBanner');
+      document.getElementById('alertText').textContent =
+        `⚠ Seismic spike detected — ${name} (${sta}) · ${ratio}× baseline · AMP ${formatAmp(amp)}`;
+      banner.classList.add('visible');
+      clearTimeout(alertTimeout);
+      alertTimeout = setTimeout(() => banner.classList.remove('visible'), 15000);
+    }
+
+    // ── Promote station to primary view ─────────────────────────────────
+    function promoteStation(s, loaded, cfg) {
+      promotedSta = s.sta;
+      document.getElementById('primary-name').textContent = `${s.name} — ${s.sta} ★`;
+      document.getElementById('primary-meta').textContent =
+        `NET: ${s.net} | STA: ${s.sta} | CHAN: ${s.chan} | ALERT PROMOTED`;
+      document.getElementById('primary-chan').textContent = s.chan;
+      document.getElementById('primary-chan').className =
+        'channel-tag ' + (s.chan === 'HHZ' ? 'hhz' : 'bhz');
+
+      const pg = document.getElementById('graph-primary');
+      pg.seismographConfig = cfg;
+      pg.seisData = loaded;
+      requestAnimationFrame(() => { try { pg.draw(); } catch(e) {} });
+      setPrimaryStatus('active', 'ALERT');
+
+      document.getElementById('primaryCard').classList.add('alert');
+    }
+
+    // Restore default primary (451A) after alert clears
+    function restorePrimary() {
+      if (!promotedSta) return;
+      promotedSta = null;
+      document.getElementById('primary-name').textContent = 'Vernon, Florida — Station 451A';
+      document.getElementById('primary-meta').textContent =
+        'NET: N4 | STA: 451A | CHAN: HHZ | 30.625°N, 85.850°W';
+      document.getElementById('primary-chan').textContent = 'HHZ';
+      document.getElementById('primary-chan').className = 'channel-tag hhz';
+      document.getElementById('primaryCard').classList.remove('alert');
+      // Reload 451A
+      const s451 = stations.find(s => s.isPrimary);
+      loadStation(s451, true);
+    }
+
+    // ── Load station data ────────────────────────────────────────────────
+    async function loadStation(s, forcePrimary = false) {
+      const isPrimary = s.isPrimary || forcePrimary;
+      const now = sp.luxon.DateTime.utc();
+      const tw  = sp.util.startDuration(now.minus({ minutes: 5 }), 300);
+
+      if (!isPrimary) setDot(s.sta, 'loading');
+      else setPrimaryStatus('loading', 'Fetching…');
+
+      try {
+        const sq = new sp.fdsnstation.StationQuery();
+        sq.networkCode(s.net).stationCode(s.sta).locationCode(s.loc).channelCode(s.chan).timeRange(tw);
+        const netList = await sq.queryResponses();
+        let sddList = [];
+        for (const c of sp.stationxml.allChannels(netList))
+          sddList.push(sp.seismogram.SeismogramDisplayData.fromChannelAndTimeWindow(c, tw));
+        if (!sddList.length) throw new Error('No channels');
+
+        const loaded = await new sp.fdsndataselect.DataSelectQuery().postQuerySeismograms(sddList);
+        if (!loaded?.length || !loaded[0].seismogram) throw new Error('No data');
+
+        loaded.forEach(sdd => {
+          sdd.seismogram = sp.filter.rMean(sdd.seismogram);
+          sdd.seismogram = sp.filter.removeTrend(sdd.seismogram);
+        });
+
+        const cfg = new sp.seismographconfig.SeismographConfig();
+        cfg.isRelativeTime = false;
+
+        // Amplitude analysis
+        const peak = peakAmplitude(loaded);
+        const wasSpike = amplitudes[s.sta]?._spiked ?? false;
+
+        // Record into history BEFORE spike check so the current reading
+        // doesn't inflate the baseline it's being compared against.
+        recordBaseline(s.sta, peak);
+        const spikeDetected = !isPrimary && isSpike(s.sta, peak);
+        amplitudes[s.sta] = { peak, _spiked: spikeDetected };
+
+        if (isPrimary) {
+          const pg = document.getElementById('graph-primary');
+          pg.seismographConfig = cfg;
+          pg.seisData = loaded;
+          requestAnimationFrame(() => { try { pg.draw(); } catch(e) {} });
+          setPrimaryStatus('active', 'Live');
+          const ampBadge = document.getElementById('primary-amp');
+          ampBadge.textContent = `AMP: ${formatAmp(peak)}`;
+          ampBadge.className = 'amplitude-badge';
+        } else {
+          // Cache for later re-renders
+          drawPending.set(s.sta, { loaded, cfg });
+
+          // Inject into existing grid card if visible
+          const disp = document.getElementById(`graph-${s.sta}`);
+          if (disp) {
+            disp.seismographConfig = cfg;
+            disp.seisData = loaded;
+            requestAnimationFrame(() => {
+              try { disp.draw(); } catch(e) {}
+              setTimeout(() => { try { disp.draw(); } catch(e) {} }, 400);
+            });
+            observer.observe(disp);
+          }
+          setDot(s.sta, 'active');
+
+          // Update card alert state
+          const card = document.getElementById('card-' + s.sta);
+          if (card) {
+            if (spikeDetected) card.classList.add('alert-card');
+            else card.classList.remove('alert-card');
+          }
+
+          // Only fire alert on the leading edge of a new spike
+          if (spikeDetected && !wasSpike) {
+            const baseline = medianBaseline(s.sta);
+            const ratio = baseline > 0 ? (peak / baseline).toFixed(1) : '?';
+            logEvent(s.sta, s.name, peak, ratio);
+            triggerAlert(s.sta, s.name, peak, ratio);
+            promoteStation(s, loaded, cfg);
+            // Auto-restore primary after 30s if spike hasn't continued
+            clearTimeout(window._restoreTimer);
+            window._restoreTimer = setTimeout(() => {
+              if (!amplitudes[s.sta]?._spiked) restorePrimary();
+            }, 30000);
+          }
+        }
+
+      } catch(e) {
+        console.warn(`[${s.sta}] Error:`, e);
+        if (!isPrimary) { setDot(s.sta, 'error'); showNoData(s.sta); }
+        else setPrimaryStatus('error', 'No data');
+      }
+    }
+
+    function showNoData(sta) {
+      const el = document.getElementById(`graph-${sta}`);
+      if (el && el.tagName === 'SP-ORGANIZED-DISPLAY') {
+        el.outerHTML = `<div class="no-data-msg" id="graph-${sta}">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Stream unavailable</span>
+        </div>`;
+      }
+    }
+
+    // ── IntersectionObserver ─────────────────────────────────────────────
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const sta = entry.target.id.replace('graph-', '');
+          const p = drawPending.get(sta);
+          if (p) requestAnimationFrame(() => { try { entry.target.draw(); } catch(e) {} });
+        }
+      });
+    }, { threshold: 0.1 });
+
+    // ── Full refresh ─────────────────────────────────────────────────────
+    async function refreshAll() {
+      const btn = document.getElementById('refreshBtn');
+      btn.classList.add('spinning');
+      document.getElementById('footer-updated').textContent = `Last updated: ${new Date().toUTCString()}`;
+
+      const primary = stations.find(s => s.isPrimary);
+      // Only reload primary if not currently showing a promoted alert
+      if (!promotedSta) loadStation(primary, true);
+
+      await Promise.all(globalStations.map(s => loadStation(s)));
+      btn.classList.remove('spinning');
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+
+    // ── Init ─────────────────────────────────────────────────────────────
+    renderPage();
+    // Load primary immediately
+    loadStation(stations.find(s => s.isPrimary), true);
+    // Load all global stations in background
+    globalStations.forEach(s => loadStation(s));
+    // Auto-refresh every 30s
+    setInterval(refreshAll, 30000);
+  </script>
+
+</body>
+</html>
