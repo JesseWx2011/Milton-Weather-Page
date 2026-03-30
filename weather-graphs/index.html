@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Graphs</title>
+
+    <meta name="author" content="JesseLikesWeather" />
+    <meta name="date" content="2026-03-29" />
+    <meta
+      name="copyright"
+      content="©2022-2026 JesseLikesWeather, All Rights Reserved."
+    />
+
+    <meta name="description" content="Weather Graphs for Milton, Florida." />
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <!-- JS -->
+    <script crossorigin="anonymous" src="./libraries/highcharts.js"></script>
+    <script crossorigin="anonymous" src="./libraries/exporting.js"></script>
+    <script crossorigin="anonymous" src="./libraries/export-data.js"></script>
+    <script crossorigin="anonymous" src="./libraries/accessibility.js"></script>
+    <script crossorigin="anonymous" src="./libraries/adaptive.js"></script>
+
+
+  </head>
+  <body>
+
+    <div class="header-row">
+      <h1>Weather Graphs</h1>
+      <div class="settings-icon-container">
+        <i class="fa-solid fa-gear" onclick="showModal()"></i>
+      </div>
+    </div>
+
+    <div class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Settings</h2>
+        <br>
+        <h3>Units</h3>
+        
+        <br/>
+
+        <div style="display: flex; gap: 20px; align-items: center; flex-direction: column;">
+        <span class="label">Temperature Unit:</span>
+
+        <select id="unit-dropdown">
+          <option value="celsius">Celsius (°C)</option>
+          <option value="fahrenheit">Fahrenheit (°F)</option>
+          </select>
+
+        </br>
+
+        <span class="label">Precipitation Unit:</span>
+
+         <select id="unit-dropdown">
+          <option value="in">Inches</option>
+          <option value="mm">Millimeters</option>
+          </select>
+
+          <br/>
+
+          <span class="label">Wind Speed Unit:</span>
+          <select id="unit-dropdown">
+          <option value="mph">mph</option>
+          <option value="kmh">km/h</option>
+          <option value="ms">m/s</option>
+          <option value="kt">kts</option>
+          </select>
+
+          <div class="line-seperator"></div>
+</div>
+        </br>
+                <h3>Language Settings</h3>
+
+                <br>
+
+                <div id="google_translate_element"></div>
+
+
+        </div>
+      </div>
+    </div>
+
+    <div class="location-selector">
+      <select id="location-dropdown">
+        <option id="locOpt" value="0">Milton, FL</option>
+        <option id="locOpt" value="1">Pensacola, FL</option>
+        <option id="locOpt" value="2">Navarre, FL</option>
+        <option id="locOpt" value="3">Gulf Breeze, FL</option>
+        <option id="locOpt" value="4">Garcon Point, FL</option>
+        <option id="locOpt" value="5">Avalon, FL</option>
+        <option id="locOpt" value="6">Warrington, FL</option>
+        <option id="locOpt" value="7">Roeville, FL</option>
+        <option id="locOpt" value="8">Mary Esther, FL</option>
+        <option id="locOpt" value="9">Holt, FL</option>
+        <option id="locOpt" value="10">Molino, FL</option>
+        <option id="locOpt" value="11">Jay, FL</option>
+        <option id="locOpt" value="12">Century, FL</option>
+        <option id="locOpt" value="13">Munson, FL</option>
+        <option id="locOpt" value="14">Escambia Farms, FL</option>
+        <option id="locOpt" value="15">Panama City, FL</option>
+        <option id="locOpt" value="16">Gulf Shores, AL</option>
+      </select>
+    </div>
+
+    <div class="sort-options">
+      <span id="sortLabel">Time Range:</span>
+        <button value="24" class="sort-option">24h</button>
+        <button value="72" class="sort-option">3 days</button>
+          <button value="168" class="sort-option active">7 days</button>
+    </div>
+    <div style="display: flex; gap: 20px; padding: 20px; justify-content: center;">
+      <div class="parameters-row">
+        <div class="container-icon">
+          <button class="parameter-icon active" data-param="temperature_2m" title="Temperature">
+            <i class="fa-solid fa-temperature-empty"></i>
+          </button>
+          <span class="label">Temperature</span>
+        </div>
+        
+        <div class="container-icon">
+          <button class="parameter-icon" data-param="dew_point_2m" title="Dew Point">
+            <i class="fa-solid fa-droplet"></i>
+          </button>
+          <span class="label">Dew Point</span>
+        </div>
+
+        <div class="container-icon">
+          <button class="parameter-icon" data-param="rain" title="Rain">
+            <i class="fa-solid fa-cloud-rain"></i>
+          </button>
+          <span class="label">Rainfall</span>
+        </div>
+
+        <div class="container-icon">
+          <button class="parameter-icon" data-param="weather_code" title="Weather Condition">
+            <i class="fa-solid fa-cloud-sun"></i>
+          </button>
+          <span class="label">Conditions</span>
+        </div>
+
+        <div class="container-icon">
+          <button class="parameter-icon" data-param="wind_speed_10m" title="Wind Speed">
+            <i class="fa-solid fa-wind"></i>
+          </button>
+          <span class="label">Wind Speed</span>
+        </div>
+
+        <div class="container-icon">
+          <button class="parameter-icon" data-param="visibility" title="Visibility">
+            <i class="fa-solid fa-smog"></i>
+          </button>
+          <span class="label">Visibility</span>
+        </div>
+
+        <div class="container-icon">
+          <button class="parameter-icon" data-param="surface_pressure" title="Surface Pressure">
+            <i class="fa-solid fa-gauge-high"></i>
+          </button>
+          <span class="label">Pressure</span>
+        </div>
+        
+        <div class="container-icon">
+          <button class="parameter-icon" data-param="uv_index" title="UV Index">
+            <i class="fa-solid fa-sun"></i>
+          </button>
+          <span class="label">UV</span>
+        </div>
+      </div>
+
+      <div class="highcharts-figure">
+        <div id="container"></div>      
+      </div>
+    </div>
+
+    <span id="date">Generated: --</span>
+    
+
+    <!-- Footer -->
+    <div style="gap: 25px;display: flex;position: relative;justify-content: center;padding: 20px;flex-direction: column;/* align-content: center; */align-items: center;">
+
+      <span id="copyright">&copy; 2022-2026 JesseLikesWeather. Last modified March 30th, 2026.</span>
+     <a target="_blank" href="https://usaweatherfinder.com"> <img style="width: 100px;" src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder Link"> 
+    </div> </a>
+    <!-- JS -->
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
