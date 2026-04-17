@@ -1,0 +1,49 @@
+{
+    "models": {
+    "GFS": {
+        "params": {
+            "surface": {
+            "urlParamNames": ["sfc_temp", "sfc_dewp", "sfc_thetae", "sfc_wetblb", "rhum", "sfc_vis", "sfc_avort"],
+            "urlParamNamesLong": ["Temperature (°F)", "Dew Point", "Theta-E", "Wet Bulb Temperature (°F)", "Relative Humdiity", "Surface Visibility (mi.)", "Surface Vorticity"]
+            },
+            "convective": {
+            "urlParamNames": ["3kmhel", "con_scp", "con_sbcape", "con_mlcape", "con_mucape", "con_3kmhel", "con_3kmehi"],
+            "urlParamNamesLong": ["3 KM Helicity", "Supercell Composite", "Surface Based CAPE", "Mean Layer CAPE", "Most Unstable CAPE", "0-3km Storm Relative Helicity", "3km Energy Helicity Index"]
+            },
+            "precip": {
+            "urlParamNames": ["prec_radar", "prec_cprec", "prec_precacc", "prec_precacc6", "prec_precacc12", "prec_pwat"],
+            "urlParamNamesLong": ["Reflectivity", "Convective Precipitaion", "Accumulated Rainfall", "6h Accumulated Rainfall", "12h Accumulated Rainfall", "Precipitable Water"]
+            }
+        },
+        "sectors": ["SE", "MA", "NE", "MW", "NGP", "NW", "SW", "GL", "CGP", "SGP"],
+        "sectorsLong": ["Southeast", "Mid-Atlantic", "Northeast", "Midwest", "Northern Great Plains", "Northwest", "Southwest", "Great Lakes", "Central Great Plains", "Southern Great Plains"],
+        "maxHrs": "384",
+        "hourInterval": 3,
+        "updateFrequency": 6,
+        "BeginZ": "00",
+        "commentBeginZ": "This is the beginning time for when the model run starts at UTC (Z), usually midnight (00Z)"
+    },
+    "HRRR": {
+                "params": {
+            "convective": {
+            "urlParamNames": ["3kmhel", "con_scp", "con_sbcape", "con_mlcape", "con_mucape", "con_3kmhel", "con_3kmehi"],
+            "urlParamNamesLong": ["3 KM Helicity", "Supercell Composite", "Surface Based CAPE", "Mean Layer CAPE", "Most Unstable CAPE", "0-3km Storm Relative Helicity", "3km Energy Helicity Index"]
+            },
+            "precip": {
+            "urlParamNames": ["prec_radar", "prec_cprec", "prec_precacc", "prec_precacc6", "prec_precacc12", "prec_pwat"],
+            "urlParamNamesLong": ["Reflectivity", "Convective Precipitaion", "Accumulated Rainfall", "6h Accumulated Rainfall", "12h Accumulated Rainfall", "Precipitable Water"]
+            }
+        },
+        "sectors": ["SE", "MA", "NE", "MW", "NGP", "NW", "SW", "GB", "GL", "CGP", "SGP"],
+        "sectorsLong": ["Southeast", "Mid-Atlantic", "Northeast", "Midwest", "Northern Great Plains", "Northwest", "Southwest", "Great Basin", "Great Lakes", "Central Great Plains", "Southern Great Plains"],
+        "maxHrs": "018",
+        "maxHrs6h": "48",
+        "maxHrs6hComment": "These are the hours the model can go out to at 00z, 06z, 12z, and 18z runs.",
+        "hourInterval": 1,
+        "updateFrequency": 1,
+        "BeginZ": "00",
+        "commentBeginZ": "This is the beginning time for when the model run starts at UTC (Z), usually midnight (00Z)"
+    }
+}
+ 
+}

@@ -2604,6 +2604,7 @@
         font-family: "Montserrat", sans-serif;
         color: #ffd93d;
         font-size: 1.2em;
+        position: absolute;
       }
 
       .loading i {
@@ -3010,7 +3011,387 @@
         text-shadow: 0 0 15px rgba(255, 217, 61, 0.8);
       }
 
+      /* ===== WEATHER MODELS PAGE ===== */
+      .models-controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(100, 200, 255, 0.2);
+      }
+
+      .models-display-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
+        padding: 1.5rem;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        align-items: center;
+        justify-content: center;
+      }
+
+      .slider-control-group {
+        width: 100%;
+        max-width: 600px;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .slider-header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .slider-header label {
+        font-size: 0.9em;
+        font-weight: 600;
+        color: #64c8ff;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .dataset-warning {
+        padding: 0.6rem 0.8rem;
+        background: rgba(255, 152, 0, 0.1);
+        border: 1px solid rgba(255, 152, 0, 0.4);
+        border-radius: 4px;
+        color: #ff9800;
+        font-size: 0.85em;
+        line-height: 1.4;
+      }
+
+      .hour-display {
+        font-size: 0.95em;
+        color: #64c8ff;
+        font-weight: 600;
+        padding: 0.8rem 1rem;
+        background: rgba(100, 200, 255, 0.05);
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        border-radius: 6px;
+        text-align: center;
+        letter-spacing: 0.5px;
+      }
+
+      .hour-slider {
+        width: 100%;
+        height: 8px;
+        border-radius: 4px;
+        background: linear-gradient(90deg, rgba(100, 200, 255, 0.2) 0%, rgba(100, 200, 255, 0.4) 100%);
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      .hour-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #64c8ff 0%, #42a5d8 100%);
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(100, 200, 255, 0.6);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .hour-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 20px rgba(100, 200, 255, 0.9);
+      }
+
+      .hour-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #64c8ff 0%, #42a5d8 100%);
+        cursor: pointer;
+        box-shadow: 0 0 10px rgba(100, 200, 255, 0.6);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .hour-slider::-moz-range-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 0 20px rgba(100, 200, 255, 0.9);
+      }
+
+      .slider-controls {
+        display: flex;
+        gap: 0.8rem;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .slider-btn {
+        padding: 0.6rem 1.2rem;
+        background: rgba(100, 200, 255, 0.15);
+        color: #64c8ff;
+        border: 1px solid rgba(100, 200, 255, 0.4);
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.9em;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .slider-btn:hover {
+        background: rgba(100, 200, 255, 0.25);
+        border-color: rgba(100, 200, 255, 0.6);
+        box-shadow: 0 0 15px rgba(100, 200, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .slider-btn:active {
+        transform: translateY(0);
+      }
+
+      .playback-status {
+        font-size: 0.85em;
+        color: #a0a0a0;
+        min-width: 80px;
+        text-align: center;
+      }
+
+      .speed-control {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(100, 200, 255, 0.2);
+      }
+
+      .speed-control label {
+        font-size: 0.9em;
+        font-weight: 600;
+        color: #64c8ff;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .speed-control-group {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+      }
+
+      .speed-slider {
+        flex: 1;
+        height: 6px;
+        border-radius: 3px;
+        background: linear-gradient(90deg, rgba(100, 200, 255, 0.2) 0%, rgba(100, 200, 255, 0.4) 100%);
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      .speed-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #64c8ff 0%, #42a5d8 100%);
+        cursor: pointer;
+        box-shadow: 0 0 8px rgba(100, 200, 255, 0.5);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .speed-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.15);
+        box-shadow: 0 0 15px rgba(100, 200, 255, 0.8);
+      }
+
+      .speed-slider::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #64c8ff 0%, #42a5d8 100%);
+        cursor: pointer;
+        box-shadow: 0 0 8px rgba(100, 200, 255, 0.5);
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.3s ease;
+      }
+
+      .speed-slider::-moz-range-thumb:hover {
+        transform: scale(1.15);
+        box-shadow: 0 0 15px rgba(100, 200, 255, 0.8);
+      }
+
+      .speed-display {
+        font-size: 0.9em;
+        color: #64c8ff;
+        font-weight: 600;
+        min-width: 50px;
+        text-align: center;
+        padding: 0.4rem 0.8rem;
+        background: rgba(100, 200, 255, 0.1);
+        border-radius: 4px;
+        border: 1px solid rgba(100, 200, 255, 0.2);
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      .control-group label {
+        font-size: 0.9em;
+        font-weight: 600;
+        color: #64c8ff;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+
+      .control-group select,
+      .hour-slider {
+        padding: 0.6rem 0.8rem;
+        background: rgba(10, 10, 10, 0.8);
+        color: #ffffff;
+        border: 1px solid rgba(100, 200, 255, 0.3);
+        border-radius: 4px;
+        font-size: 0.95em;
+        transition: all 0.3s ease;
+      }
+
+      .control-group select:hover,
+      .hour-slider:hover {
+        border-color: rgba(100, 200, 255, 0.6);
+        background: rgba(20, 20, 30, 0.9);
+      }
+
+      .control-group select:focus,
+      .hour-slider:focus {
+        outline: none;
+        border-color: #64c8ff;
+        background: rgba(20, 20, 30, 0.95);
+        box-shadow: 0 0 10px rgba(100, 200, 255, 0.5);
+      }
+
+      .control-buttons {
+        display: flex;
+        gap: 0.8rem;
+        align-items: flex-end;
+      }
+
+      .models-display {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 8px;
+        border: 1px solid rgba(100, 200, 255, 0.2);
+        min-height: 600px;
+        flex-grow: 1;
+      }
+
+      .image-container {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+
+      #modelImage {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        animation: fadeIn 0.5s ease-in;
+      }
+
+      .image-info {
+        padding: 1rem;
+        background: rgba(100, 200, 255, 0.1);
+        border: 1px solid rgba(100, 200, 255, 0.3);
+        border-radius: 4px;
+        color: #a0a0a0;
+        font-size: 0.95em;
+        text-align: center;
+      }
+
+      .models-attribution {
+        padding: 0.8rem;
+        background: rgba(255, 217, 61, 0.1);
+        border: 1px solid rgba(255, 217, 61, 0.3);
+        border-radius: 4px;
+        font-size: 0.9em;
+        color: #ffd93d;
+        margin-bottom: 1rem;
+      }
+
+      .models-attribution a {
+        color: #ffd93d;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .models-attribution a:hover {
+        text-shadow: 0 0 10px rgba(255, 217, 61, 0.6);
+      }
+
+      .sounding-placeholder {
+        padding: 1rem;
+        background: rgba(100, 200, 255, 0.1);
+        border: 1px dashed rgba(100, 200, 255, 0.4);
+        border-radius: 4px;
+        color: #64c8ff;
+        font-size: 0.95em;
+      }
+
+      .sounding-placeholder i {
+        margin-right: 0.5rem;
+      }
+
+      #hourSlider {
+        width: 100%;
+      }
+
       @media (max-width: 768px) {
+        .models-controls {
+          grid-template-columns: 1fr 1fr;
+        }
+
+        .models-display-controls {
+          grid-template-columns: 1fr;
+        }
+
+        .control-buttons {
+          flex-wrap: wrap;
+        }
+
+        .models-display {
+          min-height: 400px;
+        }
+
+        .speed-control {
+          margin-top: 0.5rem;
+        }
+      }
+
+      @media (max-width: 768px) {
+
         .header h1 {
           font-size: 1.8em;
         }
@@ -3230,6 +3611,23 @@
               "
               ><i class="fas fa-calendar" style="color: #64c8ff"></i> Last Day
               Since Warning</a
+            >
+          </div>
+        </div>
+        <div class="dropdown" id="dropdown5">
+          <button class="dropdown-btn" onclick="toggleDropdown('dropdown5')">
+            <span><i class="fas fa-cloud"></i> Models</span>
+            <i class="fas fa-caret-down"></i>
+          </button>
+          <div class="dropdown-content">
+            <a
+              href="#"
+              onclick="
+                showPage('models');
+                closeAllDropdowns();
+                return false;
+              "
+              >Forecast Models</a
             >
           </div>
         </div>
@@ -5615,6 +6013,106 @@
               when conditions are perfectly primed.
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Weather Models Page -->
+      <div id="models" class="page">
+        <h2 class="section-title">
+          <i class="fas fa-cloud"></i>
+          Weather Models
+        </h2>
+
+        <!-- Model Controls -->
+        <div class="models-controls">
+          <div class="control-group">
+            <label for="modelSelect"><i class="fas fa-circle"></i> Model</label>
+            <select id="modelSelect" onchange="changeModel()">
+              <option value="">-- Select Model --</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="parameterSelect"><i class="fas fa-sliders-h"></i> Parameter</label>
+            <select id="parameterSelect" onchange="scanAvailableHours(); updateImage();">
+              <option value="">-- Select Parameter --</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="sectorSelect"><i class="fas fa-map-location-dot"></i> Sector</label>
+            <select id="sectorSelect" onchange="scanAvailableHours(); updateImage();">
+              <option value="">-- Select Sector --</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="modelRunSelect"><i class="fas fa-clock"></i> Model Run</label>
+            <select id="modelRunSelect" onchange="changeModelRun()">
+              <option value="">-- Select Run --</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Image Controls -->
+        <div class="models-display-controls">
+          <div class="slider-control-group">
+            <div class="slider-header">
+              <label for="hourSlider"><i class="fas fa-hourglass"></i> Forecast Time</label>
+              <div id="datasetWarning" class="dataset-warning" style="display: none;">
+                <i class="fas fa-exclamation-triangle"></i> This is an incomplete dataset. If this is the latest model run, images are likely to still be generated.
+              </div>
+            </div>
+            <div id="hourDisplay" class="hour-display">Select model run to display time</div>
+            <input type="range" id="hourSlider" min="0" max="0" value="0" oninput="updateImage()" onchange="updateImage()" class="hour-slider" />
+            <div class="slider-controls">
+              <button class="slider-btn" id="playbackBtn" onclick="togglePlayback()" title="Play Animation">
+                <i class="fas fa-play"></i> Play
+              </button>
+              <span class="playback-status" id="playbackStatus"></span>
+            </div>
+            <div class="speed-control">
+              <label for="speedSlider"><i class="fas fa-tachometer-alt"></i> Speed</label>
+              <div class="speed-control-group">
+                <input type="range" id="speedSlider" min="0.25" max="3" step="0.25" value="1" onchange="changePlaybackSpeed(this.value)" class="speed-slider" />
+                <span class="speed-display" id="speedDisplay">100%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-buttons">
+            <button class="control-btn" id="loadBtn" onclick="updateImage()" title="Load Current Image">
+              <i class="fas fa-sync-alt"></i> Load Image
+            </button>
+            <button class="control-btn" id="preloadBtn" onclick="togglePreload()" title="Pre-load All Forecast Hours">
+              <i class="fas fa-download"></i> Preload
+            </button>
+            <button class="control-btn" id="exportBtn" onclick="exportImage()" title="Export Image">
+              <i class="fas fa-cloud-download-alt"></i> Export
+            </button>
+          </div>
+        </div>
+
+        <!-- Image Display Area -->
+        <div class="models-display">
+          <div class="image-container">
+            <img id="modelImage" src="" alt="Model Image" />
+            <div class="loading" id="imageLoading"><i class="fas fa-circle-notch"></i></div>
+          </div>
+          <div class="image-info" id="imageInfo">
+            <p>Select model, parameter, sector, and run to display forecast data</p>
+          </div>
+        </div>
+
+        <!-- Attribution -->
+        <div class="models-attribution">
+          <i class="fas fa-info-circle"></i> Images provided by 
+          <a href="https://weather.cod.edu/forecast/" target="_blank">College of DuPage</a>
+        </div>
+
+        <!-- Sounding Info (Placeholder) -->
+        <div class="sounding-placeholder">
+          <p><i class="fas fa-map"></i> <strong>Sounding at Point:</strong> Click on the map to retrieve a sounding (Coming Soon)</p>
         </div>
       </div>
 
@@ -10816,5 +11314,7 @@
         if (btn) btn.style.display = "";
       });
     </script>
+    
+    <script type="module" src="./js/models.js"></script>
   </body>
 </html>
