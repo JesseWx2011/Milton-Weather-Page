@@ -661,7 +661,7 @@ function loadSeason(year) {
         if (year === "2025") {
             document.getElementById('stat-most-active').textContent = '2 (Humberto & Imelda)';
             document.getElementById('stat-lowest-pressure').textContent = 'Melissa (892 mb)';
-            document.getElementById('stat-highest-wind').textContent = 'Melissa (190 mph)';
+            document.getElementById('stat-highest-wind').textContent = 'Melissa (185 mph)';
             document.getElementById('stat-landfalling').textContent = 'Barry, Chantal, Melissa';
             document.getElementById('stat-us-landfalling').textContent = 'Chantal';
             document.getElementById('stat-costliest').textContent = 'Melissa (>$10B USD)';
@@ -1143,7 +1143,7 @@ function getStormImageUrl(stormNumber, currentPosition) {
       if (checkHour < 0) { checkHour += 24; checkDay -= 1; }
       const dayStr = String(checkDay).padStart(2, '0');
       const hourStr = String(checkHour).padStart(2, '0');
-      possibleTimes.push(`https://corsproxy.io/?url=${encodeURIComponent(`https://www.metoc.navy.mil/jtwc/products/${paddedNumber}${centerLetter}_${dayStr}${hourStr}00sair.jpg`)}`);
+      possibleTimes.push(`https://www.metoc.navy.mil/jtwc/products/${paddedNumber}${centerLetter}_${dayStr}${hourStr}00sair.jpg`);
    }
    return possibleTimes;
 }
@@ -1156,8 +1156,8 @@ async function tryLoadImage(urls, stormName) {
 }
 
 async function displayStorms(features) {
-   const container = document.body;
-   document.querySelectorAll('.tropical-data, .line-seperator:not(:first-of-type)').forEach(el => el.remove());
+   const container = document.querySelector('.tropical-container');
+   document.querySelectorAll('.tropical-data').forEach(el => el.remove());
    
    const activeStorms = features.filter(f => new Date(f.properties.issueDateTime) >= new Date(Date.now() - 648e5));
    
@@ -1172,10 +1172,6 @@ async function displayStorms(features) {
    for (const feature of activeStorms) {
       const props = feature.properties;
       const pos = props.currentPosition;
-      
-      const separator = document.createElement('div');
-      separator.className = 'line-seperator';
-      container.appendChild(separator);
       
       const stormDiv = document.createElement('div');
       stormDiv.className = 'tropical-data';
@@ -1212,6 +1208,14 @@ async function displayStorms(features) {
       stormDiv.appendChild(windSpeed);
       stormDiv.appendChild(document.createElement('br'));
       
+      if (pos.windGust) {
+         const windGust = document.createElement('div');
+         windGust.className = 'tropical-wx-param';
+         windGust.textContent = `Wind Gust: ${convertSpeed(pos.windGust)} ${getSpeedUnit()}`;
+         stormDiv.appendChild(windGust);
+         stormDiv.appendChild(document.createElement('br'));
+      }
+      
       const pressure = document.createElement('div');
       pressure.className = 'tropical-wx-param';
       pressure.textContent = pos.minimumPressure ? `Pressure: ${convertPressure(pos.minimumPressure)} ${getPressureUnit()}` : 'Pressure: N/A';
@@ -1222,6 +1226,13 @@ async function displayStorms(features) {
          const movement = document.createElement('div');
          movement.className = 'tropical-wx-param';
          movement.textContent = `Movement: ${getMovementDirection(pos.movementDirection)} at ${convertSpeed(pos.movementSpeed)} ${getSpeedUnit()}`;
+         stormDiv.appendChild(movement);
+         stormDiv.appendChild(document.createElement('br'));
+      } else if (pos.heading) {
+         const movement = document.createElement('div');
+         movement.className = 'tropical-wx-param';
+         const direction = pos.heading.stormDirectionCardinal || getMovementDirection(pos.heading.stormDirection);
+         movement.textContent = `Movement: ${direction} at ${convertSpeed(pos.heading.stormSpeed)} ${getSpeedUnit()}`;
          stormDiv.appendChild(movement);
          stormDiv.appendChild(document.createElement('br'));
       }
@@ -1242,6 +1253,5 @@ async function displayStorms(features) {
       container.appendChild(stormDiv);
    }
 }
-
 
 setInterval(() => { Dates(); fetchTropicalData(); }, 300000);

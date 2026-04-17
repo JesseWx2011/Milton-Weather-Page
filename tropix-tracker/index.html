@@ -28,57 +28,43 @@
         </nav>
     </div>
     
-    <div class="Page-Welcome" id="page-welcome">Welcome! Today is January 4th, 2026.</div>
-    <div class="Storms-Active" id="storms-active">There are no Tropical Cyclones Active.</div>
-    
-    <!-- Unit Toggle Button -->
-    <div class="unit-toggle-container">
-        <button class="unit-toggle" id="unit-toggle" onclick="toggleUnits()">Metric</button>
-    </div>
-    
-    <div class="Latest-Info-Subtitle">Latest Tropical Information:</div>
+    <main class="main-container">
+        <div class="Page-Welcome" id="page-welcome">Welcome! Today is January 4th, 2026.</div>
+        <div class="Storms-Active" id="storms-active">There are no Tropical Cyclones Active.</div>
+        
+        <!-- Unit Toggle Button -->
+        <div class="unit-toggle-container">
+            <button class="unit-toggle" id="unit-toggle" onclick="toggleUnits()">Metric</button>
+        </div>
+        
+        <div class="Latest-Info-Subtitle">Latest Tropical Information:</div>
 
-    <div class="line-seperator"></div>
+        <div class="line-seperator"></div>
 
-    <!-- This area is going to be populated for the Tropical Cyclones, but here is what it is supposed to look like:
-    
-    <div class="tropical-data">
-        <div class="tropical-name" id="storm-name">Tropical Cylone Grant:</div>
-        <div class="tropical-status" id="storm-status">Tropical Depression</div>
-
-        <div class="tropical-wx-param" id="wind-speed">Sustained Winds: 35 mph</div>
-        <br>
-        <div class="tropical-wx-param" id="pressure">Pressure: 1005mb</div>
-        <br>
-        <div class="tropical-wx-param" id="movement">Movement: NW at 12 mph</div>
-        <br>
-        <div class="tropical-wx-param" id="coordinates">Location: 16.3°S, 58.4°E</div>
-        <br>
-        <br>
-
-        <div class="tropical-wx-summary" id="storm-summary">This information was last updated at 18:00 UTC, which was 2 hours and 22 minutes ago.
-<br><br>
-
-         The Next Update should be at Midnight UTC, which will be in 3 hours and 38 minutes.</div>
-
-         <img class="tropical-image" id="storm-img" src="https://www.metoc.navy.mil/jtwc/products/09S_041200sair.jpg">
-    </div>
-    !-->
+        <!-- Tropical Data Container -->
+        <div class="tropical-container" id="tropical-data-container">
+            <!-- This area is going to be populated for the Tropical Cyclones -->
+        </div>
+    </main>
 
     <script src="./script.js"></script>
 
 </body>
 
-<div class="site-footer" style="margin-top:28px;padding:18px 12px;background:#8d8d8d;border-top:1px solid #e0e0e0;color:#333;font-size:13px;text-align:center;">
-    ©2023-2026 JesseLikesWeather, All Rights Reserved.
-    <br>
-    <span style="display:block;margin-top:8px;color:#b33;font-weight:600;">This is a hobbyist website, and while important information can be referenced here, <strong>this website should not be used for live-saving decisions.</strong></span>
-    <div class="badges" style="margin-top:8px;display:inline-flex;gap:8px;align-items:center;">
-        <a href="https://usaweatherfinder.com" target="_blank" rel="noopener noreferrer"><img class="badge" src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder"></a>
-        <a href="https://usaweatherfinder.com" target="_blank" rel="noopener noreferrer">USA Weather Finder</a>
-        <a href="https://usaweatherfinder.com" style="margin-left:12px;" target="_blank" rel="noopener noreferrer"><img class="badge" src="https://s05.flagcounter.com/count2_US/lQOw/bg_FFFFFF/txt_000000/border_CCCCCC/columns_5/maxflags_15/viewers_Visitors+of+this+Website/labels_1/pageviews_1/flags_0/percent_0/" alt="Visitor Counter"></a>
+<footer class="footer-section">
+    <div class="site-footer">
+        <a href="../" class="back-link">Back to Weather Dashboard</a>
+        <br><br>
+        ©2023-2026 JesseLikesWeather, All Rights Reserved.
+        <br>
+        <span style="display:block;margin-top:8px;color:#b33;font-weight:600;">This is a hobbyist website, and while important information can be referenced here, <strong>this website should not be used for live-saving decisions.</strong></span>
+        <div class="badges" style="margin-top:8px;display:inline-flex;gap:8px;align-items:center;">
+            <a href="https://usaweatherfinder.com" target="_blank" rel="noopener noreferrer"><img class="badge" src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder"></a>
+            <a href="https://usaweatherfinder.com" target="_blank" rel="noopener noreferrer">USA Weather Finder</a>
+            <a href="https://usaweatherfinder.com" style="margin-left:12px;" target="_blank" rel="noopener noreferrer"><img class="badge" src="https://s05.flagcounter.com/count2_US/lQOw/bg_FFFFFF/txt_000000/border_CCCCCC/columns_5/maxflags_15/viewers_Visitors+of+this+Website/labels_1/pageviews_1/flags_0/percent_0/" alt="Visitor Counter"></a>
+        </div>
     </div>
-</div>
+</footer>
 
 </body>
 

@@ -8,28 +8,140 @@
     padding: 0;
 }
 
+html {
+    height: 100%;
+    display: grid;
+    grid-template-rows: 1fr auto;
+}
+
 body {
-    background: linear-gradient(135deg, #4a4a4a 0%, #646464 50%, #4a4a4a 100%);
+    background-color: #646464;
     min-height: 100vh;
     padding-bottom: 50px;
     font-family: 'DM Sans', sans-serif;
+    display: flex;
+    flex-direction: column;
+    grid-row: 1;
+}
+
+.site-footer {
+    grid-row: 2;
+    margin: 0;
+    padding: 18px 12px;
+    background: #8d8d8d;
+    border-top: 1px solid #e0e0e0;
+    color: #333;
+    font-size: 13px;
+    text-align: center;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #2027B2 0%, #656CE5 100%);
+    color: #FFFFFF;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.back-link:hover {
+    background: linear-gradient(135deg, #1a1f99 0%, #2027B2 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
+}
+
+.back-link::before {
+    content: "←";
+    font-size: 1.125rem;
+}
+
+
+.footer-section {
+    grid-row: 2;
+    width: 100%;
+}
+
+.main-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding-bottom: 20px;
+}
+
+.tropical-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 .banner {
     display: flex;
+    flex-direction: column;
     z-index: 5;
     position: relative;
-    width: min(1500px, 95vw);
-    height: 190px;
-    margin: 0 auto;
+    width: 100%;
+    min-height: auto;
+    margin: 0;
     margin-top: -7.5px;
     background: linear-gradient(135deg, #1a1f99 0%, #2027B2 30%, #656CE5 98%);
     background-size: 200% 200%;
     box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.7),
                 inset 0px -2px 10px rgba(255, 255, 255, 0.1);
     border-radius: 0px 0px 13px 13px;
-    overflow: hidden;
+    overflow: visible;
     transition: background-position 0.8s ease, box-shadow 0.3s ease;
+    padding: 15px;
+}
+
+@media (min-width: 1024px) {
+    .banner {
+        width: min(1500px, 95vw);
+        margin: 0 auto;
+        margin-top: -7.5px;
+        border-radius: 0px 0px 13px 13px;
+    }
+}
+
+@media (min-width: 800px) {
+    .banner {
+        position: relative;
+    }
+    
+    .page-title {
+        width: 100%;
+        margin-bottom: 15px;
+    }
+    
+    .utc-tz {
+        position: absolute;
+        right: 15px !important;
+        width: auto;
+        margin-bottom: 0;
+        justify-content: flex-end !important;
+    }
+    
+    .local-tz {
+        position: absolute;
+        right: 15px !important; 
+        width: auto !important;
+        justify-content: flex-end !important;
+    }
+    
+    .navigation {
+        width: 100%;
+        gap: 30px;
+        margin-left: 0;
+        margin-top: 5px;
+    }
 }
 
 .banner:hover {
@@ -53,31 +165,35 @@ body {
 }
 
 .page-title {
-    position: absolute;
-    width: 631px;
-    height: 72px;
-    left: 46px;
-    top: 11px;
+    position: relative;
+    width: 100%;
+    height: auto;
+    left: 0;
+    top: 0;
     font-family: 'DM Sans';
     font-style: normal;
     font-weight: 900;
-    font-size: 60px;
-    line-height: 83px;
+    font-size: clamp(32px, 8vw, 60px);
+    line-height: 1.2;
     display: flex;
     align-items: center;
     color: #FFFFFF;
     text-shadow: 6px 6px 4px rgba(0, 0, 0, 0.73),
                  0px 0px 20px rgba(101, 108, 229, 0.5);
     letter-spacing: -1px;
+    margin-bottom: 10px;
+    word-wrap: break-word;
 }
 
 .navigation {
-    margin-left: 10%;
+    margin-left: 0;
     display: flex;
     flex-direction: row;
-    align-items: center;    
-    gap: 124px;             
-    margin-top: 124px;  
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 .navigation div {
@@ -85,13 +201,13 @@ body {
 }
 
 .btn-nav-header {
-    height: 47px;
-    padding: 8px 16px;
+    height: auto;
+    padding: 8px 12px;
     font-family: 'DM Sans';
     font-style: italic;
     font-weight: 700;
-    font-size: 36px;
-    line-height: 47px;
+    font-size: clamp(14px, 4vw, 32px);
+    line-height: 1.3;
     display: flex;
     align-items: center;
     text-align: center;
@@ -102,6 +218,7 @@ body {
     transition: all 0.3s ease;
     border-radius: 8px;
     position: relative;
+    white-space: normal;
 }
 
 .btn-nav-header::after {
@@ -151,72 +268,75 @@ body {
 
 
 .utc-tz {
-    position: absolute;
-    width: 413px;
-    height: 46px;
-    right: 1.3%;
-    top: 14.4%;
+    position: relative;
+    width: 100%;
+    height: auto;
+    right: auto;
+    top: auto;
     font-family: 'DM Sans';
     font-style: italic;
     font-weight: 700;
-    font-size: 36px;
-    line-height: 47px;
+    font-size: clamp(16px, 5vw, 28px);
+    line-height: 1.3;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    text-align: right;
+    justify-content: flex-start;
+    text-align: left;
     color: #FFFFFF;
     text-shadow: -6px 3px 2.4px rgba(0, 0, 0, 0.84),
-                 0px 0px 10px rgba(101, 108, 229, 0.4);
+                 0px 0px 20px rgba(101, 108, 229, 0.3);
+    margin-bottom: 5px;
 }
 
 .local-tz {
-    position: absolute;
-    width: 432px;
-    height: 46px;
-    right: 0px;
-    top: 40%;
+    position: relative;
+    width: 100%;
+    height: auto;
+    right: auto;
+    top: auto;
     font-family: 'DM Sans';
     font-style: italic;
     font-weight: 700;
-    font-size: 36px;
-    line-height: 47px;
+    font-size: clamp(16px, 5vw, 28px);
+    line-height: 1.3;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    text-align: right;
+    justify-content: flex-start;
+    text-align: left;
     color: #FFFFFF;
     text-shadow: -6px 3px 2.4px rgba(0, 0, 0, 0.84),
-                 0px 0px 10px rgba(101, 108, 229, 0.4);
+                 0px 0px 20px rgba(101, 108, 229, 0.3);
 }
 
 .Page-Welcome {
     position: relative;
-    width: 1250px;
+    width: 90vw;
     height: fit-content;
-    left: 46px;
-    top: 34px;
+    left: 5vw;
+    top: 20px;
     font-family: 'DM Sans';
     font-weight: 900;
-    font-size: 64px;
+    font-size: clamp(32px, 8vw, 64px);
     display: flex;
     align-items: center;
     color: #FFFFFF;
     text-shadow: 2px 6px 4px rgba(0, 0, 0, 0.78),
                  0px 0px 30px rgba(255, 255, 255, 0.2);
+    line-height: 1.2;
 }
 
 .Storms-Active {
     position: relative;
     width: fit-content;
     height: fit-content;
-    left: 46px;
-    top: 45px;
+    left: 5vw;
+    top: 20px;
+    max-width: 90vw;
     font-family: 'DM Sans';
     font-style: normal;
     font-weight: 700;
-    font-size: 40px;
-    line-height: 52px;
+    font-size: clamp(18px, 5vw, 40px);
+    line-height: 1.4;
     display: flex;
     align-items: center;
     color: #FFFFFF;
@@ -261,7 +381,10 @@ body {
 .unit-toggle-container {
     display: flex;
     flex-direction: row-reverse;
-    margin-right: 70px;
+    margin-right: 5vw;
+    margin-left: 5vw;
+    justify-content: flex-end;
+    margin-top: 15px;
 }
 .Latest-Info-Subtitle {
     position: relative;
@@ -298,7 +421,6 @@ body {
 
 .tropical-data {
     position: relative;
-    margin-bottom: 40px;
     padding: 30px;
     background: rgba(50, 50, 50, 0.3);
     border-radius: 15px;
@@ -308,7 +430,8 @@ body {
     box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.5),
                 inset 0px 1px 3px rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(5px);
-    min-height: 850px;
+    height: fit-content;
+    padding-bottom: 50px;
 }
 
 .tropical-name {
@@ -522,8 +645,19 @@ body {
         gap: 20px;
         flex-direction: column;
         margin-top: 100px;
+        width: auto;
     }
 }
+
+@media (min-width: 800px) {
+    .navigation {
+        /* Ensure full width and proper spacing on desktop */
+        width: 100% !important;
+        gap: 30px;
+        justify-content: center;
+    }
+}
+
 .navigation {
     /* Overwriting previous generic flex to allow arrows */
     gap: 20px;
@@ -1149,5 +1283,91 @@ h2:hover {
     .satellite-control-actions {
         margin-left: 0;
         justify-content: flex-start;
+    }
+    
+    /* Mobile specific styles */
+    body {
+        padding-bottom: 50px;
+    }
+    
+    .banner {
+        border-radius: 0;
+    }
+    
+    .Page-Welcome {
+        left: 10px;
+        font-size: clamp(24px, 6vw, 48px);
+    }
+    
+    .Storms-Active {
+        left: 10px;
+        font-size: clamp(16px, 4vw, 32px);
+        padding: 8px 15px;
+    }
+    
+    .Latest-Info-Subtitle {
+        font-size: clamp(20px, 5vw, 32px);
+        padding: 10px;
+        margin-top: 20px;
+    }
+    
+    .tropical-data {
+        min-height: auto;
+        width: 95vw;
+        margin-left: auto;
+        margin-right: auto;
+        padding: 15px;
+    }
+    
+    .tropical-name {
+        font-size: clamp(24px, 6vw, 48px);
+        left: 0;
+        top: 0;
+    }
+    
+    .tropical-status {
+        left: 0;
+        top: auto;
+        margin: 10px auto;
+        width: 80%;
+    }
+    
+    .tropical-wx-param {
+        left: 0;
+        top: auto;
+        font-size: clamp(14px, 3.5vw, 32px);
+        width: min(calc(100vw - 40px), 100%);
+    }
+    
+    .tropical-wx-summary {
+        left: 0;
+        top: auto;
+        width: calc(100% - 40px);
+        font-size: clamp(12px, 3vw, 24px);
+        padding: 15px;
+    }
+    
+    .tropical-image {
+        position: relative;
+        width: 90%;
+        right: 0;
+        top: 0;
+        margin: 15px auto;
+        display: block;
+    }
+    
+    .unit-toggle {
+        font-size: clamp(14px, 4vw, 24px);
+        padding: 10px 18px;
+    }
+    
+    .line-seperator {
+        margin-left: 5vw;
+        width: 90vw;
+    }
+    
+    .nav-arrow {
+        font-size: 18px;
+        padding: 0 5px;
     }
 }
