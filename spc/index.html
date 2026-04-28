@@ -12,6 +12,7 @@
 
     <meta name="author" content="JesseLikesWeather" />
     <meta name="date" content="2026-03-17" />
+    <link rel="icon" type="image/png" href="favicon.png" />
     <style>
       * {
         margin: 0;
@@ -2161,6 +2162,368 @@
         display: block;
       }
 
+      /* ===== DAILY SUMMARY STYLES ===== */
+      .daily-summary {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border: 2px solid rgba(255, 87, 51, 0.3);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        animation: fadeInUp 0.6s ease;
+      }
+
+      .summary-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        font-size: 1.1em;
+        color: #e0e0e0;
+      }
+
+      .summary-content i {
+        font-size: 1.5em;
+        color: #ffd93d;
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      /* ===== ACTIVITY ROOM STYLES ===== */
+      .activity-section {
+        background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 2px solid rgba(255, 87, 51, 0.3);
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        animation: fadeInUp 0.6s ease;
+      }
+
+      .activity-subsection-title {
+        font-family: "Roboto", sans-serif;
+        font-weight: bold;
+        color: #ffd93d;
+        font-size: 1.3em;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .activity-subsection-title i {
+        animation: pulse 2s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+      }
+
+      .activity-outlook-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+      }
+
+      .activity-outlook-card {
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(255, 87, 51, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        transition: all 0.3s ease;
+      }
+
+      .activity-outlook-card:hover {
+        border-color: rgba(255, 87, 51, 0.8);
+        box-shadow: 0 0 20px rgba(255, 87, 51, 0.3);
+      }
+
+      .activity-outlook-card img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+      }
+
+      .activity-reports-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 500px;
+        overflow-y: auto;
+      }
+
+      .activity-report-item {
+        background: rgba(42, 42, 42, 0.6);
+        border-left: 4px solid #ff5733;
+        padding: 12px 15px;
+        border-radius: 6px;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.9em;
+        transition: all 0.3s ease;
+      }
+
+      .activity-report-item:hover {
+        background: rgba(42, 42, 42, 0.9);
+        border-left-width: 6px;
+        box-shadow: 0 0 15px rgba(255, 87, 51, 0.3);
+        transform: translateX(5px);
+      }
+
+      .activity-report-item-title {
+        font-weight: bold;
+        color: #ff5733;
+        margin-bottom: 5px;
+      }
+
+      .activity-report-item-details {
+        color: #b0b0b0;
+        font-size: 0.85em;
+        line-height: 1.5;
+      }
+
+      .activity-report-item-meta {
+        color: #888;
+        font-size: 0.8em;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 87, 51, 0.2);
+      }
+
+      .md-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75em;
+        font-weight: bold;
+        margin-left: 8px;
+        text-transform: uppercase;
+      }
+
+      .badge-not-happening {
+        background: #4a4a4a;
+        color: #888;
+      }
+
+      .badge-low {
+        background: #ff9800;
+        color: #fff;
+      }
+
+      .badge-expected {
+        background: #4caf50;
+        color: #fff;
+      }
+
+      .badge-weak {
+        background: #ff9800;
+        color: #fff;
+      }
+
+      .badge-moderate {
+        background: #ff5722;
+        color: #fff;
+      }
+
+      .badge-intense {
+        background: #ff1744;
+        color: #fff;
+      }
+
+      .badge-small {
+        background: #4caf50;
+        color: #fff;
+      }
+
+      .badge-medium {
+        background: #ff9800;
+        color: #fff;
+      }
+
+      .badge-large {
+        background: #ff5722;
+        color: #fff;
+      }
+
+      .badge-extremely-large {
+        background: #ff1744;
+        color: #fff;
+      }
+
+      .storm-report-filters {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .filter-btn {
+        background: rgba(42, 42, 42, 0.6);
+        border: 2px solid rgba(255, 87, 51, 0.3);
+        color: #e0e0e0;
+        padding: 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.85em;
+      }
+
+      .filter-btn:hover {
+        background: rgba(255, 87, 51, 0.2);
+        border-color: rgba(255, 87, 51, 0.6);
+      }
+
+      .filter-btn.active {
+        background: rgba(255, 87, 51, 0.3);
+        border-color: #ff5733;
+        color: #fff;
+      }
+
+      .storm-report-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 15px;
+      }
+
+      .pagination-btn {
+        background: rgba(42, 42, 42, 0.6);
+        border: 2px solid rgba(255, 87, 51, 0.3);
+        color: #e0e0e0;
+        padding: 8px 12px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .pagination-btn:hover {
+        background: rgba(255, 87, 51, 0.2);
+        border-color: rgba(255, 87, 51, 0.6);
+      }
+
+      .pagination-btn:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      #pageInfo {
+        color: #e0e0e0;
+        font-size: 0.9em;
+      }
+
+      .activity-report-tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+      }
+
+      .activity-tab-btn {
+        background: rgba(42, 42, 42, 0.6);
+        border: 2px solid rgba(255, 87, 51, 0.3);
+        color: #e0e0e0;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-family: "Roboto", sans-serif;
+        font-weight: bold;
+        transition: all 0.3s ease;
+      }
+
+      .activity-tab-btn:hover {
+        border-color: #ff5733;
+        box-shadow: 0 0 15px rgba(255, 87, 51, 0.3);
+      }
+
+      .activity-tab-btn.active {
+        background: linear-gradient(135deg, #ff5733 0%, #c70039 100%);
+        color: white;
+        border-color: #ffd93d;
+        box-shadow: 0 0 20px rgba(255, 87, 51, 0.6);
+      }
+
+      .activity-tab-content {
+        display: none;
+      }
+
+      .activity-tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .activity-images-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+      }
+
+      .activity-image-card {
+        background: rgba(0, 0, 0, 0.3);
+        border: 2px solid rgba(255, 87, 51, 0.3);
+        border-radius: 10px;
+        padding: 15px;
+        transition: all 0.4s ease;
+      }
+
+      .activity-image-card:hover {
+        border-color: rgba(255, 87, 51, 0.8);
+        box-shadow: 0 0 30px rgba(255, 87, 51, 0.4);
+        transform: translateY(-5px);
+      }
+
+      .activity-image-card h4 {
+        font-family: "Roboto", sans-serif;
+        color: #ffd93d;
+        margin-bottom: 12px;
+        font-size: 1em;
+      }
+
+      .activity-image-card img {
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+      }
+
+      .activity-refresh-info {
+        text-align: center;
+        padding: 15px;
+        background: rgba(255, 217, 61, 0.1);
+        border: 2px dashed rgba(255, 217, 61, 0.3);
+        border-radius: 8px;
+        color: #ffd93d;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.9em;
+        animation: glow 3s ease-in-out infinite;
+      }
+
+      .activity-refresh-info i {
+        animation: spin 2s linear infinite;
+      }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      .activity-reports-list::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .activity-reports-list::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+      }
+
+      .activity-reports-list::-webkit-scrollbar-thumb {
+        background: #ff5733;
+        border-radius: 4px;
+      }
+
+      .activity-reports-list::-webkit-scrollbar-thumb:hover {
+        background: #ffd93d;
+      }
+
       /* ===== GEOLOCATION BUTTON ===== */
       .geo-btn {
         background: rgba(100, 180, 255, 0.15);
@@ -2604,8 +2967,9 @@
         font-family: "Montserrat", sans-serif;
         color: #ffd93d;
         font-size: 1.2em;
-        position: absolute;
+        /* position: absolute; */
       }
+
 
       .loading i {
         animation: spin 1s linear infinite;
@@ -3417,9 +3781,123 @@
         color: grey;
         text-emphasis-style: italic;
       }
+
+      /* WeatherWise Alert Effects */
+      .alert-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 9999;
+        transition: all 0.3s ease;
+      }
+
+      /* Severe Thunderstorm Warning - Orange Hue */
+      .alert-severe-thunderstorm {
+        background: radial-gradient(ellipse at center, rgba(255, 165, 0, 0.15) 0%, transparent 70%);
+        animation: orangePulse 4s ease-in-out infinite;
+      }
+
+      @keyframes orangePulse {
+        0%, 100% { opacity: 0.6; }
+        50% { opacity: 0.3; }
+      }
+
+      /* Tornado Warning - Red Pulse */
+      .alert-tornado {
+        background: radial-gradient(ellipse at center, rgba(255, 0, 0, 0.2) 0%, transparent 70%);
+        animation: redPulse 2s ease-in-out infinite;
+      }
+
+      @keyframes redPulse {
+        0%, 100% { 
+          opacity: 0.8;
+          transform: scale(1);
+        }
+        50% { 
+          opacity: 0.4;
+          transform: scale(1.02);
+        }
+      }
+
+      /* Confirmed Tornado Warning - Dark Red Pulse */
+      .alert-confirmed-tornado {
+        background: radial-gradient(ellipse at center, rgba(139, 0, 0, 0.25) 0%, transparent 70%);
+        animation: darkRedPulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes darkRedPulse {
+        0%, 100% { 
+          opacity: 0.9;
+          transform: scale(1);
+        }
+        50% { 
+          opacity: 0.5;
+          transform: scale(1.03);
+        }
+      }
+
+      /* PDS Tornado Warning / Tornado Emergency - Purple Hue */
+      .alert-pds-tornado {
+        background: linear-gradient(135deg, rgba(128, 0, 128, 0.2) 0%, rgba(75, 0, 130, 0.15) 50%, rgba(128, 0, 128, 0.2) 100%);
+        animation: purpleHue 3s ease-in-out infinite;
+      }
+
+      @keyframes purpleHue {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 0.4; }
+      }
+
+      /* Alert indicator in header */
+      .alert-indicator {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: bold;
+        font-size: 0.9em;
+        z-index: 10000;
+        animation: alertBlink 1s ease-in-out infinite;
+      }
+
+      @keyframes alertBlink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+      }
+
+      .alert-severe-thunderstorm-indicator {
+        background: linear-gradient(135deg, #ff8c00, #ffa500);
+        color: white;
+        border: 2px solid #ff6500;
+      }
+
+      .alert-tornado-indicator {
+        background: linear-gradient(135deg, #dc143c, #ff0000);
+        color: white;
+        border: 2px solid #b22222;
+      }
+
+      .alert-confirmed-tornado-indicator {
+        background: linear-gradient(135deg, #8b0000, #a52a2a);
+        color: white;
+        border: 2px solid #800000;
+      }
+
+      .alert-pds-tornado-indicator {
+        background: linear-gradient(135deg, #800080, #9400d3);
+        color: white;
+        border: 2px solid #660066;
+      }
     </style>
   </head>
   <body>
+    <!-- WeatherWise Alert Overlay -->
+    <div id="alertOverlay" class="alert-overlay"></div>
+    <div id="alertIndicator" class="alert-indicator" style="display: none;"></div>
+    
     <div class="header">
       <h1><i class="fas fa-cloud-bolt"></i> SEVERE WEATHER TRACKER</h1>
       <p>Real-Time Storm Prediction Center Data</p>
@@ -3507,10 +3985,6 @@
               "
               >Regional Outlooks</a
             >
-            <a href="jlw-outlooks.html" onclick="closeAllDropdowns()"
-              ><i class="fas fa-user" style="color: #ff5733"></i> JLW
-              Outlooks</a
-            >
           </div>
         </div>
         <div class="dropdown" id="dropdown2">
@@ -3575,6 +4049,15 @@
               "
               ><i class="fas fa-gauge-high" style="color: #ff5733"></i> Location
               Severe Score</a
+            >
+            <a
+              href="#"
+              onclick="
+                showPage('activityRoom');
+                closeAllDropdowns();
+                return false;
+              "
+              ><i class="fas fa-list-check"></i> Activity Room</a
             >
           </div>
         </div>
@@ -3641,6 +4124,14 @@
           <i class="fas fa-map-marked-alt"></i>
           Storm Prediction Center Outlooks
         </h2>
+
+        <!-- Daily Summary -->
+        <div id="dailySummary" class="daily-summary">
+          <div class="summary-content">
+            <i class="fas fa-sun"></i>
+            <span id="summaryText">Loading...</span>
+          </div>
+        </div>
 
         <div class="outlook-main">
           <div class="outlook-card animate-in" id="day1-card">
@@ -6016,6 +6507,142 @@
         </div>
       </div>
 
+      <!-- Activity Room Page -->
+      <div id="activityRoom" class="page">
+        <h2 class="section-title">
+          <i class="fas fa-tv"></i>
+          Activity Room - Real-Time Severe Weather Monitor
+        </h2>
+
+        <!-- Overview Stats -->
+        <div class="alerts-stats" id="activityStats">
+          <div class="stat-box">
+            <div class="stat-number" id="statAlerts">0</div>
+            <div class="stat-label">Active Alerts</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number" id="statMDs">0</div>
+            <div class="stat-label">Mesoscale Discussions</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number" id="statReports">0</div>
+            <div class="stat-label">Storm Reports (3h)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number" id="statChasers">0</div>
+            <div class="stat-label">Active Chasers</div>
+          </div>
+        </div>
+
+        <!-- SPC Outlook Summary -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-map"></i> Current SPC Day 1 Outlook
+          </h3>
+          <div class="activity-outlook-grid">
+            <div id="spcOutlookSummary" class="activity-outlook-card">
+              <p><em>Loading SPC Outlook...</em></p>
+            </div>
+            <div class="activity-outlook-card">
+              <img src="https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/spc/spc1.png" alt="Day 1 Outlook" style="max-width: 100%; height: auto; border-radius: 8px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Mesoscale Discussions -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-comments"></i> Mesoscale Discussions (<span id="mdCount">0</span>)
+          </h3>
+          <div id="mesoscaleContainer" class="activity-reports-list">
+            <p><em>Loading mesoscale discussions...</em></p>
+          </div>
+        </div>
+
+        <!-- Active Convective Alerts -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-exclamation-circle"></i> Active Convective Alerts (<span id="alertCount">0</span>)
+          </h3>
+          <div id="convectiveAlertsContainer" class="activity-reports-list">
+            <p><em>Loading alerts...</em></p>
+          </div>
+        </div>
+
+        <!-- Tornado Watches -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-tornado"></i> Tornado Watches
+          </h3>
+          <div id="tornadoWatchesContainer" class="activity-reports-list">
+            <p><em>Loading tornado watches...</em></p>
+          </div>
+        </div>
+
+        <!-- Severe Thunderstorm Watches -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-cloud-bolt"></i> Severe Thunderstorm Watches
+          </h3>
+          <div id="severeWatchesContainer" class="activity-reports-list">
+            <p><em>Loading severe thunderstorm watches...</em></p>
+          </div>
+        </div>
+
+        <!-- Chaser Positions -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-video"></i> Active Chasers (<span id="chaserCount">0</span>)
+          </h3>
+          <div id="chaserContainer" class="activity-reports-list">
+            <p><em>Loading chaser positions...</em></p>
+          </div>
+        </div>
+
+        <!-- Storm Reports -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-cloud-rain"></i> Storm Reports (Last 3 Hours)
+          </h3>
+          <div class="activity-report-tabs">
+            <button class="activity-tab-btn active" onclick="switchReportTab('lsr')">NWS LSR</button>
+            <button class="activity-tab-btn" onclick="switchReportTab('spotter')">Spotter Network</button>
+          </div>
+          <div id="lsrReportsContainer" class="activity-tab-content active">
+            <p><em>Loading NWS LSR reports...</em></p>
+          </div>
+          <div id="spotterReportsContainer" class="activity-tab-content">
+            <p><em>Loading Spotter Network reports...</em></p>
+          </div>
+        </div>
+
+        <!-- Reference Images -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-image"></i> Reference Maps & Images
+          </h3>
+          <div class="activity-images-grid">
+            <div class="activity-image-card">
+              <h4>SPC Day 1 Outlook</h4>
+              <img src="https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/spc/spc1.png" alt="SPC D1">
+            </div>
+            <div class="activity-image-card">
+              <h4>National Alert Map</h4>
+              <img src="https://www.spc.noaa.gov/products/wwa.png" alt="National Alert Map">
+            </div>
+            <div class="activity-image-card">
+              <h4>Active Watches</h4>
+              <img src="https://www.spc.noaa.gov/products/watch/validww.png" alt="Active Watches">
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto-Refresh Info -->
+        <div class="activity-refresh-info">
+          <i class="fas fa-sync-alt"></i> Data updates automatically every 60 seconds
+        </div>
+      </div>
+
       <!-- Weather Models Page -->
       <div id="models" class="page">
         <h2 class="section-title">
@@ -6102,6 +6729,213 @@
           <div class="image-info" id="imageInfo">
             <p>Select model, parameter, sector, and run to display forecast data</p>
           </div>
+        </div>
+
+        <!-- Attribution -->
+        <div class="models-attribution">
+          <i class="fas fa-info-circle"></i> Images provided by 
+          <a href="https://weather.cod.edu/forecast/" target="_blank">College of DuPage</a>
+        </div>
+
+        <!-- Sounding Info (Placeholder) -->
+        <div class="sounding-placeholder">
+          <p><i class="fas fa-map"></i> <strong>Sounding at Point:</strong> Click on the map to retrieve a sounding (Coming Soon)</p>
+        </div>
+      </div>
+
+      <!-- Activity Room Page -->
+      <div id="activityRoom" class="page">
+        <h2 class="section-title">
+          <i class="fas fa-tv"></i>
+          Activity Room - Real-Time Severe Weather Monitor
+        </h2>
+
+        <!-- Overview Stats -->
+        <div class="alerts-stats" id="activityStats">
+          <div class="stat-box">
+            <div class="stat-number" id="statAlerts">0</div>
+            <div class="stat-label">Active Alerts</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number" id="statMDs">0</div>
+            <div class="stat-label">Mesoscale Discussions</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number" id="statReports">0</div>
+            <div class="stat-label">Storm Reports (3h)</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-number" id="statChasers">0</div>
+            <div class="stat-label">Active Chasers</div>
+          </div>
+        </div>
+
+        <!-- SPC Outlook Summary -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-map"></i> Current SPC Day 1 Outlook
+          </h3>
+          <div class="activity-outlook-grid">
+            <div id="spcOutlookSummary" class="activity-outlook-card">
+              <p><em>Loading SPC Outlook...</em></p>
+            </div>
+            <div class="activity-outlook-card">
+              <img src="https://www.spc.noaa.gov/products/outlook/day1otlk_cat.nolyr.png" alt="Day 1 Outlook" style="max-width: 100%; height: auto; border-radius: 8px;">
+            </div>
+          </div>
+        </div>
+
+        <!-- Mesoscale Discussions -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-comments"></i> Mesoscale Discussions (<span id="mdCount">0</span>)
+          </h3>
+          <div id="mesoscaleContainer" class="activity-reports-list">
+            <p><em>Loading mesoscale discussions...</em></p>
+          </div>
+        </div>
+
+        <!-- Active Convective Alerts -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-exclamation-circle"></i> Active Convective Alerts (<span id="alertCount">0</span>)
+          </h3>
+          <div id="convectiveAlertsContainer" class="activity-reports-list">
+            <p><em>Loading alerts...</em></p>
+          </div>
+        </div>
+
+        <!-- Tornado Watches -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-tornado"></i> Tornado Watches
+          </h3>
+          <div id="tornadoWatchesContainer" class="activity-reports-list">
+            <p><em>Loading tornado watches...</em></p>
+          </div>
+        </div>
+
+        <!-- Severe Thunderstorm Watches -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-cloud-bolt"></i> Severe Thunderstorm Watches
+          </h3>
+          <div id="severeWatchesContainer" class="activity-reports-list">
+            <p><em>Loading severe thunderstorm watches...</em></p>
+          </div>
+        </div>
+
+        <!-- Chaser Positions -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-video"></i> Active Chasers (<span id="chaserCount">0</span>)
+          </h3>
+          <div id="chaserContainer" class="activity-reports-list">
+            <p><em>Loading chaser positions...</em></p>
+          </div>
+        </div>
+
+        <!-- Storm Reports -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-cloud-rain"></i> Storm Reports (Last 3 Hours)
+          </h3>
+          <div class="activity-report-tabs">
+            <button class="activity-tab-btn active" onclick="switchReportTab('lsr')">NWS LSR</button>
+            <button class="activity-tab-btn" onclick="switchReportTab('spotter')">Spotter Network</button>
+          </div>
+          <div id="lsrReportsContainer" class="activity-tab-content active">
+            <p><em>Loading NWS LSR reports...</em></p>
+          </div>
+          <div id="spotterReportsContainer" class="activity-tab-content">
+            <p><em>Loading Spotter Network reports...</em></p>
+          </div>
+        </div>
+
+        <!-- Reference Images -->
+        <div class="activity-section">
+          <h3 class="activity-subsection-title">
+            <i class="fas fa-image"></i> Reference Maps & Images
+          </h3>
+          <div class="activity-images-grid">
+            <div class="activity-image-card">
+              <h4>SPC Day 1 Outlook</h4>
+              <img src="https://raw.githubusercontent.com/JesseWx2011/Lightning-Map/refs/heads/master/docs/spc/spc1.png" alt="SPC D1">
+            </div>
+            <div class="activity-image-card">
+              <h4>National Alert Map</h4>
+              <img src="https://www.spc.noaa.gov/products/wwa.png" alt="National Alert Map">
+            </div>
+            <div class="activity-image-card">
+              <h4>Active Watches</h4>
+              <img src="https://www.spc.noaa.gov/products/watch/validww.png" alt="Active Watches">
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto-Refresh Info -->
+        <div class="activity-refresh-info">
+          <i class="fas fa-sync-alt"></i> Data updates automatically every 60 seconds
+        </div>
+      </div>
+
+      <!-- Weather Models Page -->
+      <div id="models" class="page">
+        <h2 class="section-title">
+          <i class="fas fa-cloud"></i>
+          Weather Models
+        </h2>
+
+        <!-- Model Controls -->
+        <div class="models-controls">
+          <div class="control-group">
+            <label for="modelSelect"><i class="fas fa-circle"></i> Model</label>
+            <select id="modelSelect" onchange="changeModel()">
+              <option value="">-- Select Model --</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="parameterSelect"><i class="fas fa-sliders-h"></i> Parameter</label>
+            <select id="parameterSelect" onchange="scanAvailableHours(); updateImage();">
+              <option value="">-- Select Parameter --</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="sectorSelect"><i class="fas fa-map-location-dot"></i> Sector</label>
+            <select id="sectorSelect" onchange="scanAvailableHours(); updateImage();">
+              <option value="">-- Select Sector --</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="modelRunSelect"><i class="fas fa-clock"></i> Model Run</label>
+            <select id="modelRunSelect" onchange="changeModelRun()">
+              <option value="">-- Select Run --</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="modelHourSelect"><i class="fas fa-hourglass-half"></i> Forecast Hour</label>
+            <select id="modelHourSelect" onchange="updateImage()">
+              <option value="">-- Select Hour --</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Model Image Display -->
+        <div class="models-display">
+          <img id="modelImage" src="" alt="Model Image" />
+          <p id="modelInfo" style="text-align: center; color: #ffd93d; margin-top: 15px"></p>
+        </div>
+
+        <!-- Model Info Section -->
+        <div style="background: rgba(0,0,0,0.3); border-radius: 10px; padding: 15px; margin-top: 20px; border-left: 4px solid #ff5733;">
+          <p>
+            <i class="fas fa-circle-info" style="color: #ffd93d; margin-right: 8px"></i>
+            <strong style="color: #ffd93d">Model Information:</strong> Select model, parameter, sector, and run to display forecast data
+          </p>
         </div>
 
         <!-- Attribution -->
@@ -6263,7 +7097,13 @@
           const year = date.getFullYear();
           const month = String(date.getMonth() + 1).padStart(2, "0");
           const dayOfMonth = String(date.getDate()).padStart(2, "0");
-          return `https://www.spc.noaa.gov/products/outlook/archive/${year}/day${frame.day}otlk_${year}${month}${dayOfMonth}_${frame.time}_prt.gif`;
+          
+          // Use PNG for outlooks after March 3, 2026
+          const cutoffDate = new Date("2026-03-03");
+          const usePNG = date >= cutoffDate;
+          const extension = usePNG ? "png" : "gif";
+          
+          return `https://www.spc.noaa.gov/products/outlook/archive/${year}/day${frame.day}otlk_${year}${month}${dayOfMonth}_${frame.time}_prt.${extension}`;
         });
 
         await preloadImages(imageUrls);
@@ -6299,7 +7139,12 @@
         const month = String(date.getMonth() + 1).padStart(2, "0");
         const dayOfMonth = String(date.getDate()).padStart(2, "0");
 
-        const url = `https://www.spc.noaa.gov/products/outlook/archive/${year}/day${frame.day}otlk_${year}${month}${dayOfMonth}_${frame.time}_prt.gif`;
+        // Use PNG for outlooks after March 3, 2026
+        const cutoffDate = new Date("2026-03-03");
+        const usePNG = date >= cutoffDate;
+        const extension = usePNG ? "png" : "gif";
+
+        const url = `https://www.spc.noaa.gov/products/outlook/archive/${year}/day${frame.day}otlk_${year}${month}${dayOfMonth}_${frame.time}_prt.${extension}`;
 
         const container = document.getElementById("archiveContainer");
         const statusText = `Playing: Frame ${currentAnimationIndex + 1} of ${animationFrames.length} - Day ${frame.day} ${frame.date} ${frame.time}Z`;
@@ -6622,8 +7467,8 @@
         ],
         "Day 2": [
           {
-            time: "0700",
-            hour: 7,
+            time: "0600",
+            hour: 6,
             minute: 0,
             url: "https://www.spc.noaa.gov/partners/outlooks/state/swody2.png",
           },
@@ -6636,8 +7481,8 @@
         ],
         "Day 3": [
           {
-            time: "0830",
-            hour: 8,
+            time: "0730",
+            hour: 7,
             minute: 30,
             url: "https://www.spc.noaa.gov/partners/outlooks/state/swody3.png",
           },
@@ -6860,7 +7705,12 @@
           title = `Day ${day} Outlook (ISU Archive) - ${dateInput}`;
         } else {
           // Use NOAA SPC archive for dates 2003-01-24 onwards
-          url = `https://www.spc.noaa.gov/products/outlook/archive/${year}/day${day}otlk_${year}${month}${dayOfMonth}_${time}_prt.gif`;
+          // Use PNG for outlooks after March 3, 2026
+          const archiveDate = new Date(`${year}-${month}-${dayOfMonth}`);
+          const cutoffDate = new Date("2026-03-03");
+          const usePNG = archiveDate >= cutoffDate;
+          const extension = usePNG ? "png" : "gif";
+          url = `https://www.spc.noaa.gov/products/outlook/archive/${year}/day${day}otlk_${year}${month}${dayOfMonth}_${time}_prt.${extension}`;
           title = `Day ${day} Outlook - ${dateInput} at ${time}Z`;
         }
 
@@ -8582,7 +9432,76 @@
         updateFavCountBadge();
         getLSSWindowBounds("today", false); // set button labels on load
         loadTornadoesDatabase(); // preload tornadoes for warning scoring
+        initWeatherWiseAlerts(); // Initialize WeatherWise Alerts
+        updateDailySummary(); // Update daily summary
       });
+
+      function updateDailySummary() {
+        const now = new Date();
+        const hours = now.getHours();
+        const minutes = now.getMinutes();
+        
+        // Determine greeting based on time
+        let greeting = "Good Morning";
+        if (hours >= 12 && hours < 17) {
+          greeting = "Good Afternoon";
+        } else if (hours >= 17) {
+          greeting = "Good Evening";
+        }
+        
+        // Format local time
+        const localTimeStr = now.toLocaleTimeString('en-US', { 
+          hour: 'numeric', 
+          minute: '2-digit',
+          hour12: true 
+        });
+        
+        // Format UTC time
+        const utcHours = now.getUTCHours();
+        const utcMinutes = now.getUTCMinutes();
+        const utcTimeStr = `${String(utcHours).padStart(2, '0')}:${String(utcMinutes).padStart(2, '0')}Z`;
+        
+        // Get timezone abbreviation
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const timeZoneAbbr = new Date().toLocaleTimeString('en-US', { timeZoneName: 'short' }).split(' ')[2] || timeZone;
+        
+        // Fetch SPC outlook to get risk level
+        fetch("https://www.spc.noaa.gov/products/outlook/day1otlk_cat.nolyr.geojson")
+          .then((r) => r.json())
+          .then((data) => {
+            let riskLevel = "No Risk";
+            if (data.features && data.features.length > 0) {
+              const risks = new Set();
+              data.features.forEach((feature) => {
+                if (feature.properties && feature.properties.LABEL2) {
+                  risks.add(feature.properties.LABEL2);
+                }
+              });
+              if (risks.size > 0) {
+                const riskArray = Array.from(risks);
+                // Get highest risk
+                const riskOrder = ["High Risk", "Moderate Risk", "Enhanced Risk", "Slight Risk", "Marginal Risk", "General Thunderstorms Risk"];
+                for (const risk of riskOrder) {
+                  if (riskArray.includes(risk)) {
+                    riskLevel = risk;
+                    break;
+                  }
+                }
+                if (riskLevel === "No Risk" && riskArray.length > 0) {
+                  riskLevel = riskArray[0];
+                }
+              }
+            }
+            
+            const summaryText = `Hello, and ${greeting}! It is ${localTimeStr} ${timeZoneAbbr} (${utcTimeStr}), and a ${riskLevel} has been issued today.`;
+            document.getElementById("summaryText").textContent = summaryText;
+          })
+          .catch((e) => {
+            console.error("Error loading SPC outlook for summary:", e);
+            const summaryText = `Hello, and ${greeting}! It is ${localTimeStr} ${timeZoneAbbr} (${utcTimeStr}).`;
+            document.getElementById("summaryText").textContent = summaryText;
+          });
+      }
 
       function clearWarningFilters() {
         document.getElementById("warningLat").value = "";
@@ -8913,15 +9832,7 @@
           "Severe Thunderstorm Watch": "fa-cloud-bolt",
           "Flash Flood Warning": "fa-water",
           "Flash Flood Watch": "fa-water",
-          "Flood Warning": "fa-house-flood-water",
-          "Winter Storm Warning": "fa-snowflake",
-          "Blizzard Warning": "fa-wind",
-          "Ice Storm Warning": "fa-icicles",
-          "Heat Advisory": "fa-temperature-high",
-          "Excessive Heat Warning": "fa-temperature-arrow-up",
-          "Wind Advisory": "fa-wind",
-          "High Wind Warning": "fa-wind",
-        };
+       };
         return icons[eventType] || "fa-triangle-exclamation";
       }
 
@@ -9570,6 +10481,654 @@
       }
 
       document.addEventListener("DOMContentLoaded", initRegionalPage);
+
+      // ===== ACTIVITY ROOM FUNCTIONS =====
+      let activityRoomInterval = null;
+
+      function initActivityRoom() {
+        loadActivityRoomData();
+        if (activityRoomInterval) clearInterval(activityRoomInterval);
+        activityRoomInterval = setInterval(loadActivityRoomData, 60000); // Update every 60 seconds
+      }
+
+      function loadActivityRoomData() {
+        loadChasers();
+        loadAlerts();
+        loadTornadoWatches();
+        loadSevereThunderstormWatches();
+        loadMesoscaleDiscussions();
+        document.getElementById("statReports").textContent = "0"; // Reset counter
+        loadStormReportsActivity();
+        loadSPCOutlook();
+      }
+
+      function loadSPCOutlook() {
+        fetch("https://www.spc.noaa.gov/products/outlook/day1otlk_cat.nolyr.geojson")
+          .then((r) => r.json())
+          .then((data) => {
+            const container = document.getElementById("spcOutlookSummary");
+            if (!data.features || data.features.length === 0) {
+              container.innerHTML = "<p>No active SPC outlook risks.</p>";
+              return;
+            }
+
+            const risks = new Set();
+
+            data.features.forEach((feature) => {
+              if (feature.properties && feature.properties.LABEL2) {
+                risks.add(feature.properties.LABEL2);
+              }
+            });
+
+            if (risks.size === 0) {
+              container.innerHTML = "<p>No active SPC outlook risks.</p>";
+              return;
+            }
+
+            // Get highest risk
+            const riskArray = Array.from(risks);
+            const riskOrder = ["High Risk", "Moderate Risk", "Enhanced Risk", "Slight Risk", "Marginal Risk", "General Thunderstorms Risk"];
+            let highestRisk = "No Risk";
+            let highestColor = "#999";
+
+            for (const risk of riskOrder) {
+              if (riskArray.includes(risk)) {
+                highestRisk = risk;
+                // Find the color for this risk
+                data.features.forEach((feature) => {
+                  if (feature.properties && feature.properties.LABEL2 === risk) {
+                    highestColor = feature.properties.stroke || "#999";
+                  }
+                });
+                break;
+              }
+            }
+
+            if (highestRisk === "No Risk" && riskArray.length > 0) {
+              highestRisk = riskArray[0];
+              data.features.forEach((feature) => {
+                if (feature.properties && feature.properties.LABEL2 === highestRisk) {
+                  highestColor = feature.properties.stroke || "#999";
+                }
+              });
+            }
+
+            let html = `<div class="outlook-risk-item" style="border-left: 4px solid ${highestColor}; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 4px;">
+              <strong style="color: ${highestColor}; font-size: 1.2em;">${highestRisk}</strong>
+            </div>`;
+
+            container.innerHTML = html;
+          })
+          .catch((e) =>
+            console.error("Error loading SPC outlook:", e)
+          );
+      }
+
+      function loadChasers() {
+        fetch("https://data2.weatherwise.app/chasers/chasers.geojson")
+          .then((r) => r.json())
+          .then((data) => {
+            const container = document.getElementById("chaserContainer");
+            document.getElementById("chaserCount").textContent =
+              data.features.length;
+            document.getElementById("statChasers").textContent =
+              data.features.length;
+
+            if (data.features.length === 0) {
+              container.innerHTML = "<p><em>No active chasers.</em></p>";
+              return;
+            }
+
+            let html = "";
+            data.features.forEach((feature) => {
+              const props = feature.properties;
+              const coords = feature.geometry.coordinates;
+              const lastEvent = new Date(props.last_event);
+              const now = new Date();
+              const diffMin = Math.floor((now - lastEvent) / 60000);
+
+              const isLive = props.livestreaming;
+              const liveStatus = isLive
+                ? '<span style="color: #ff5733;"><i class="fas fa-circle"></i> LIVE</span>'
+                : '<span style="color: #888;">Offline</span>';
+
+              html += `<div class="activity-report-item">
+                <div class="activity-report-item-title">${props.name} ${liveStatus}</div>
+                <div class="activity-report-item-details">
+                  <strong>Location:</strong> ${props.address}<br>
+                  <strong>Coordinates:</strong> ${coords[1].toFixed(3)}, ${coords[0].toFixed(3)}
+                </div>
+                <div class="activity-report-item-meta">
+                  Last Update: ${diffMin} minutes ago
+                </div>
+              </div>`;
+            });
+
+            container.innerHTML = html;
+          })
+          .catch((e) => {
+            console.error("Error loading chasers:", e);
+            document.getElementById("chaserContainer").innerHTML =
+              "<p><em>Error loading chaser data.</em></p>";
+          });
+      }
+
+      function loadAlerts() {
+        fetch(
+          "https://data2.weatherwise.app/warnings/USA.geojson?_=1777227798556"
+        )
+          .then((r) => r.json())
+          .then((data) => {
+            const container = document.getElementById("convectiveAlertsContainer");
+            const features = data.features || [];
+            
+            // Filter for convective alerts only (Tornado Warning and Severe Thunderstorm Warning)
+            const convectiveAlerts = features.filter(f => {
+              const title = f.properties?.title || "";
+              return title === "Tornado Warning" || title === "Severe Thunderstorm Warning";
+            });
+            
+            // Sort by priority: Tornado Warning first, then Severe Thunderstorm Warning, then Flash Flood
+            const alertOrder = {
+              "Tornado Warning": 0,
+              "Severe Thunderstorm Warning": 1,
+              "Flash Flood Warning": 2
+            };
+            
+            convectiveAlerts.sort((a, b) => {
+              const aTitle = a.properties?.title || "";
+              const bTitle = b.properties?.title || "";
+              const aOrder = alertOrder[aTitle] ?? 9;
+              const bOrder = alertOrder[bTitle] ?? 9;
+              if (aOrder !== bOrder) return aOrder - bOrder;
+              return new Date(b.properties?.issued_at || 0) - new Date(a.properties?.issued_at || 0);
+            });
+            
+            document.getElementById("alertCount").textContent = convectiveAlerts.length;
+            document.getElementById("statAlerts").textContent = convectiveAlerts.length;
+
+            if (convectiveAlerts.length === 0) {
+              container.innerHTML =
+                "<p><em>No active convective alerts.</em></p>";
+              return;
+            }
+
+            let html = "";
+            convectiveAlerts.slice(0, 20).forEach((feature) => {
+              const props = feature.properties;
+              const title = props.title || "Alert";
+              const area = props.states?.map(s => s.name).join(", ") || "Unknown";
+              const expires = new Date(props.expires_at);
+              const now = new Date();
+              const minRemaining = Math.floor((expires - now) / 60000);
+
+              let severity = "moderate";
+              if (title.includes("Tornado") || title.includes("Severe Thunderstorm")) {
+                severity = "severe";
+              }
+              if (title.includes("Emergency")) severity = "extreme";
+
+              const color =
+                severity === "extreme"
+                  ? "#ff1744"
+                  : severity === "severe"
+                    ? "#ff5722"
+                    : "#ff9800";
+
+              html += `<div class="activity-report-item" style="border-left-color: ${color};">
+                <div class="activity-report-item-title">${title}</div>
+                <div class="activity-report-item-details">
+                  <strong>Area:</strong> ${area}
+                </div>
+                <div class="activity-report-item-meta">
+                  Expires in ${minRemaining} min | Issued: ${new Date(props.issued_at).toLocaleTimeString()}
+                </div>
+              </div>`;
+            });
+
+            container.innerHTML = html;
+          })
+          .catch((e) => {
+            console.error("Error loading alerts:", e);
+            document.getElementById("convectiveAlertsContainer").innerHTML =
+              "<p><em>Error loading alerts.</em></p>";
+          });
+      }
+
+      function loadTornadoWatches() {
+        fetch(
+          "https://data2.weatherwise.app/warnings/USA.geojson?_=1777227798556"
+        )
+          .then((r) => r.json())
+          .then((data) => {
+            const features = data.features || [];
+            const tornadoWatches = features.filter(f => {
+              const title = f.properties?.title || "";
+              return title === "Tornado Watch";
+            });
+            
+            const container = document.getElementById("tornadoWatchesContainer");
+            if (!container) return;
+            
+            if (tornadoWatches.length === 0) {
+              container.innerHTML = "<p><em>No active tornado watches.</em></p>";
+              return;
+            }
+            
+            let html = "";
+            tornadoWatches.forEach((feature) => {
+              const props = feature.properties;
+              const number = props.event_number || "Unknown";
+              const area = props.states?.map(s => s.name).join(", ") || "Unknown";
+              const expires = new Date(props.expires_at);
+              const now = new Date();
+              const minRemaining = Math.floor((expires - now) / 60000);
+              
+              html += `<div class="activity-report-item" style="border-left-color: #ff5733;">
+                <div class="activity-report-item-title">Tornado Watch #${number}</div>
+                <div class="activity-report-item-details">
+                  <strong>Area:</strong> ${area}
+                </div>
+                <div class="activity-report-item-meta">
+                  Expires in ${minRemaining} min | Issued: ${new Date(props.issued_at).toLocaleTimeString()}
+                </div>
+              </div>`;
+            });
+            
+            container.innerHTML = html;
+          })
+          .catch((e) => console.error("Error loading tornado watches:", e));
+      }
+      
+      function loadSevereThunderstormWatches() {
+        fetch(
+          "https://data2.weatherwise.app/warnings/USA.geojson?_=1777227798556"
+        )
+          .then((r) => r.json())
+          .then((data) => {
+            const features = data.features || [];
+            const svWatches = features.filter(f => {
+              const title = f.properties?.title || "";
+              return title === "Severe Thunderstorm Watch";
+            });
+            
+            const container = document.getElementById("severeWatchesContainer");
+            if (!container) return;
+            
+            if (svWatches.length === 0) {
+              container.innerHTML = "<p><em>No active severe thunderstorm watches.</em></p>";
+              return;
+            }
+            
+            let html = "";
+            svWatches.forEach((feature) => {  
+              const props = feature.properties;
+              const number = props.event_number || "Unknown";
+              const area = props.states?.map(s => s.name).join(", ") || "Unknown";
+              const expires = new Date(props.expires_at);
+              const now = new Date();
+              const minRemaining = Math.floor((expires - now) / 60000);
+              
+              html += `<div class="activity-report-item" style="border-left-color: #ff9800;">
+                <div class="activity-report-item-title">Severe Thunderstorm Watch #${number}</div>
+                <div class="activity-report-item-details">
+                  <strong>Area:</strong> ${area}
+                </div>
+                <div class="activity-report-item-meta">
+                  Expires in ${minRemaining} min | Issued: ${new Date(props.issued_at).toLocaleTimeString()}
+                </div>
+              </div>`;
+            });
+            
+            container.innerHTML = html;
+          })
+          .catch((e) => console.error("Error loading severe thunderstorm watches:", e));
+      }
+
+      function loadMesoscaleDiscussions() {
+        fetch("https://data2.weatherwise.app/mesoscale-discussions/USA.geojson")
+          .then((r) => r.json())
+          .then((data) => {
+            const container = document.getElementById("mesoscaleContainer");
+            document.getElementById("mdCount").textContent =
+              data.features.length;
+            document.getElementById("statMDs").textContent =
+              data.features.length;
+
+            if (data.features.length === 0) {
+              container.innerHTML =
+                "<p><em>No active mesoscale discussions.</em></p>";
+              return;
+            }
+
+            let html = "";
+            data.features.forEach((feature) => {
+              const props = feature.properties;
+              const number = props.common_id || "Unknown";
+              const areasAffected = props.tags?.AREAS_AFFECTED?.[0] || "Area";
+              const watchProb = props.tags?.WATCH_PROBABILITY || 0;
+              const tornado = props.tags?.MOST_PROBABLE_PEAK_TORNADO_INTENSITY || "Unknown";
+              const hail = props.tags?.MOST_PROBABLE_PEAK_HAIL_SIZE || "Unknown";
+
+              // Determine watch probability badge
+              let watchProbBadge = "";
+              if (watchProb === 0) {
+                watchProbBadge = '<span class="md-badge badge-not-happening">Not Happening</span>';
+              } else if (watchProb > 96) {
+                watchProbBadge = '<span class="md-badge badge-expected">Expected</span>';
+              } else if (watchProb > 61) {
+                watchProbBadge = '<span class="md-badge badge-low">Likely</span>';
+              } else if (watchProb > 30) {
+                watchProbBadge = '<span class="md-badge badge-low">Moderate</span>';
+              } else {
+                watchProbBadge = '<span class="md-badge badge-low">Low</span>';
+              }
+
+              // Determine tornado intensity badge
+              let tornadoBadge = "";
+              const tornadoLower = tornado.toLowerCase();
+              if (tornadoLower.includes("weak") || tornadoLower.includes("ef0") || tornadoLower.includes("ef1")) {
+                tornadoBadge = '<span class="md-badge badge-weak">Weak</span>';
+              } else if (tornadoLower.includes("moderate") || tornadoLower.includes("ef2")) {
+                tornadoBadge = '<span class="md-badge badge-moderate">Moderate</span>';
+              } else if (tornadoLower.includes("intense") || tornadoLower.includes("ef3") || tornadoLower.includes("ef4") || tornadoLower.includes("ef5")) {
+                tornadoBadge = '<span class="md-badge badge-intense">Intense</span>';
+              } else {
+                tornadoBadge = `<span class="md-badge" style="background: #666; color: #fff;">${tornado}</span>`;
+              }
+
+              // Determine hail intensity badge
+              let hailBadge = "";
+              const hailLower = hail.toLowerCase();
+              if (hailLower.includes("< 1") || hailLower.includes("0.5") || hailLower.includes("pea") || hailLower.includes("dime")) {
+                hailBadge = '<span class="md-badge badge-small">Small</span>';
+              } else if (hailLower.includes("1") || hailLower.includes("1.25") || hailLower.includes("quarter") || hailLower.includes("1.5") || hailLower.includes("1.75")) {
+                hailBadge = '<span class="md-badge badge-medium">Medium</span>';
+              } else if (hailLower.includes("2") || hailLower.includes("2.5") || hailLower.includes("golf") || hailLower.includes("2.75")) {
+                hailBadge = '<span class="md-badge badge-large">Large</span>';
+              } else if (hailLower.includes("3") || hailLower.includes("4") || hailLower.includes("baseball") || hailLower.includes("teacup") || hailLower.includes("softball")) {
+                hailBadge = '<span class="md-badge badge-extremely-large">Extremely Large</span>';
+              } else {
+                hailBadge = `<span class="md-badge" style="background: #666; color: #fff;">${hail}</span>`;
+              }
+
+              html += `<div class="activity-report-item">
+                <div class="activity-report-item-title">${number}</div>
+                <div class="activity-report-item-details">
+                  <strong>Area:</strong> ${areasAffected}<br>
+                  <strong>Watch Probability:</strong> ${watchProb}% ${watchProbBadge}<br>
+                  <strong>Peak Tornado:</strong> ${tornado} ${tornadoBadge}<br>
+                  <strong>Peak Hail:</strong> ${hail} ${hailBadge}
+                </div>
+              </div>`;
+            });
+
+            container.innerHTML = html;
+          })
+          .catch((e) => {
+            console.error("Error loading MDs:", e);
+            document.getElementById("mesoscaleContainer").innerHTML =
+              "<p><em>Error loading mesoscale discussions.</em></p>";
+          });
+      }
+
+      function loadStormReportsActivity() {
+        loadLSRReports();
+        // Note: loadSpotterReports is called after loadLSRReports completes
+      }
+
+      function loadLSRReports() {
+        fetch("https://data2.weatherwise.app/weather-reports/NWS-LSR/reports-10800.geojson")
+          .then((r) => r.json())
+          .then((data) => {
+            const container = document.getElementById("lsrReportsContainer");
+            const features = data.features || [];
+            
+            // Define storm report priority order
+            const reportOrder = {
+              "Tornado": 0,
+              "Funnel Cloud": 1,
+              "Wall Cloud": 2,
+              "Severe T-Stm Gst": 3,
+              "Hail": 4
+            };
+            
+            // Sort by priority
+            features.sort((a, b) => {
+              const aEvent = a.properties?.event || "";
+              const bEvent = b.properties?.event || "";
+              const aOrder = reportOrder[aEvent] ?? 9;
+              const bOrder = reportOrder[bEvent] ?? 9;
+              if (aOrder !== bOrder) return aOrder - bOrder;
+              // Secondary sort by time (newest first)
+              return new Date(b.properties?.time || 0) - new Date(a.properties?.time || 0);
+            });
+
+            if (features.length === 0) {
+              container.innerHTML = "<p><em>No LSR reports in the last 3 hours.</em></p>";
+              loadSpotterReports();
+              return;
+            }
+
+            // Store all reports for pagination
+            lsrAllReports = features;
+            lsrFilteredReports = [...features];
+            lsrCurrentPage = 1;
+            
+            document.getElementById("statReports").textContent = features.length;
+            
+            // Render first page
+            renderLSRPage();
+            
+            loadSpotterReports();
+          })
+          .catch((e) => {
+            console.error("Error loading LSR reports:", e);
+            document.getElementById("lsrReportsContainer").innerHTML =
+              "<p><em>Error loading LSR reports.</em></p>";
+            loadSpotterReports();
+          });
+      }
+
+      function loadSpotterReports() {
+        fetch(
+          "https://data2.weatherwise.app/weather-reports/SPOTTER-NETWORK/reports-10800.geojson"
+        )
+          .then((r) => r.json())
+          .then((data) => {
+            const container = document.getElementById("spotterReportsContainer");
+            const features = data.features || [];
+            
+            // Define storm report priority order
+            const reportOrder = {
+              "Tornado": 0,
+              "Funnel Cloud": 1,
+              "Wall Cloud": 2,
+              "Severe T-Stm Gst": 3,
+              "Hail": 4
+            };
+            
+            // Sort by priority
+            features.sort((a, b) => {
+              const aEvent = a.properties?.event || "";
+              const bEvent = b.properties?.event || "";
+              const aOrder = reportOrder[aEvent] ?? 9;
+              const bOrder = reportOrder[bEvent] ?? 9;
+              if (aOrder !== bOrder) return aOrder - bOrder;
+              // Secondary sort by time (newest first)
+              return new Date(b.properties?.time || 0) - new Date(a.properties?.time || 0);
+            });
+
+            if (features.length === 0) {
+              container.innerHTML = "<p><em>No spotter reports in the last 3 hours.</em></p>";
+              return;
+            }
+
+            let html = "";
+            features.forEach((feature) => {
+              const props = feature.properties;
+              const event = props.event || "Report";
+              const city = props.city || "Unknown";
+              const mag = props.magnitude || "N/A";
+              const source = props.source || "Unknown";
+
+              html += `<div class="activity-report-item">
+                <div class="activity-report-item-title">${event}</div>
+                <div class="activity-report-item-details">
+                  <strong>Location:</strong> ${city}<br>
+                  <strong>Magnitude:</strong> ${mag}<br>
+                  <strong>Source:</strong> ${source}
+                </div>
+              </div>`;
+            });
+
+            container.innerHTML = html;
+            // Add spotter reports to the total
+            const currentTotal = parseInt(document.getElementById("statReports").textContent) || 0;
+            document.getElementById("statReports").textContent = currentTotal + features.length;
+          })
+          .catch((e) => {
+            console.error("Error loading spotter reports:", e);
+            document.getElementById("spotterReportsContainer").innerHTML =
+              "<p><em>Error loading spotter reports.</em></p>";
+          });
+      }
+
+      // Storm report pagination and filtering
+      let lsrAllReports = [];
+      let lsrFilteredReports = [];
+      let lsrCurrentPage = 1;
+      const lsrPageSize = 10;
+      let lsrCurrentFilter = 'all';
+
+      function filterStormReports(filterType) {
+        lsrCurrentFilter = filterType;
+        lsrCurrentPage = 1;
+        
+        // Update filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        applyLSRFilter();
+      }
+
+      function applyLSRFilter() {
+        if (lsrCurrentFilter === 'all') {
+          lsrFilteredReports = [...lsrAllReports];
+        } else {
+          lsrFilteredReports = lsrAllReports.filter(report => {
+            const event = (report.properties?.event || '').toLowerCase();
+            const mag = parseFloat(report.properties?.magnitude) || 0;
+            
+            if (lsrCurrentFilter === 'hail') {
+              return event.includes('hail') && mag >= 1.0;
+            } else if (lsrCurrentFilter === 'wind') {
+              return (event.includes('wind') || event.includes('gst')) && mag >= 58;
+            } else if (lsrCurrentFilter === 'rain') {
+              return event.includes('rain') && mag >= 2.0;
+            }
+            return true;
+          });
+        }
+        
+        renderLSRPage();
+      }
+
+      function changePage(delta) {
+        const totalPages = Math.ceil(lsrFilteredReports.length / lsrPageSize);
+        lsrCurrentPage += delta;
+        
+        if (lsrCurrentPage < 1) lsrCurrentPage = 1;
+        if (lsrCurrentPage > totalPages) lsrCurrentPage = totalPages;
+        
+        renderLSRPage();
+      }
+
+      function renderLSRPage() {
+        const container = document.getElementById("lsrReportsContainer");
+        const startIndex = (lsrCurrentPage - 1) * lsrPageSize;
+        const endIndex = startIndex + lsrPageSize;
+        const pageReports = lsrFilteredReports.slice(startIndex, endIndex);
+        const totalPages = Math.ceil(lsrFilteredReports.length / lsrPageSize);
+        
+        // Show/hide filters and pagination
+        const filtersDiv = document.getElementById("lsrFilters");
+        const paginationDiv = document.getElementById("lsrPagination");
+        
+        if (lsrAllReports.length > 0) {
+          filtersDiv.style.display = 'flex';
+          paginationDiv.style.display = 'flex';
+        }
+        
+        // Update pagination info
+        document.getElementById("pageInfo").textContent = `Page ${lsrCurrentPage} of ${totalPages || 1}`;
+        
+        // Update button states
+        const prevBtn = paginationDiv.querySelector('.pagination-btn:first-child');
+        const nextBtn = paginationDiv.querySelector('.pagination-btn:last-child');
+        prevBtn.disabled = lsrCurrentPage <= 1;
+        nextBtn.disabled = lsrCurrentPage >= totalPages;
+        
+        if (pageReports.length === 0) {
+          container.innerHTML = "<p><em>No reports match the current filter.</em></p>";
+          return;
+        }
+        
+        let html = "";
+        pageReports.forEach((feature) => {
+          const props = feature.properties;
+          const event = props.event || "Report";
+          const time = props.time || "Unknown";
+          const city = props.city || "Unknown";
+          const mag = props.magnitude || "N/A";
+
+          html += `<div class="activity-report-item">
+            <div class="activity-report-item-title">${event}</div>
+            <div class="activity-report-item-details">
+              <strong>Location:</strong> ${city}<br>
+              <strong>Magnitude:</strong> ${mag}
+            </div>
+            <div class="activity-report-item-meta">
+              ${time}
+            </div>
+          </div>`;
+        });
+
+        container.innerHTML = html;
+      }
+
+      function switchReportTab(tab) {
+        // Update buttons
+        document.querySelectorAll(".activity-tab-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+        event.target.classList.add("active");
+
+        // Update content
+        document.querySelectorAll(".activity-tab-content").forEach((content) => {
+          content.classList.remove("active");
+        });
+
+        if (tab === "lsr") {
+          document.getElementById("lsrReportsContainer").classList.add("active");
+        } else if (tab === "spotter") {
+          document.getElementById("spotterReportsContainer").classList.add("active");
+        }
+      }
+
+      // Update showPage function to handle Activity Room
+      const originalShowPage = showPage;
+      showPage = function (pageId) {
+        if (pageId === "activityRoom") {
+          initActivityRoom();
+        } else {
+          if (activityRoomInterval) {
+            clearInterval(activityRoomInterval);
+            activityRoomInterval = null;
+          }
+        }
+        originalShowPage(pageId);
+      };
     </script>
     <footer class="site-footer">
       <div class="container footer-inner">
@@ -11312,6 +12871,148 @@
       document.addEventListener("DOMContentLoaded", () => {
         const btn = document.getElementById("citiesAtRiskBtn");
         if (btn) btn.style.display = "";
+      });
+
+      // ===== WEATHERWISE ALERTS API =====
+      let weatherwiseInterval = null;
+      let currentAlertLevel = null;
+
+      function initWeatherWiseAlerts() {
+        fetchWeatherWiseAlerts();
+        // Update every 30 seconds
+        weatherwiseInterval = setInterval(fetchWeatherWiseAlerts, 30000);
+      }
+
+      async function fetchWeatherWiseAlerts() {
+        try {
+          const response = await fetch('https://data2.weatherwise.app/warnings/USA.geojson');
+          if (!response.ok) throw new Error('WeatherWise API not available');
+          
+          const data = await response.json();
+          processWeatherWiseAlerts(data);
+        } catch (error) {
+          console.error('Error fetching WeatherWise alerts:', error);
+          // On error, clear any existing alerts
+          clearWeatherWiseEffects();
+        }
+      }
+
+      function processWeatherWiseAlerts(data) {
+        if (!data.features || data.features.length === 0) {
+          clearWeatherWiseEffects();
+          return;
+        }
+
+        // Find highest priority alert
+        let highestPriorityAlert = null;
+        let highestPriority = -1;
+
+        data.features.forEach(feature => {
+          const event = feature.properties?.event?.toLowerCase() || '';
+          const urgency = feature.properties?.urgency?.toLowerCase() || '';
+          const severity = feature.properties?.severity?.toLowerCase() || '';
+          const certainty = feature.properties?.certainty?.toLowerCase() || '';
+          
+          let priority = -1;
+          let alertType = null;
+
+          // PDS Tornado Warning / Tornado Emergency (highest priority)
+          if (event.includes('tornado') && 
+              (event.includes('pds') || event.includes('emergency') || 
+               urgency === 'immediate' && severity === 'extreme')) {
+            priority = 4;
+            alertType = 'pds-tornado';
+          }
+          // Confirmed Tornado Warning
+          else if (event.includes('tornado') && 
+                   (certainty === 'observed' || event.includes('confirmed'))) {
+            priority = 3;
+            alertType = 'confirmed-tornado';
+          }
+          // Tornado Warning
+          else if (event.includes('tornado')) {
+            priority = 2;
+            alertType = 'tornado';
+          }
+          // Severe Thunderstorm Warning
+          else if (event.includes('severe thunderstorm')) {
+            priority = 1;
+            alertType = 'severe-thunderstorm';
+          }
+
+          if (priority > highestPriority) {
+            highestPriority = priority;
+            highestPriorityAlert = {
+              type: alertType,
+              event: feature.properties?.event || 'Unknown',
+              area: feature.properties?.areaDesc || 'Unknown Area',
+              headline: feature.properties?.headline || '',
+              priority: priority
+            };
+          }
+        });
+
+        if (highestPriorityAlert && highestPriorityAlert.type !== currentAlertLevel) {
+          applyWeatherWiseEffect(highestPriorityAlert.type, highestPriorityAlert);
+          currentAlertLevel = highestPriorityAlert.type;
+        } else if (!highestPriorityAlert) {
+          clearWeatherWiseEffects();
+        }
+      }
+
+      function applyWeatherWiseEffect(alertType, alertInfo) {
+        const overlay = document.getElementById('alertOverlay');
+        const indicator = document.getElementById('alertIndicator');
+        
+        // Clear existing classes
+        overlay.className = 'alert-overlay';
+        indicator.className = 'alert-indicator';
+        
+        switch(alertType) {
+          case 'severe-thunderstorm':
+            overlay.classList.add('alert-severe-thunderstorm');
+            indicator.classList.add('alert-severe-thunderstorm-indicator');
+            indicator.innerHTML = `<i class="fas fa-bolt"></i> ${alertInfo.event}`;
+            break;
+            
+          case 'tornado':
+            overlay.classList.add('alert-tornado');
+            indicator.classList.add('alert-tornado-indicator');
+            indicator.innerHTML = `<i class="fas fa-tornado"></i> ${alertInfo.event}`;
+            break;
+            
+          case 'confirmed-tornado':
+            overlay.classList.add('alert-confirmed-tornado');
+            indicator.classList.add('alert-confirmed-tornado-indicator');
+            indicator.innerHTML = `<i class="fas fa-tornado"></i> ${alertInfo.event}`;
+            break;
+            
+          case 'pds-tornado':
+            overlay.classList.add('alert-pds-tornado');
+            indicator.classList.add('alert-pds-tornado-indicator');
+            indicator.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${alertInfo.event}`;
+            break;
+        }
+        
+        indicator.style.display = 'block';
+        console.log(`WeatherWise Alert Applied: ${alertInfo.event} - ${alertInfo.area}`);
+      }
+
+      function clearWeatherWiseEffects() {
+        const overlay = document.getElementById('alertOverlay');
+        const indicator = document.getElementById('alertIndicator');
+        
+        overlay.className = 'alert-overlay';
+        indicator.className = 'alert-indicator';
+        indicator.style.display = 'none';
+        currentAlertLevel = null;
+      }
+
+      // Cleanup on page unload
+      window.addEventListener('beforeunload', () => {
+        if (weatherwiseInterval) {
+          clearInterval(weatherwiseInterval);
+        }
       });
     </script>
     
