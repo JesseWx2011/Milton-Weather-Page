@@ -1074,6 +1074,311 @@
         object-fit: contain;
       }
 
+      /* Radar Archive Styling */
+      .radar-controls {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+        margin-bottom: 25px;
+        padding: 18px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 87, 51, 0.3);
+      }
+
+      .radar-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .radar-section-title {
+        font-family: "Montserrat", sans-serif;
+        font-weight: bold;
+        color: #ffd93d;
+        font-size: 0.95em;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(255, 217, 61, 0.3);
+      }
+
+      .radar-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+      }
+
+      .radar-tab-btn {
+        flex: 1;
+        min-width: 100px;
+        padding: 10px 12px;
+        background: rgba(255, 87, 51, 0.1);
+        border: 1px solid rgba(255, 87, 51, 0.3);
+        color: #ccc;
+        border-radius: 6px;
+        cursor: pointer;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.85em;
+        transition: all 0.3s ease;
+      }
+
+      .radar-tab-btn.active {
+        background: linear-gradient(135deg, #ff5733 0%, #c70039 100%);
+        border-color: #ff5733;
+        color: #fff;
+        box-shadow: 0 0 15px rgba(255, 87, 51, 0.5);
+      }
+
+      .radar-tab-btn:hover:not(.active) {
+        background: rgba(255, 87, 51, 0.2);
+        border-color: rgba(255, 87, 51, 0.6);
+        color: #fff;
+      }
+
+      .radar-tab-content {
+        display: none;
+      }
+
+      .radar-tab-content.active {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .radar-preset-select,
+      .radar-location-input,
+      .radar-bbox-input,
+      .radar-dimension-select,
+      .radar-time-input {
+        padding: 10px 12px;
+        background: #1a1a1a;
+        border: 1px solid rgba(255, 217, 61, 0.4);
+        color: #e0e0e0;
+        border-radius: 6px;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.9em;
+        transition: all 0.3s ease;
+      }
+
+      .radar-preset-select:focus,
+      .radar-location-input:focus,
+      .radar-bbox-input:focus,
+      .radar-dimension-select:focus,
+      .radar-time-input:focus {
+        outline: none;
+        border-color: #ffd93d;
+        background: #232323;
+        box-shadow: 0 0 10px rgba(255, 217, 61, 0.3);
+      }
+
+      .radar-location-input::placeholder {
+        color: #666;
+      }
+
+      .radar-bbox-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .radar-bbox-input-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .radar-bbox-input-wrapper label {
+        font-family: "Verdana", sans-serif;
+        font-size: 0.75em;
+        color: #999;
+        text-transform: uppercase;
+      }
+
+      .radar-layers {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 8px;
+      }
+
+      .radar-layer-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.9em;
+      }
+
+      .radar-layer-checkbox:hover {
+        background: rgba(255, 87, 51, 0.1);
+      }
+
+      .radar-layer-checkbox input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #ffd93d;
+      }
+
+      .radar-layer-checkbox input[type="checkbox"]:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .radar-layer-checkbox input[type="checkbox"]:disabled + label {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .radar-goes-options {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .radar-goes-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.9em;
+      }
+
+      .radar-goes-checkbox:hover {
+        background: rgba(255, 87, 51, 0.1);
+      }
+
+      .radar-goes-checkbox input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #ffd93d;
+      }
+
+      .radar-tz-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+
+      .radar-tz-radio {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.85em;
+      }
+
+      .radar-tz-radio:hover {
+        background: rgba(255, 87, 51, 0.1);
+      }
+
+      .radar-tz-radio input[type="radio"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #ffd93d;
+      }
+
+      .radar-location-input-wrapper {
+        position: relative;
+        width: 100%;
+      }
+
+      .radar-search-results {
+        position: absolute;
+        background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+        border: 1px solid rgba(255, 217, 61, 0.4);
+        border-top: none;
+        border-radius: 0 0 6px 6px;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 100;
+        width: 100%;
+        left: 0;
+        top: 100%;
+      }
+
+      .radar-search-results.visible {
+        display: block;
+      }
+
+      .radar-search-results:not(.visible) {
+        display: none;
+      }
+
+      .radar-warning {
+        padding: 12px 16px;
+        background: rgba(255, 217, 61, 0.1);
+        border-left: 3px solid #ffd93d;
+        border-radius: 6px;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.85em;
+        color: #ffd93d;
+        margin-top: 10px;
+        display: none;
+      }
+
+      .radar-warning.visible {
+        display: block;
+      }
+
+      .radar-image-container {
+        margin-top: 25px;
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 87, 51, 0.3);
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .radar-image-container img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 8px 30px rgba(255, 87, 51, 0.2);
+      }
+
+      .radar-image-container .loading {
+        color: #ffd93d;
+        font-family: "Verdana", sans-serif;
+      }
+
+      .radar-image-container .error {
+        color: #ff5733;
+        font-family: "Verdana", sans-serif;
+        padding: 20px;
+      }
+
+      .radar-timestamp {
+        margin-top: 10px;
+        font-family: "Verdana", sans-serif;
+        font-size: 0.9em;
+        color: #aaa;
+        text-align: center;
+      }
+
       .alert-card {
         background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
         border-radius: 15px;
@@ -4043,6 +4348,15 @@
             <a
               href="#"
               onclick="
+                showPage('radarArchive');
+                closeAllDropdowns();
+                return false;
+              "
+              >Radar Archive</a
+            >
+            <a
+              href="#"
+              onclick="
                 showPage('severescore');
                 closeAllDropdowns();
                 return false;
@@ -6507,6 +6821,263 @@
         </div>
       </div>
 
+      <!-- Radar Archive Page -->
+      <div id="radarArchive" class="page">
+        <h2 class="section-title">
+          <i class="fas fa-radar"></i>
+          Radar Archive
+        </h2>
+
+        <div class="radar-controls">
+          <!-- Date/Time Controls Section -->
+          <div class="radar-section">
+            <div class="radar-section-title">Date & Time</div>
+            
+            <div>
+              <label style="color: #ccc; font-size: 0.9em; display: block; margin-bottom: 6px;">Date</label>
+              <input type="date" id="radarDate" class="radar-time-input" />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+              <div>
+                <label style="color: #ccc; font-size: 0.9em; display: block; margin-bottom: 6px;">Hour (UTC)</label>
+                <select id="radarHour" class="radar-dimension-select">
+                  <option value="00">00:00</option>
+                  <option value="01">01:00</option>
+                  <option value="02">02:00</option>
+                  <option value="03">03:00</option>
+                  <option value="04">04:00</option>
+                  <option value="05">05:00</option>
+                  <option value="06">06:00</option>
+                  <option value="07">07:00</option>
+                  <option value="08">08:00</option>
+                  <option value="09">09:00</option>
+                  <option value="10">10:00</option>
+                  <option value="11">11:00</option>
+                  <option value="12">12:00</option>
+                  <option value="13">13:00</option>
+                  <option value="14">14:00</option>
+                  <option value="15">15:00</option>
+                  <option value="16">16:00</option>
+                  <option value="17">17:00</option>
+                  <option value="18">18:00</option>
+                  <option value="19">19:00</option>
+                  <option value="20">20:00</option>
+                  <option value="21">21:00</option>
+                  <option value="22">22:00</option>
+                  <option value="23">23:00</option>
+                </select>
+              </div>
+              <div>
+                <label style="color: #ccc; font-size: 0.9em; display: block; margin-bottom: 6px;">Minute</label>
+                <select id="radarMinute" class="radar-dimension-select">
+                  <option value="00">00</option>
+                  <option value="15">15</option>
+                  <option value="30">30</option>
+                  <option value="45">45</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label style="color: #ccc; font-size: 0.9em; display: block; margin-bottom: 8px;">Time Zone</label>
+              <div class="radar-tz-options">
+                <label class="radar-tz-radio">
+                  <input type="radio" name="radarTZ" value="EDT" />
+                  <span>EDT/EST</span>
+                </label>
+                <label class="radar-tz-radio">
+                  <input type="radio" name="radarTZ" value="CDT" checked />
+                  <span>CDT/CST</span>
+                </label>
+                <label class="radar-tz-radio">
+                  <input type="radio" name="radarTZ" value="MDT" />
+                  <span>MDT/MST</span>
+                </label>
+                <label class="radar-tz-radio">
+                  <input type="radio" name="radarTZ" value="PDT" />
+                  <span>PDT/PST</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="radar-timestamp" id="radarTimestampDisplay" style="margin-top: 8px; font-size: 0.85em;">Select a date and time</div>
+          </div>
+
+          <!-- Bounding Box Selection Section -->
+          <div class="radar-section">
+            <div class="radar-section-title">Bounding Box</div>
+            
+            <div class="radar-tabs">
+              <button class="radar-tab-btn active" data-tab="preset" onclick="radarSwitchTab('preset')">Preset</button>
+              <button class="radar-tab-btn" data-tab="location" onclick="radarSwitchTab('location')">Location</button>
+              <button class="radar-tab-btn" data-tab="manual" onclick="radarSwitchTab('manual')">Manual</button>
+            </div>
+
+            <!-- Preset Tab -->
+            <div id="radarTab-preset" class="radar-tab-content active">
+              <select id="radarPresetBox" class="radar-preset-select" onchange="radarPresetChanged()">
+                <option value="">-- Select a region --</option>
+                <option value="CONUS">CONUS (Full US)</option>
+                <option value="Northeast">Northeast</option>
+                <option value="Mid-Atlantic">Mid-Atlantic</option>
+                <option value="Southeast">Southeast</option>
+                <option value="CentralPlains">Central Plains</option>
+                <option value="Midwest">Midwest</option>
+                <option value="MountainWest">Mountain West</option>
+                <option value="Pacific">Pacific</option>
+                <option value="PuertoRico">Puerto Rico</option>
+                <option value="USVI">US Virgin Islands</option>
+              </select>
+              <div class="radar-warning" id="radarTerritoryWarning">
+                <i class="fas fa-circle-info"></i> <strong>Note:</strong> Radar data for this territory starts January 1, 2010.
+              </div>
+            </div>
+
+            <!-- Location Tab -->
+            <div id="radarTab-location" class="radar-tab-content">
+              <div class="radar-location-input-wrapper">
+                <input type="text" id="radarLocationSearch" class="radar-location-input" placeholder="Search for a city..." oninput="radarSearchLocation()" />
+                <div class="radar-search-results" id="radarSearchResults"></div>
+              </div>
+              <div style="margin-top: 8px;">
+                <label style="color: #ccc; font-size: 0.9em; display: block; margin-bottom: 6px;">Radius (km)</label>
+                <select id="radarRadiusKm" class="radar-dimension-select">
+                  <option value="25">25 km</option>
+                  <option value="50">50 km</option>
+                  <option value="100" selected>100 km</option>
+                  <option value="250">250 km</option>
+                  <option value="500">500 km</option>
+                  <option value="1000">1000 km</option>
+                  <option value="3000">3000 km</option>
+                </select>
+              </div>
+              <div style="margin-top: 8px;">
+                <label style="color: #ccc; font-size: 0.9em; display: block; margin-bottom: 6px;">Lat: <span id="radarLocLat">-</span> | Lon: <span id="radarLocLon">-</span></label>
+              </div>
+            </div>
+
+            <!-- Manual Tab -->
+            <div id="radarTab-manual" class="radar-tab-content">
+              <div class="radar-bbox-group">
+                <div class="radar-bbox-input-wrapper">
+                  <label>West (°)</label>
+                  <input type="number" id="radarBboxWest" class="radar-bbox-input" placeholder="-125" step="0.1" />
+                </div>
+                <div class="radar-bbox-input-wrapper">
+                  <label>East (°)</label>
+                  <input type="number" id="radarBboxEast" class="radar-bbox-input" placeholder="-70" step="0.1" />
+                </div>
+                <div class="radar-bbox-input-wrapper">
+                  <label>South (°)</label>
+                  <input type="number" id="radarBboxSouth" class="radar-bbox-input" placeholder="23" step="0.1" />
+                </div>
+                <div class="radar-bbox-input-wrapper">
+                  <label>North (°)</label>
+                  <input type="number" id="radarBboxNorth" class="radar-bbox-input" placeholder="50" step="0.1" />
+                </div>
+              </div>
+              <div class="radar-warning" id="radarSizeWarning">
+                <i class="fas fa-triangle-exclamation"></i> <strong>Warning:</strong> Large bounding boxes may take a long time to load. Estimated size will be shown.
+              </div>
+            </div>
+          </div>
+
+          <!-- Layers & Options Section -->
+          <div class="radar-section">
+            <div class="radar-section-title">Map Layers</div>
+            
+            <div class="radar-layers">
+              <label class="radar-layer-checkbox">
+                <input type="checkbox" id="radarLayerCounties" checked disabled />
+                <label style="cursor: pointer;">US Counties</label>
+              </label>
+              <label class="radar-layer-checkbox">
+                <input type="checkbox" id="radarLayerWarnings" checked />
+                <label style="cursor: pointer;">Weather Warnings</label>
+              </label>
+              <label class="radar-layer-checkbox">
+                <input type="checkbox" id="radarLayerCWAS" />
+                <label style="cursor: pointer;">NWS Offices</label>
+              </label>
+              <label class="radar-layer-checkbox">
+                <input type="checkbox" id="radarLayerWatches" />
+                <label style="cursor: pointer;">Convective Watches</label>
+              </label>
+              <label class="radar-layer-checkbox">
+                <input type="checkbox" id="radarLayerInterstates" />
+                <label style="cursor: pointer;">Interstates</label>
+              </label>
+            </div>
+
+            <div style="margin-top: 12px;">
+              <div style="color: #ffd93d; font-size: 0.9em; margin-bottom: 8px; font-weight: bold;">Satellite Imagery <span style="font-size: 0.8em; color: #aaa;">(2014+)</span></div>
+              <div class="radar-goes-options">
+                <label class="radar-goes-checkbox">
+                  <input type="checkbox" id="radarGOESVis" />
+                  <span>Visible</span>
+                </label>
+                <label class="radar-goes-checkbox">
+                  <input type="checkbox" id="radarGOESIR" />
+                  <span>Infrared</span>
+                </label>
+                <label class="radar-goes-checkbox">
+                  <input type="checkbox" id="radarGOESWV" />
+                  <span>Water Vapor</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Image Dimensions Section -->
+          <div class="radar-section">
+            <div class="radar-section-title">Image Size</div>
+            
+            <div>
+              <label style="color: #ccc; font-size: 0.9em; display: block; margin-bottom: 6px;">Preset Dimensions</label>
+              <select id="radarDimensionPreset" class="radar-dimension-select" onchange="radarDimensionPresetChanged()">
+                <option value="640x480">640 × 480</option>
+                <option value="800x600">800 × 600</option>
+                <option value="1024x768">1024 × 768</option>
+                <option value="custom">Custom</option>
+              </select>
+            </div>
+
+            <div id="radarCustomDimensions" style="display: none; margin-top: 8px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="color: #ccc; font-size: 0.9em; display: block; margin-bottom: 6px;">Width (px)</label>
+                  <input type="number" id="radarCustomWidth" class="radar-bbox-input" placeholder="640" min="320" max="2048" />
+                </div>
+                <div>
+                  <label style="color: #ccc; font-size: 0.9em; display: block; margin-bottom: 6px;">Height (px)</label>
+                  <input type="number" id="radarCustomHeight" class="radar-bbox-input" placeholder="480" min="240" max="2048" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Load Button -->
+        <div style="text-align: center; margin: 20px 0;">
+          <button class="control-btn" onclick="loadRadarArchive()">
+            <i class="fas fa-search"></i> Load Radar
+          </button>
+        </div>
+
+        <!-- Size Warning -->
+        <div class="radar-warning" id="radarEstimatedSizeWarning">
+          <i class="fas fa-triangle-exclamation"></i> <strong>Large Image:</strong> <span id="radarEstimatedSize"></span> pixels. This may take a while to load.
+        </div>
+
+        <!-- Radar Image Container -->
+        <div class="radar-image-container" id="radarImageContainer">
+          <div style="color: #999; font-family: 'Verdana', sans-serif; text-align: center;">
+            <i class="fas fa-cloud-moon"></i><br />Select options and click "Load Radar" to display imagery
+          </div>
+        </div>
+      </div>
+
       <!-- Activity Room Page -->
       <div id="activityRoom" class="page">
         <h2 class="section-title">
@@ -7208,6 +7779,8 @@
           alertsInterval = setInterval(loadAlerts, 15000);
         } else if (pageId === "spcConverter") {
           initializeProbabilitySelectors();
+        } else if (pageId === "radarArchive") {
+          initializeRadarArchive();
         } else if (pageId === "severescore") {
           // nothing auto-runs; user triggers it
         } else {
@@ -7216,6 +7789,372 @@
             alertsInterval = null;
           }
         }
+      }
+
+      // ======= RADAR ARCHIVE FUNCTIONS =======
+      let radarLastLat = null;
+      let radarLastLon = null;
+      let radarSearchTimeout = null;
+
+      const RADAR_PRESETS = {
+        CONUS: { bbox: [-125, 23, -70, 50], minDate: "1994-12-31", maxDate: new Date().toISOString().split("T")[0] },
+        Northeast: { bbox: [-80, 40, -65, 48], minDate: "1994-12-31", maxDate: new Date().toISOString().split("T")[0] },
+        "Mid-Atlantic": { bbox: [-85, 35, -72, 43], minDate: "1994-12-31", maxDate: new Date().toISOString().split("T")[0] },
+        Southeast: { bbox: [-92, 23, -75, 37], minDate: "1994-12-31", maxDate: new Date().toISOString().split("T")[0] },
+        CentralPlains: { bbox: [-105, 35, -90, 50], minDate: "1994-12-31", maxDate: new Date().toISOString().split("T")[0] },
+        Midwest: { bbox: [-100, 38, -80, 50], minDate: "1994-12-31", maxDate: new Date().toISOString().split("T")[0] },
+        MountainWest: { bbox: [-115, 30, -100, 45], minDate: "1994-12-31", maxDate: new Date().toISOString().split("T")[0] },
+        Pacific: { bbox: [-130, 25, -114, 50], minDate: "1994-12-31", maxDate: new Date().toISOString().split("T")[0] },
+        PuertoRico: { bbox: [-67.5, 17.5, -65.0, 18.5], minDate: "2010-01-01", maxDate: new Date().toISOString().split("T")[0] },
+        USVI: { bbox: [-65.2, 17.6, -64.5, 18.4], minDate: "2010-01-01", maxDate: new Date().toISOString().split("T")[0] },
+      };
+
+      const KM_TO_BBOX_DELTA = {
+        25: 0.22,
+        50: 0.45,
+        100: 0.90,
+        250: 2.25,
+        500: 4.5,
+        1000: 9.0,
+        3000: 27.0,
+      };
+
+      function initializeRadarArchive() {
+        const dateInput = document.getElementById("radarDate");
+        dateInput.valueAsDate = new Date();
+        dateInput.min = "1994-12-31";
+        dateInput.max = new Date().toISOString().split("T")[0];
+        dateInput.onchange = updateRadarTimestamp;
+        
+        document.getElementById("radarHour").onchange = updateRadarTimestamp;
+        document.getElementById("radarMinute").onchange = updateRadarTimestamp;
+        
+        // Add timezone change listeners
+        document.querySelectorAll('input[name="radarTZ"]').forEach(radio => {
+          radio.addEventListener("change", updateRadarTimestamp);
+        });
+        
+        // Close search results when clicking outside
+        document.addEventListener("click", function(event) {
+          const searchDiv = document.querySelector(".radar-location-input-wrapper");
+          if (searchDiv && !searchDiv.contains(event.target)) {
+            document.getElementById("radarSearchResults").classList.remove("visible");
+          }
+        });
+        
+        updateRadarTimestamp();
+      }
+
+      function radarSwitchTab(tabName) {
+        document.querySelectorAll(".radar-tab-content").forEach(el => el.classList.remove("active"));
+        document.querySelectorAll(".radar-tab-btn").forEach(el => el.classList.remove("active"));
+        
+        document.getElementById(`radarTab-${tabName}`).classList.add("active");
+        document.querySelector(`[data-tab="${tabName}"]`).classList.add("active");
+      }
+
+      function radarPresetChanged() {
+        const preset = document.getElementById("radarPresetBox").value;
+        const warning = document.getElementById("radarTerritoryWarning");
+        const dateInput = document.getElementById("radarDate");
+        
+        if (!preset) {
+          warning.classList.remove("visible");
+          return;
+        }
+
+        const presetData = RADAR_PRESETS[preset];
+        if (!presetData) return;
+
+        // Show warning for territories
+        if (["PuertoRico", "USVI"].includes(preset)) {
+          warning.classList.add("visible");
+          dateInput.min = "2010-01-01";
+          if (new Date(dateInput.value) < new Date("2010-01-01")) {
+            dateInput.valueAsDate = new Date("2010-01-01");
+          }
+        } else {
+          warning.classList.remove("visible");
+          dateInput.min = "1994-12-31";
+        }
+      }
+
+      function radarDimensionPresetChanged() {
+        const preset = document.getElementById("radarDimensionPreset").value;
+        const customDiv = document.getElementById("radarCustomDimensions");
+        
+        if (preset === "custom") {
+          customDiv.style.display = "flex";
+        } else {
+          customDiv.style.display = "none";
+        }
+      }
+
+      async function radarSearchLocation() {
+        const query = document.getElementById("radarLocationSearch").value.trim();
+        const resultsDiv = document.getElementById("radarSearchResults");
+
+        if (query.length < 2) {
+          resultsDiv.classList.remove("visible");
+          return;
+        }
+
+        clearTimeout(radarSearchTimeout);
+        resultsDiv.innerHTML = '<div style="padding: 12px; color: #999;"><i class="fas fa-spinner fa-spin"></i> Searching...</div>';
+
+        radarSearchTimeout = setTimeout(async () => {
+          try {
+            const url = `https://api.weather.com/v3/location/search?query=${encodeURIComponent(query)}&locationType=city&language=en-US&format=json&countryCode=US&apiKey=8de2d8b3a93542c9a2d8b3a935a2c909`;
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!data.location || data.location.address.length === 0) {
+              resultsDiv.innerHTML = '<div style="padding: 12px; color: #b0b0b0;">No results found</div>';
+              resultsDiv.classList.add("visible");
+              return;
+            }
+
+            const maxResults = Math.min(5, data.location.address.length);
+            let html = "";
+
+            for (let i = 0; i < maxResults; i++) {
+              const name = data.location.displayName[i];
+              const context = data.location.displayContext[i];
+              const lat = data.location.latitude[i];
+              const lon = data.location.longitude[i];
+
+              html += `
+                <div class="search-result-item" onclick="radarSelectLocation(${lat}, ${lon}, '${name}, ${context}')">
+                  <div class="search-result-name">${name}</div>
+                  <div class="search-result-context">${context}</div>
+                </div>
+              `;
+            }
+
+            resultsDiv.innerHTML = html;
+            resultsDiv.classList.add("visible");
+          } catch (error) {
+            console.error("Location search error:", error);
+            resultsDiv.innerHTML = '<div style="padding: 12px; color: #ff5733;">Error searching locations</div>';
+            resultsDiv.classList.add("visible");
+          }
+        }, 300);
+      }
+
+      function radarSelectLocation(lat, lon, locationName) {
+        radarLastLat = lat;
+        radarLastLon = lon;
+        document.getElementById("radarLocationSearch").value = locationName;
+        document.getElementById("radarLocLat").textContent = lat.toFixed(4);
+        document.getElementById("radarLocLon").textContent = lon.toFixed(4);
+        document.getElementById("radarSearchResults").classList.remove("visible");
+      }
+
+      function updateRadarTimestamp() {
+        const dateStr = document.getElementById("radarDate").value;
+        const hour = document.getElementById("radarHour").value;
+        const minute = document.getElementById("radarMinute").value;
+        const tzName = document.querySelector('input[name="radarTZ"]:checked').value;
+
+        if (!dateStr) {
+          document.getElementById("radarTimestampDisplay").textContent = "Select a date and time";
+          return;
+        }
+
+        const [year, month, day] = dateStr.split("-");
+        const timeStr = `${hour}:${minute}`;
+        
+        document.getElementById("radarTimestampDisplay").textContent = `${month}/${day}/${year} ${timeStr} ${tzName}`;
+      }
+
+      function calculateBboxPixels(bbox, width, height) {
+        // Rough estimate: at equator, 1 degree ≈ 111 km
+        const degWidth = bbox[2] - bbox[0];
+        const degHeight = bbox[3] - bbox[1];
+        return { estimatedPixels: width * height };
+      }
+
+      function isDaylightSavingsTime(date) {
+        // DST in US: 2nd Sunday in March to 1st Sunday in November
+        const year = date.getFullYear();
+        const marchSecond = new Date(year, 2, 8);
+        while (marchSecond.getDay() !== 0) marchSecond.setDate(marchSecond.getDate() + 1);
+        
+        const novemberFirst = new Date(year, 10, 1);
+        while (novemberFirst.getDay() !== 0) novemberFirst.setDate(novemberFirst.getDate() + 1);
+        
+        return date >= marchSecond && date < novemberFirst;
+      }
+
+      function getUTCOffsetForTZ(dateStr, tzName) {
+        // tzName: EDT/CDT/MDT/PDT
+        const dateObj = new Date(`${dateStr}T12:00:00Z`);
+        const isDST = isDaylightSavingsTime(dateObj);
+        
+        const offsets = {
+          EDT: isDST ? 4 : 5,   // EDT is UTC-4, EST is UTC-5
+          CDT: isDST ? 5 : 6,   // CDT is UTC-5, CST is UTC-6
+          MDT: isDST ? 6 : 7,   // MDT is UTC-6, MST is UTC-7
+          PDT: isDST ? 7 : 8    // PDT is UTC-7, PST is UTC-8
+        };
+        
+        return offsets[tzName] || 5; // Default to CDT offset
+      }
+
+      function buildRadarUrl(dateStr, hour, minute, tzName, bbox, width, height, layers, goesProducts) {
+        // Convert local time to UTC based on timezone
+        const dateObj = new Date(`${dateStr}T${hour}:${minute}:00Z`);
+        const offsetHours = getUTCOffsetForTZ(dateStr, tzName);
+        dateObj.setUTCHours(dateObj.getUTCHours() + offsetHours);
+        
+        const utcYear = dateObj.getUTCFullYear();
+        const utcMonth = String(dateObj.getUTCMonth() + 1).padStart(2, "0");
+        const utcDay = String(dateObj.getUTCDate()).padStart(2, "0");
+        const utcHour = String(dateObj.getUTCHours()).padStart(2, "0");
+        const utcMinute = String(dateObj.getUTCMinutes()).padStart(2, "0");
+        
+        const timestamp = `${utcYear}${utcMonth}${utcDay}${utcHour}${utcMinute}`;
+
+        let url = `https://mesonet.agron.iastate.edu/GIS/radmap.php?ts=${timestamp}&width=${width}&height=${height}&tz=UTC&bbox=${bbox[0]},${bbox[1]},${bbox[2]},${bbox[3]}`;
+
+        // Always include NEXRAD
+        url += "&layers[]=nexrad";
+
+        // Add optional GOES satellite products
+        if (goesProducts && goesProducts.length > 0) {
+          goesProducts.forEach(product => {
+            url += `&goes_product=${product}`;
+          });
+        }
+
+        // Add layers
+        if (layers.counties) url += "&layers[]=uscounties";
+        if (layers.warnings) url += "&layers[]=sbw";
+        if (layers.cwas) url += "&layers[]=cwas";
+        if (layers.watches) url += "&layers[]=watches";
+        if (layers.interstates) url += "&layers[]=interstates";
+
+        return url;
+      }
+
+      function loadRadarArchive() {
+        const dateStr = document.getElementById("radarDate").value;
+        const hour = document.getElementById("radarHour").value;
+        const minute = document.getElementById("radarMinute").value;
+        const tzName = document.querySelector('input[name="radarTZ"]:checked').value;
+        const container = document.getElementById("radarImageContainer");
+        const sizeWarning = document.getElementById("radarEstimatedSizeWarning");
+
+        // Validate date
+        if (!dateStr) {
+          alert("Please select a date");
+          return;
+        }
+
+        const selectedDate = new Date(dateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate > today) {
+          alert("Please select a date on or before today");
+          return;
+        }
+
+        // Get bounding box
+        let bbox = null;
+        const activeTab = document.querySelector(".radar-tab-content.active");
+        const tabId = activeTab.id;
+
+        if (tabId === "radarTab-preset") {
+          const preset = document.getElementById("radarPresetBox").value;
+          if (!preset) {
+            alert("Please select a preset region");
+            return;
+          }
+          bbox = RADAR_PRESETS[preset].bbox;
+        } else if (tabId === "radarTab-location") {
+          if (radarLastLat === null || radarLastLon === null) {
+            alert("Please select a location");
+            return;
+          }
+          const radiusKm = parseInt(document.getElementById("radarRadiusKm").value);
+          const delta = KM_TO_BBOX_DELTA[radiusKm];
+          bbox = [
+            radarLastLon - delta,
+            radarLastLat - delta,
+            radarLastLon + delta,
+            radarLastLat + delta
+          ];
+        } else if (tabId === "radarTab-manual") {
+          const west = parseFloat(document.getElementById("radarBboxWest").value);
+          const south = parseFloat(document.getElementById("radarBboxSouth").value);
+          const east = parseFloat(document.getElementById("radarBboxEast").value);
+          const north = parseFloat(document.getElementById("radarBboxNorth").value);
+
+          if (isNaN(west) || isNaN(south) || isNaN(east) || isNaN(north)) {
+            alert("Please enter all bounding box coordinates");
+            return;
+          }
+
+          bbox = [west, south, east, north];
+        }
+
+        // Get dimensions
+        let width = 640, height = 480;
+        const dimensionPreset = document.getElementById("radarDimensionPreset").value;
+        
+        if (dimensionPreset === "custom") {
+          width = parseInt(document.getElementById("radarCustomWidth").value) || 640;
+          height = parseInt(document.getElementById("radarCustomHeight").value) || 480;
+        } else {
+          const [w, h] = dimensionPreset.split("x").map(Number);
+          width = w;
+          height = h;
+        }
+
+        // Check size warning
+        const estimatedPixels = width * height;
+        if (estimatedPixels > 1000000) {
+          document.getElementById("radarEstimatedSize").textContent = `${estimatedPixels.toLocaleString()}`;
+          sizeWarning.classList.add("visible");
+        } else {
+          sizeWarning.classList.remove("visible");
+        }
+
+        // Get layers
+        const layers = {
+          counties: true,
+          warnings: document.getElementById("radarLayerWarnings").checked,
+          cwas: document.getElementById("radarLayerCWAS").checked,
+          watches: document.getElementById("radarLayerWatches").checked,
+          interstates: document.getElementById("radarLayerInterstates").checked,
+        };
+
+        // Get GOES products (checkboxes)
+        const goesProducts = [];
+        if (document.getElementById("radarGOESVis").checked) goesProducts.push("VIS");
+        if (document.getElementById("radarGOESIR").checked) goesProducts.push("IR");
+        if (document.getElementById("radarGOESWV").checked) goesProducts.push("WV");
+
+        // Build URL
+        const url = buildRadarUrl(dateStr, hour, minute, tzName, bbox, width, height, layers, goesProducts);
+
+        // Load image
+        container.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Loading radar image...</div>';
+
+        const img = new Image();
+        img.onload = () => {
+          container.innerHTML = `<img src="${url}" alt="Radar Archive" style="max-width: 100%; height: auto;" />`;
+        };
+        img.onerror = () => {
+          container.innerHTML = `
+            <div class="error">
+              <i class="fas fa-exclamation-circle"></i><br />
+              Radar image not found for this time/location. Data may not be available.
+            </div>
+          `;
+        };
+        img.src = url;
       }
 
       function toggleExtended() {
@@ -8196,6 +9135,9 @@
             // Build VTEC code for radar
             const vtecCode = `${warningYear}.K${warning.wfo}.${warning.phenomena}.${warning.significance}.${String(warning.eventid).padStart(4, "0")}`;
             const radarUrl = `https://mesonet.agron.iastate.edu/GIS/radmap.php?layers[]=nexrad&layers[]=sbw&layers[]=sbwh&layers[]=uscounties&vtec=${vtecCode}`;
+            
+            // Build warning imagery URL with fallback to radar
+            const warningImageUrl = `https://mesonet.agron.iastate.edu/plotting/auto/plot/208/network:WFO::wfo:${warning.wfo}::year:${warningYear}::phenomenav:${warning.phenomena}::significancev:W::etn:${warning.eventid}::opt:single::n:auto::_r:t::dpi:100.png`;
 
             // Compute warning score
             const scoreData = computeWarningScore(warning);
@@ -8263,7 +9205,7 @@
                         </div>
                         
                         <div class="radar-preview" onclick="expandRadar('${radarUrl}'); event.stopPropagation();">
-                            <img src="${radarUrl}" alt="Warning Radar" title="Click to expand">
+                            <img src="${warningImageUrl}" alt="Warning Imagery" title="Click to expand" onerror="this.src='${radarUrl}'">
                         </div>
 
                         <button class="warning-drawer-btn" id="${drawerBtnId}" onclick="toggleWarningDrawer('${drawerId}','${drawerBtnId}')">
@@ -8280,7 +9222,7 @@
                                 <div class="meso-section">
                                     <div class="meso-title"><i class="fas fa-satellite"></i> Mesoanalysis — ${issueUTC.toISOString().slice(0, 10)} ~${mesoHH}Z</div>
                                     <div class="meso-controls">
-                                        <label>Hour (UTC):</label>
+                                        <label>Hour:</label>
                                         <select onchange="updateMesoHour(this,'${drawerId}-meso','${mesoDateStr}')">
                                             ${generateMesoHourOptions(mesoHH)}
                                         </select>
@@ -9529,6 +10471,11 @@
           const response = await fetch(
             "https://api.weather.gov/alerts/active?code=SVR,TOR,SPS,SVS",
           );
+          
+          if (!response.ok) {
+            throw new Error(`API returned status ${response.status}`);
+          }
+          
           const data = await response.json();
 
           if (!data.features || data.features.length === 0) {
@@ -10493,7 +11440,7 @@
 
       function loadActivityRoomData() {
         loadChasers();
-        loadAlerts();
+        loadOutlookAlerts();
         loadTornadoWatches();
         loadSevereThunderstormWatches();
         loadMesoscaleDiscussions();
@@ -10613,7 +11560,7 @@
           });
       }
 
-      function loadAlerts() {
+      function loadOutlookAlerts() {
         fetch(
           "https://data2.weatherwise.app/warnings/USA.geojson?_=1777227798556"
         )
