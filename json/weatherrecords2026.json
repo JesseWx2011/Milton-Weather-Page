@@ -1,46 +1,43 @@
 {
-    "stationInfo": {
-        "location": "Milton, FL",
-        "startDate": "2024-07-26"
-    },
+    "year": 2026,
     "records": {
         "temperature": {
             "high": {
-                "date": "2025-07-23 14:15:00 CDT",
-                "value": 100.6
+                "date": "2026-05-20 14:17:00 CDT",
+                "value": 92.1
             },
             "low": {
-                "date": "2025-01-22 6:40:00 CST",
-                "value": 14.2
+                "date": "2026-02-02 05:36:00 CST",
+                "value": 19.4
             }           
         },
         "feelsLike": {
             "high": {
-                "date": "2025-07-23 14:35:00 CDT",
-                "value": 122.9
+                "date": "2026-05-28 12:04:00 CDT",
+                "value": 106.7
             },
             "low": {
-                "date": "2025-01-22 7:05:00 CST",
-                "value": 5.4
+                "date": "2026-02-01 07:26:00 CST",
+                "value": 10.1
             }
         },
         "humidity": {
             "high": {
-                "date": "2025-03-25 7:17:00 CDT",
+                "date": "2026-05-29 08:45:00 CDT",
                 "value": 99
             },
             "low": {
-                "date": "2025-03-2 13:09:00 CDT",
+                "date": "2026-04-20 15:43:00 CDT",
                 "value": 17
             }
         },
         "wind": {
             "speed": {
-                "date": "2025-03-04 23:19:00 CDT",
-                "value": 41.6   
+                "date": "2026-01-03 13:33:00 CST",
+                "value": 27.7
             },
             "gust": {
-                "date": "2026-01-03 13:35:00 CDT",
+                "date": "2026-01-03 13:35:00 CST",
                 "value": 61.5
             }
         },
@@ -50,34 +47,34 @@
                 "value": 30.61
             },
             "low": {
-                "date": "2025-03-15 21:31:00 CDT",
-                "value": 29.58
+                "date": "2026-03-16 06:19:00 CDT",
+                "value": 29.67
             }
         },
         "uv": {
             "high": {
-                "date": "2025-05-11 12:41:00 CDT",
+                "date": "2026-05-29 13:37:00 CDT",
                 "value": 10
             }
         },
         "solar": {
             "high": {
-                "date": "2026-06-15 14:43:00 CDT",
+                "date": "2026-04-26 13:38:00 CDT",
                 "value": 1071.6
             }
         },
         "dewPoint": {
             "high": {
-                "date": "2025-06-19 15:11:00 CDT",
-                "value": 82.2
+                "date": "2026-05-28 11:55:00 CDT",
+                "value": 79.7
             }
         },
         "rainfallRate": {
             "high": {
-                "date": "2025-05-03 18:15:00 CDT",
-                "value": 8.31,
+                "date": "2026-01-03 03:59:00 CST",
+                "value": 4.84,
                 "units": "in/hr"
             }
         }
     }
-}
+} 
