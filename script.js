@@ -1398,6 +1398,34 @@ async function updateWeather() {
                     : (isDaytime() ? "Sunny" : "Clear");
                 const nwsIconUrl = currentConditions.properties.icon || '';
 
+                const stationHourlyRain = parseFloat(currentData.hourlyrainin ?? 0) || 0;
+                let hasRecentRain = false;
+                try {
+                    const rainHistory = await getHistoricalData('rain', { rawUnits: true });
+                    const recentRainValues = Array.isArray(rainHistory.values) ? rainHistory.values.slice(-4, -1) : [];
+                    hasRecentRain = recentRainValues.some(value => typeof value === 'number' && value >= 0.01);
+                } catch (e) {
+                    hasRecentRain = false;
+                }
+
+                const baseConditionLower = baseCondition.toLowerCase();
+                const nwsConditionIsRain = /\brain\b/.test(baseConditionLower);
+                let adjustedCondition = baseCondition;
+
+                if (stationHourlyRain >= 0.3) {
+                    adjustedCondition = 'Heavy Rain';
+                } else if (stationHourlyRain >= 0.05) {
+                    adjustedCondition = 'Moderate Rain';
+                } else if (stationHourlyRain >= 0.01) {
+                    if (nwsConditionIsRain) {
+                        adjustedCondition = 'Showers Nearby';
+                    } else {
+                        adjustedCondition = 'Light Rain';
+                    }
+                } else if (hasRecentRain) {
+                    adjustedCondition = `${baseCondition}, Damp`;
+                }
+
                 // Try to extract the short icon code (e.g. "bkn" from ".../land/day/bkn?size=medium")
                 // Try to extract the short icon code (e.g. "bkn" from ".../land/day/bkn?size=medium")
                 let iconCode = null;
@@ -1462,8 +1490,8 @@ async function updateWeather() {
 
                 // Use onerror on the <img> to fall back if local file is missing
                 weatherIcon.innerHTML = `
-                    <img src="${imgSrc}" alt="${baseCondition}" onerror="this.onerror=null;this.src='${fallbackSrc}'">
-                    <p class="condition-text">${baseCondition}${suffix}</p>
+                    <img src="${imgSrc}" alt="${adjustedCondition}" onerror="this.onerror=null;this.src='${fallbackSrc}'">
+                    <p class="condition-text">${adjustedCondition}${suffix}</p>
                 `;
             } else {
                 // No current conditions available from any station
@@ -3895,18 +3923,23 @@ async function updateAlmanacData() {
         const dateString = `${String(currentMonth).padStart(2, '0')}${String(currentDay).padStart(2, '0')}`;
 
         // Station started operating on July 26th, 2024
-        const stationStartDate = new Date(2024, 6, 26); // July 26, 2024 (months are 0-indexed)
-        const currentDate = new Date(currentYear, currentMonth - 1, currentDay);
+        const stationStartYear = 2024;
+        const stationStartMonth = 7; // July
+        const stationStartDay = 26;
 
         // Determine which years to fetch based on station operation date
         const years = [];
-        if (currentYear >= 2024) {
-            years.push(currentYear); // Current year
+        for (let year = stationStartYear; year <= currentYear; year++) {
+            if (year === stationStartYear) {
+                // Only include 2024 if the requested month/day is on or after when the station began recording.
+                if (currentMonth > stationStartMonth || (currentMonth === stationStartMonth && currentDay >= stationStartDay)) {
+                    years.push(year);
+                }
+            } else {
+                years.push(year);
+            }
         }
-        if (currentDate >= stationStartDate) {
-            years.push(2024); // 2024 data is available if we're past July 26th
-        }
-        // Don't fetch 2023 or earlier
+        // Do not fetch earlier than 2024
 
         const allHighs = [];
         const allLows = [];
