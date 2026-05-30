@@ -15,7 +15,7 @@
     <meta name="author" content="JesseLikesWeather">
     <meta name="keywords"
         content="weather, Milton, Florida, weather alerts, forecasts, current conditions, weather station, milton fl weather, milton fl weather alerts, milton fl weather forecast, milton fl weather current conditions, milton fl now, milton fl pws, milton fl cwop, kflmilto379 wunderground, miltonweatherranch pwsweather, g4004 cwop, gw4004 cwop, ambient weather milton fl. weather milton florida, milton weather ranch, milton fl weather radar, milton fl weather forecast, milton weather weather alerts, milton fl climate, milton fl historical weather, milton fl temperature, milton fl humidity, milton fl wind, milton fl precipitation, milton fl sunrise sunset, jesselikesweather, jessewx2011, 31522 awkeas, MILTONWEATHERRANCH PWSWeather">
-    <meta name="date" content="2026-03-30">
+    <meta name="date" content="2026-05-30">
 
     <!--- Social Media Tags -->
 
@@ -2489,75 +2489,127 @@
         #notification-banner {
             display: none;
             position: fixed;
-            top: 10px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
-            padding: 10px 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
             color: #fff;
-            font-weight: bold;
+            font-weight: 600;
             z-index: 999;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            max-width: 90%;
+            width: auto;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        #notification-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 24px;
+        }
+
+        .notification-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         #notification-banner p {
             margin: 0;
-            /* remove default paragraph margin */
             flex: 1;
-            /* take available width */
             color: #fff;
-            text-shadow: 0 3px 4px rgb(0 0 0);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 15px;
+            line-height: 1.4;
+        }
+
+        #notification-timestamp {
+            font-size: 12px;
+            opacity: 0.9;
+            white-space: nowrap;
         }
 
         #notification-banner.visible {
-            display: block;
+            display: flex;
         }
 
         /* Notification types */
         #notification-banner.regular {
-            background: #007bff;
-            /* blue */
+            background: linear-gradient(135deg, #818181 0%, #626060 100%);
         }
 
         #notification-banner.severe {
-            background: #dc3545;
-            /* red */
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
 
-
         #notification-banner.rainbow {
-            background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+            background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3);
         }
 
         #notification-banner.power-out {
-            background: #ffc107;
-            /* yellow */
-            color: #000;
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #333;
+        }
+
+        #notification-banner.power-out p,
+        #notification-banner.power-out #notification-timestamp {
+            color: #333;
+        }
+
+        #notification-banner.power-out #notification-icon {
+            color: #333;
         }
 
         #notification-banner.evacuate {
-            background: #fd7e14;
-            /* orange */
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
         }
 
         #notification-banner.tornado {
-            background: #ff0000;
-            /* gray */
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
         }
 
         /* Dismiss button styling */
         #notification-banner button {
-            background: #000;
+            background: rgba(0, 0, 0, 0.3);
             color: #fff;
             border: none;
             cursor: pointer;
-            height: 30px;
-            width: 30px;
+            height: 32px;
+            width: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        #notification-banner button:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: scale(1.1);
             flex-shrink: 0;
             /* don’t shrink button */
         }
@@ -2807,31 +2859,15 @@
 </head>
 
 <body>
-    <div id="notification-banner" class="notification-banner" style="
-        position: fixed;
-        top: 50px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 95%;
-        max-width: 800px;
-        padding: 16px 20px;
-        border-radius: 12px;
-        align-items: center;      /* vertically center content */
-        justify-content: space-between; /* push text left, button right */
-        gap: 16px;
-        z-index: 1000;
-        transition: all 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        border: 2px solid transparent;
-        backdrop-filter: blur(10px);
-
-    ">
-
+    <div id="notification-banner" class="notification-banner">
+        <span id="notification-icon" class="notification-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </span>
         <div class="notification-content">
             <p id="notification-text" class="notification-text"></p>
+            <span id="notification-timestamp" class="notification-timestamp"></span>
         </div>
-        <button id="dismiss-btn" class="notification-dismiss-btn">×</button>
-        <span id="notification-timestamp" class="notification-timestamp"></span>
+        <button id="dismiss-btn" class="notification-dismiss-btn" title="Dismiss">×</button>
     </div>
     </div>
     <div id="custom-alerts-container">
@@ -2891,7 +2927,6 @@
                     <div class="menu-category-header">Weather Monitoring</div>
                     <div class="menu-category-content">
                         <a href="./rivers/" class="menu-item">River Gauge Data</a>
-                        <a href="./severe-monitor/" class="menu-item">Severe Weather Monitoring</a>
                         <a href="aurora/" class="menu-item">Aurora/Space Weather</a>
                     </div>
                 </div>
@@ -3210,7 +3245,7 @@
                 <div class="weather-card rip-current"
                     style="width: 600px; padding: 10px; transition: transform 0.3s ease, box-shadow 0.3s ease;">
                     <h3 style="margin: 0 0 5px 0; font-size: 1.1em;">Rip Current Risk</h3>
-                    <img src="http://www.weather.gov/images//mob/graphicast/image9.png" alt="Rip Current Risk"
+                    <img src="https://www.weather.gov/images/mob/graphicast/6.png" alt="Rip Current Risk"
                         style="width: 100%; height: auto; border-radius: 5px;" />
                     <p style="text-align: center; font-size: 0.8em; margin: 5px 0 0 0;">Graphic provided by National
                         Weather Service at Mobile, AL</p>
