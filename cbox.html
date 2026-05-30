@@ -2,66 +2,259 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Chat Room</title>
-</head>
-<style>
-    body {
-        font-family: Verdana, Geneva, Tahoma, sans-serif;
-        margin: 0;
-        padding: 0;
-        background-color: #646464;
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Milton Weather Chat Room</title>
+    <link rel="icon" href="Favicon.png" type="image/png">
 
-    h1, h3 {
-        text-align: center;
-        padding: 20px;
-        background-color: #35424a;
-        color: white;
-    }
+    <meta name="date" content="2026-05-30"/>
+    <meta name="author" content="JesseLikesWeather"/>
+    <meta content="description" content="Join other weather enthusiast to talk about the latest weather, or the past weather, or just weather in general!"/>
+    <style>
+        :root {
+            color-scheme: light dark;
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: #eef1f6;
+            color: #12181e;
+        }
 
-    .iframe-cbox {
-    left: 17.5%;
-    margin: auto;
-    position: absolute;
-    top: 24%;
-    display: block;
-    border: none;
-    justify-content: center;
-    align-items: center;
-    }
-            .back-button {
-            position: fixed;
-            top: 35px;
-            left: 30px;
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: radial-gradient(circle at top, #f8fbff 0%, #e8eef7 45%, #dcdfe6 100%);
+        }
+
+        .page-shell {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 24px 20px 40px;
+        }
+
+        .topbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 999px;
             text-decoration: none;
-            color: #06314e;
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 4px;
-            background: rgba(19, 71, 105, 0.373);
-            transition: all 0.3s;
-            font-size: 14px;
-            z-index: 1000;
+            font-weight: 600;
+            color: #1f4d8a;
+            background: rgba(39, 101, 197, 0.12);
+            border: 1px solid rgba(39, 101, 197, 0.2);
+            transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
         }
-        .back-button:hover {
-            background: rgba(52, 152, 219, 0.626);
-            color: #06314e;
-        }
-</style>
-<body>
-        <a href="index.html" class="back-button" title="Back to main dashboard">Return to Weather Dashboard</a>
-    <h1>The Chat Room</h1>
-    <h3>Welcome! Feel free to chat with other users and follow the guidelines.</h3>
-    <iframe class="iframe-cbox" src="https://www3.cbox.ws/box/?boxid=3548334&boxtag=uOaBA6" width="70%" height="250" allowtransparency="yes" allow="autoplay" frameborder="0" marginheight="0" marginwidth="0" scrolling="auto"></iframe>
 
-    <div class="spacer" style="height: 350px;"></div>
-    <h2 style="text-align: center;">Guidelines:</h2>
-    <ul style="text-align: center;">
-        <li>Be respectful to all members.</li>
-        <li>No spamming or advertising.</li>
-        <li>Keep conversations relevant to weather..</li>
-        <li>Minimize the use of expletives.</li>
-        <li>Do Not Bully/Make threats to other users.</li>
+        .back-button:hover {
+            transform: translateY(-1px);
+            background: rgba(39, 101, 197, 0.16);
+            box-shadow: 0 12px 24px rgba(33, 78, 151, 0.06);
+        }
+
+        .page-title {
+            margin: 0;
+            font-size: clamp(2rem, 2.6vw, 3rem);
+            line-height: 1.05;
+            letter-spacing: -0.03em;
+        }
+
+        .page-subtitle {
+            margin: 10px 0 0;
+            font-size: 1rem;
+            color: #475569;
+            max-width: 760px;
+            line-height: 1.65;
+        }
+
+        .card {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 24px;
+            box-shadow: 0 24px 40px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .card-header {
+            padding: 28px 32px 22px;
+            border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            color: #0f172a;
+        }
+
+        .card-body {
+            padding: 28px 32px 32px;
+            display: grid;
+            gap: 24px;
+        }
+
+        .iframe-wrapper {
+            width: 100%;
+            min-height: 520px;
+            border-radius: 18px;
+            overflow: hidden;
+            background: #0f172a;
+            box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08);
+        }
+
+        .iframe-wrapper iframe {
+            width: 100%;
+            height: 520px;
+            border: 0;
+        }
+
+        .guidelines {
+            display: grid;
+            gap: 14px;
+        }
+
+        .guidelines h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #0f172a;
+        }
+
+        .guidelines-list {
+            margin: 0;
+            padding-left: 1.2rem;
+            color: #334155;
+            line-height: 1.8;
+            list-style: disc;
+        }
+
+        .guidelines-list li {
+            margin-bottom: 10px;
+        }
+
+        .footer-note {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding-top: 12px;
+            color: #64748b;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+
+        .footer-note a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+
+        .weather-finder-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .weather-finder-link a {
+            display: inline-flex;
+            justify-content: center;
+        }
+
+        @media (max-width: 860px) {
+            .iframe-wrapper iframe {
+                height: 420px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .page-shell {
+                padding: 18px 14px 28px;
+            }
+
+            .card-header,
+            .card-body {
+                padding-left: 22px;
+                padding-right: 22px;
+            }
+
+            .iframe-wrapper iframe {
+                height: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-shell">
+        <div class="topbar">
+            <a href="./" class="back-button" title="Back to main dashboard">← Back to Dashboard</a>
+            <div>
+                <h1 class="page-title">The Chat Room</h1>
+                <p class="page-subtitle">Join other weather enthusiasts in the chat room and keep the conversation friendly and on-topic.</p>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Live Chat</h2>
+                <span>Interactive weather discussion</span>
+            </div>
+            <div class="card-body">
+                <div class="iframe-wrapper">
+                    <iframe src="https://www3.cbox.ws/box/?boxid=3548334&boxtag=uOaBA6" allowtransparency="yes" allow="autoplay" scrolling="auto"></iframe>
+                </div>
+
+                <div class="guidelines">
+                    <h3>Community Guidelines</h3>
+                    <ul class="guidelines-list">
+                        <li>Be respectful and courteous to all members.</li>
+                        <li>No spamming, advertising, or repeated off-topic posts.</li>
+                        <li>Keep conversations relevant to weather and local conditions.</li>
+                        <li>Minimize vulgar language and avoid threats.</li>
+                        <li>Use the chat responsibly to help keep the room safe for everyone.</li>
+                    </ul>
+                </div>
+
+                <div class="footer-note">
+                    <a href="index.html">Return to the Milton Weather Dashboard</a>
+                        <div class="weather-finder-link">
+        <a href="https://usaweatherfinder.com/">
+            <img src="https://usaweatherfinder.com/button.php?u=JesseLikesWeather" alt="USA Weather Finder" border="0">
+        </a>
+        <a style="display: flex; margin: auto;" href="https://info.flagcounter.com/lQOw"><img align="center"
+                style="margin: auto;"
+                src="https://s05.flagcounter.com/count2_US/lQOw/bg_FFFFFF/txt_000000/border_CCCCCC/columns_5/maxflags_15/viewers_Visitors+of+this+Website/labels_1/pageviews_1/flags_0/percent_0/"
+                alt="Flag Counter" border="0"></a>
+        <a style="display: flex; margin: auto;" href="https://info.flagcounter.com/lQOw"><img align="center"
+                style="margin: auto;"
+                src="https://s05.flagcounter.com/count2/lQOw/bg_FFFFFF/txt_000000/border_CCCCCC/columns_7/maxflags_28/viewers_Visitors+of+this+Website/labels_1/pageviews_1/flags_0/percent_1/"
+                alt="Flag Counter" border="0"></a>
+        <script type="text/javascript" src="https://counter.websiteout.com/js/4/0/177/1"></script>
+        <div>Visitors since April 10th 2025</div>
+        <script type='text/javascript' id='mapmyvisitors'
+            src='https://mapmyvisitors.com/map.js?cl=0e1633&w=300&t=tt&d=t3odhofxurebbSfw41ppW2vG16bbsGEIr40CdPjsofc&co=0b4975&ct=cdd4d9&cmo=3acc3a&cmn=ff5353'></script>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    </div>
+                </div>
+        </div>
+    </div>
 </body>
 </html>
