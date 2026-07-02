@@ -2963,11 +2963,10 @@ function getMoonPhaseInfo(phaseValue) {
     return { name, path: `./images/moon/${icon}` };
 }
 
-// Main function to fetch data and update the HTML card
 async function updateAstroData() {
     // ---===[ CONFIGURATION ]===---
     const LOCATION = "east milton,fl";
-    const API_KEY = "E659GRSHB3RLKRMPTFT3GWQ3Z"; // Your Visual Crossing API key
+    const API_KEY = "E659GRSHB3RLKRMPTFT3GWQ3Z"; 
     // ---------------------------
 
     // 1. Calculate the START (yesterday) and END dates
@@ -2977,23 +2976,18 @@ async function updateAstroData() {
     startDate.setDate(today.getDate() - 1);
     const startDateString = formatDateForApi(startDate);
 
-    // Calculate the date one month from today, handling year rollover automatically.
-    const endDate = new Date(today); // Clone today's date
+    const endDate = new Date(today); 
     endDate.setMonth(today.getMonth() + 1);
     const endDateString = formatDateForApi(endDate);
 
-    // 2. Construct the API URL with the date range
-    // URL format: /LOCATION/START_DATE/END_DATE
-    const apiUrl = `https://corsproxy.io/?url=https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${encodeURIComponent(LOCATION)}/${startDateString}/${endDateString}?unitGroup=us&key=${API_KEY}&contentType=json&elements=datetime,moonphase,sunrise,sunset`;
+    const apiUrl = `https://weather.visualcrossing.com/VisualCrossingWebServices/rest/services/timeline/${encodeURIComponent(LOCATION)}/${startDateString}/${endDateString}?unitGroup=us&key=${API_KEY}&contentType=json&elements=datetime,moonphase,sunrise,sunset`;
 
     const moonPhasesTable = document.getElementById('moon-phases-table');
 
     try {
-        // Check cache first
         let data = getFromCache(apiUrl);
 
         if (!data) {
-            // Cache miss or expired - fetch from API
             const response = await fetch(apiUrl);
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);

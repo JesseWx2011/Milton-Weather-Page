@@ -20,11 +20,49 @@ const db = getFirestore(app);
 // Banner elements
 const banner = document.getElementById("notification-banner");
 const text = document.getElementById("notification-text");
+const iconElement = document.getElementById("notification-icon");
 const dismissBtn = document.getElementById("dismiss-btn");
+
+// Function to determine icon based on title and description
+function getNotificationIcon(title, description) {
+  const lowerTitle = (title || "").toLowerCase();
+  const lowerDesc = (description || "").toLowerCase();
+  const combined = lowerTitle + " " + lowerDesc;
+
+  // Tornado or Funnel Cloud
+  if (combined.includes("tornado") || combined.includes("funnel")) {
+    return '<i class="fas fa-tornado"></i>';
+  }
+  // Earthquake
+  else if (combined.includes("earthquake") || combined.includes("seismic")) {
+    return '<i class="fas fa-house-crack"></i>';
+  }
+  // Severe or Damage
+  else if (combined.includes("severe") || combined.includes("damage")) {
+    return '<i class="fas fa-cloud-bolt"></i>';
+  }
+  // FLAMBER, CAE, or other warnings
+  else if (
+    combined.includes("flamber") ||
+    combined.includes("cae") ||
+    combined.includes("warn") ||
+    combined.includes("warning")
+  ) {
+    return '<i class="fas fa-exclamation-triangle"></i>';
+  }
+  // Notice or comment
+  else if (combined.includes("notice")) {
+    return '<i class="fas fa-comment"></i>';
+  }
+  // Default fallback
+  else {
+    return '<i class="fas fa-exclamation-triangle"></i>';
+  }
+}
 
 // Dismiss button
 dismissBtn.addEventListener("click", () => {
-  banner.remove();
+  banner.classList.remove("visible");
 });
 
 // Firestore query
@@ -57,6 +95,10 @@ onSnapshot(notificationsQuery, (snapshot) => {
       const description = data.description || "No description";
       text.textContent = `${title}: ${description}`;
 
+      // Set the icon based on title and description
+      const icon = getNotificationIcon(title, description);
+      iconElement.innerHTML = icon;
+
       banner.className = "";
       banner.classList.add("visible");
 
@@ -64,30 +106,45 @@ onSnapshot(notificationsQuery, (snapshot) => {
       let typeClass = "regular";
       const lowerTitle = title.toLowerCase();
       const lowerDesc = description.toLowerCase();
-      if (lowerTitle.includes("tornado") || lowerDesc.includes("tornado")) typeClass = "tornado";
-      else if (lowerTitle.includes("evacuate") || lowerDesc.includes("evacuate")) typeClass = "evacuate";
-      else if (lowerTitle.includes("power") || lowerDesc.includes("power")) typeClass = "power-out";
-      else if (lowerTitle.includes("severe") || lowerDesc.includes("severe")) typeClass = "severe";
-      else if (lowerTitle.includes("rainbow") || lowerDesc.includes("rainbow")) typeClass = "rainbow";
+      const combined = lowerTitle + " " + lowerDesc;
+
+      if (
+        lowerTitle.includes("tornado") ||
+        lowerDesc.includes("tornado") ||
+        lowerTitle.includes("funnel") ||
+        lowerDesc.includes("funnel")
+      )
+        typeClass = "tornado";
+      else if (lowerTitle.includes("earthquake") || lowerDesc.includes("earthquake"))
+        typeClass = "earthquake";
+      else if (lowerTitle.includes("evacuate") || lowerDesc.includes("evacuate"))
+        typeClass = "evacuate";
+      else if (lowerTitle.includes("power") || lowerDesc.includes("power"))
+        typeClass = "power-out";
+      else if (lowerTitle.includes("severe") || lowerDesc.includes("severe"))
+        typeClass = "severe";
+      else if (lowerTitle.includes("rainbow") || lowerDesc.includes("rainbow"))
+        typeClass = "rainbow";
 
       banner.classList.add(typeClass);
-const timestampEl = document.getElementById("notification-timestamp");
 
-// Inside your onSnapshot logic, after setting text:
-let notifTime;
-if (data.timestamp.toMillis) {
-  // Firestore Timestamp
-  notifTime = new Date(data.timestamp.toMillis());
-} else {
-  notifTime = new Date(data.timestamp); // fallback
-}
+      // Update timestamp
+      const timestampEl = document.getElementById("notification-timestamp");
+      let notifTime;
+      if (data.timestamp.toMillis) {
+        // Firestore Timestamp
+        notifTime = new Date(data.timestamp.toMillis());
+      } else {
+        notifTime = new Date(data.timestamp); // fallback
+      }
 
-const localTime = notifTime.toLocaleTimeString('en-US', { hour12: true, timeZoneName: 'short' });
-const utcTime = notifTime.toUTCString().split(' ')[4]; // just hh:mm:ss UTC
+      const localTime = notifTime.toLocaleTimeString("en-US", {
+        hour12: true,
+        timeZoneName: "short"
+      });
+      const utcTime = notifTime.toUTCString().split(" ")[4]; // just hh:mm:ss UTC
 
-timestampEl.textContent = `Last Updated: ${localTime} (${utcTime} UTC)`;
-
+      timestampEl.textContent = `Last Updated: ${localTime} (${utcTime} UTC)`;
     }
   });
 });
- 
