@@ -1,11 +1,13 @@
 // --- Configuration & Data ---
 let isMetric = false;
+let distanceCities = [];
 
 // Navigation Data
 const siteLinks = [
     { name: "Home", url: "index.html" },
     { name: "Satellite Imagery", url: "satellite.html" }, 
     { name: "SST Anomalies", url: "sst-anomalies.html" },
+    { name: "Tropical Weather Outlooks", url: "tropical-weather-outlooks.html" },
     { name: "Storm Names", url: "storm-names.html" },
     { name: "Historical Data", url: "historical-data.html" },
     { name: "Archives", url: "#" }
@@ -1066,6 +1068,22 @@ function Dates() {
        const getOrdinal = (n) => { const s = ["th", "st", "nd", "rd"]; const v = n % 100; return n + (s[(v - 20) % 10] || s[v] || s[0]); };
        welcomeEl.textContent = `Welcome! Today is ${now.toLocaleString("en-US", { month: "long" })} ${getOrdinal(now.getDate())}, ${now.getFullYear()}.`;
    }
+
+   const seasonAlertEl = document.getElementById('season-alert');
+   if (seasonAlertEl) {
+       const month = now.getMonth() + 1;
+       const day = now.getDate();
+       let alertText = '';
+       if (month === 6 && day === 1) {
+           alertText = 'The Atlantic and Central Pacific Hurricane Seasons begin today!';
+       } else if (month === 5 && day === 15) {
+           alertText = 'The Eastern Pacific Hurricane Season begins today!';
+       } else if (month === 11 && day === 1) {
+           alertText = 'The Australian Cyclone Season begins today!';
+       }
+       seasonAlertEl.textContent = alertText;
+       seasonAlertEl.style.display = alertText ? 'block' : 'none';
+   }
 }
 
 function filterSST(category) {
@@ -1148,6 +1166,52 @@ function getStormImageUrl(stormNumber, currentPosition) {
    return possibleTimes;
 }
 
+async function loadDistanceCities() {
+   if (distanceCities.length) return;
+   try {
+      const response = await fetch('./json/coastal-locations.json');
+      if (!response.ok) return;
+      const data = await response.json();
+      if (Array.isArray(data.locations)) distanceCities = data.locations;
+   } catch (error) {
+      console.warn('Could not load distance city list', error);
+   }
+}
+
+function getStormIntensity(maxWindMph, stormSubType, stormType) {
+   const wind = Number(maxWindMph);
+   if (!wind || wind < 39) return 'Tropical Depression';
+   if (wind < 74) return 'Tropical Storm';
+   const category = wind >= 157 ? 5 : wind >= 130 ? 4 : wind >= 111 ? 3 : wind >= 96 ? 2 : 1;
+   const isTyphoon = (stormType && stormType.toLowerCase().includes('typhoon')) || (stormSubType && stormSubType.toUpperCase().includes('TY'));
+   const categoryText = `Category ${category} Equivalent`;
+   return category === 5 && isTyphoon ? `Super Typhoon (${categoryText})` : categoryText;
+}
+
+function haversineDistance(lat1, lon1, lat2, lon2) {
+   const toRad = deg => deg * Math.PI / 180;
+   const dLat = toRad(lat2 - lat1);
+   const dLon = toRad(lon2 - lon1);
+   const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+   return 6371 * c;
+}
+
+function formatDistance(distanceKm) {
+   return isMetric ? `${Math.round(distanceKm)} km` : `${Math.round(distanceKm * 0.621371)} mi`;
+}
+
+function getClosestCities(lat, lon, maxCities = 5) {
+   if (!distanceCities.length) return [];
+   return distanceCities
+      .map(city => ({
+         ...city,
+         distanceKm: haversineDistance(lat, lon, city.latitude, city.longitude)
+      }))
+      .sort((a, b) => a.distanceKm - b.distanceKm)
+      .slice(0, maxCities);
+}
+
 async function tryLoadImage(urls, stormName) {
    for (const url of urls) {
       try { if ((await fetch(url, { method: 'HEAD' })).ok) return { success: true, url: url }; } catch (e) { }
@@ -1169,6 +1233,7 @@ async function displayStorms(features) {
       return;
    }
    
+   await loadDistanceCities();
    for (const feature of activeStorms) {
       const props = feature.properties;
       const pos = props.currentPosition;
@@ -1176,80 +1241,107 @@ async function displayStorms(features) {
       const stormDiv = document.createElement('div');
       stormDiv.className = 'tropical-data';
       
+      const stormInfo = document.createElement('div');
+      stormInfo.className = 'tropical-info';
+      
       const stormName = document.createElement('div');
       stormName.className = 'tropical-name';
       stormName.textContent = `Tropical Cyclone ${props.stormName}:`;
-      stormDiv.appendChild(stormName);
+      stormInfo.appendChild(stormName);
+      
+      const stormStatus = document.createElement('div');
+      stormStatus.className = 'tropical-status';
+      stormStatus.textContent = pos.stormSubType || pos.stormType;
+      stormStatus.style.color = getStormColor(pos.stormSubTypeCode, pos.stormType);
+      stormInfo.appendChild(stormStatus);
+      
+      const stormIntensity = document.createElement('div');
+      stormIntensity.className = 'tropical-intensity';
+      stormIntensity.textContent = getStormIntensity(pos.maximumSustainedWind, pos.stormSubType, pos.stormType);
+      stormInfo.appendChild(stormIntensity);
+      
+      const windSpeed = document.createElement('div');
+      windSpeed.className = 'tropical-wx-param';
+      windSpeed.textContent = `Sustained Winds: ${convertSpeed(pos.maximumSustainedWind)} ${getSpeedUnit()}`;
+      stormInfo.appendChild(windSpeed);
+      
+      if (pos.windGust) {
+         const windGust = document.createElement('div');
+         windGust.className = 'tropical-wx-param';
+         windGust.textContent = `Wind Gust: ${convertSpeed(pos.windGust)} ${getSpeedUnit()}`;
+         stormInfo.appendChild(windGust);
+      }
+      
+      const pressure = document.createElement('div');
+      pressure.className = 'tropical-wx-param';
+      pressure.textContent = pos.minimumPressure ? `Pressure: ${convertPressure(pos.minimumPressure)} ${getPressureUnit()}` : 'Pressure: N/A';
+      stormInfo.appendChild(pressure);
+      
+      if (pos.movementSpeed && pos.movementDirection) {
+         const movement = document.createElement('div');
+         movement.className = 'tropical-wx-param';
+         movement.textContent = `Movement: ${getMovementDirection(pos.movementDirection)} at ${convertSpeed(pos.movementSpeed)} ${getSpeedUnit()}`;
+         stormInfo.appendChild(movement);
+      } else if (pos.heading) {
+         const movement = document.createElement('div');
+         movement.className = 'tropical-wx-param';
+         const direction = pos.heading.stormDirectionCardinal || getMovementDirection(pos.heading.stormDirection);
+         movement.textContent = `Movement: ${direction} at ${convertSpeed(pos.heading.stormSpeed)} ${getSpeedUnit()}`;
+         stormInfo.appendChild(movement);
+      }
+      
+      const coordinates = document.createElement('div');
+      coordinates.className = 'tropical-wx-param';
+      coordinates.textContent = `Location: ${formatCoordinates(pos.latitude, pos.latitudeHemisphere, pos.longitude, pos.longitudeHemisphere)}`;
+      stormInfo.appendChild(coordinates);
+      
+      const summary = document.createElement('div');
+      summary.className = 'tropical-wx-summary';
+      const issueTime = new Date(props.issueDateTime).toLocaleString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'});
+      summary.innerHTML = `This information was last updated at ${issueTime} UTC, which ${getTimeDifference(props.issueDateTime).text}.<br><br>The next update ${getNextUpdateTime(props.issueDateTime)}.`;
+      stormInfo.appendChild(summary);
+      
+      const stormSidebar = document.createElement('div');
+      stormSidebar.className = 'tropical-sidebar';
       
       const imageResult = await tryLoadImage(getStormImageUrl(props.stormNumber, pos), props.stormName);
       if (imageResult.success) {
          const stormImg = document.createElement('img');
          stormImg.className = 'tropical-image';
          stormImg.src = imageResult.url;
-         stormDiv.appendChild(stormImg);
+         stormSidebar.appendChild(stormImg);
       } else {
          const noImageMsg = document.createElement('div');
          noImageMsg.className = 'tropical-wx-param';
          noImageMsg.style.color = '#FFA500';
-         noImageMsg.style.top = '23px';
          noImageMsg.textContent = imageResult.message;
-         stormDiv.appendChild(noImageMsg);
+         stormSidebar.appendChild(noImageMsg);
       }
       
-      const stormStatus = document.createElement('div');
-      stormStatus.className = 'tropical-status';
-      stormStatus.textContent = pos.stormSubType || pos.stormType;
-      stormStatus.style.color = getStormColor(pos.stormSubTypeCode, pos.stormType);
-      stormDiv.appendChild(stormStatus);
-      
-      const windSpeed = document.createElement('div');
-      windSpeed.className = 'tropical-wx-param';
-      windSpeed.textContent = `Sustained Winds: ${convertSpeed(pos.maximumSustainedWind)} ${getSpeedUnit()}`;
-      stormDiv.appendChild(windSpeed);
-      stormDiv.appendChild(document.createElement('br'));
-      
-      if (pos.windGust) {
-         const windGust = document.createElement('div');
-         windGust.className = 'tropical-wx-param';
-         windGust.textContent = `Wind Gust: ${convertSpeed(pos.windGust)} ${getSpeedUnit()}`;
-         stormDiv.appendChild(windGust);
-         stormDiv.appendChild(document.createElement('br'));
+      const distancePanel = document.createElement('div');
+      distancePanel.className = 'tropical-distance-panel';
+      const distanceTitle = document.createElement('div');
+      distanceTitle.className = 'tropical-distance-title';
+      distanceTitle.textContent = 'Nearest Cities';
+      distancePanel.appendChild(distanceTitle);
+      const closestCities = getClosestCities(pos.latitude, pos.longitude, 5);
+      if (closestCities.length) {
+         closestCities.forEach(city => {
+            const row = document.createElement('div');
+            row.className = 'tropical-distance-row';
+            row.textContent = `${city.name}: ${formatDistance(city.distanceKm)}`;
+            distancePanel.appendChild(row);
+         });
+      } else {
+         const noCities = document.createElement('div');
+         noCities.className = 'tropical-distance-row';
+         noCities.textContent = 'No distance city data available.';
+         distancePanel.appendChild(noCities);
       }
+      stormSidebar.appendChild(distancePanel);
       
-      const pressure = document.createElement('div');
-      pressure.className = 'tropical-wx-param';
-      pressure.textContent = pos.minimumPressure ? `Pressure: ${convertPressure(pos.minimumPressure)} ${getPressureUnit()}` : 'Pressure: N/A';
-      stormDiv.appendChild(pressure);
-      stormDiv.appendChild(document.createElement('br'));
-      
-      if (pos.movementSpeed && pos.movementDirection) {
-         const movement = document.createElement('div');
-         movement.className = 'tropical-wx-param';
-         movement.textContent = `Movement: ${getMovementDirection(pos.movementDirection)} at ${convertSpeed(pos.movementSpeed)} ${getSpeedUnit()}`;
-         stormDiv.appendChild(movement);
-         stormDiv.appendChild(document.createElement('br'));
-      } else if (pos.heading) {
-         const movement = document.createElement('div');
-         movement.className = 'tropical-wx-param';
-         const direction = pos.heading.stormDirectionCardinal || getMovementDirection(pos.heading.stormDirection);
-         movement.textContent = `Movement: ${direction} at ${convertSpeed(pos.heading.stormSpeed)} ${getSpeedUnit()}`;
-         stormDiv.appendChild(movement);
-         stormDiv.appendChild(document.createElement('br'));
-      }
-      
-      const coordinates = document.createElement('div');
-      coordinates.className = 'tropical-wx-param';
-      coordinates.textContent = `Location: ${formatCoordinates(pos.latitude, pos.latitudeHemisphere, pos.longitude, pos.longitudeHemisphere)}`;
-      stormDiv.appendChild(coordinates);
-      stormDiv.appendChild(document.createElement('br'));
-      stormDiv.appendChild(document.createElement('br'));
-      
-      const summary = document.createElement('div');
-      summary.className = 'tropical-wx-summary';
-      const issueTime = new Date(props.issueDateTime).toLocaleString('en-US', {hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'UTC'});
-      summary.innerHTML = `This information was last updated at ${issueTime} UTC, which ${getTimeDifference(props.issueDateTime).text}.<br><br>The next update ${getNextUpdateTime(props.issueDateTime)}.`;
-      stormDiv.appendChild(summary);
-      
+      stormDiv.appendChild(stormInfo);
+      stormDiv.appendChild(stormSidebar);
       container.appendChild(stormDiv);
    }
 }
