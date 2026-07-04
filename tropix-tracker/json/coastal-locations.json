@@ -1,0 +1,754 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "description": "Coastal locations worldwide for distance tracking",
+    "exclusions": ["Antarctica", "South America", "locations above 60°N", "locations below 70°S"],
+    "lastUpdated": "2026-01-04"
+  },
+  "locations": [
+    {
+      "name": "Miami, Florida, USA",
+      "latitude": 25.7617,
+      "longitude": -80.1918,
+      "region": "Atlantic"
+    },
+    {
+      "name": "New York, New York, USA",
+      "latitude": 40.7128,
+      "longitude": -74.0060,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Charleston, South Carolina, USA",
+      "latitude": 32.7765,
+      "longitude": -79.9311,
+      "region": "Atlantic"
+    },
+    {
+      "name": "New Orleans, Louisiana, USA",
+      "latitude": 29.9511,
+      "longitude": -90.2623,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Galveston, Texas, USA",
+      "latitude": 29.3028,
+      "longitude": -94.7974,
+      "region": "Atlantic"
+    },
+    {
+      "name": "San Diego, California, USA",
+      "latitude": 32.7157,
+      "longitude": -117.1611,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Los Angeles, California, USA",
+      "latitude": 34.0522,
+      "longitude": -118.2437,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "San Francisco, California, USA",
+      "latitude": 37.7749,
+      "longitude": -122.4194,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Seattle, Washington, USA",
+      "latitude": 47.6062,
+      "longitude": -122.3321,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Dutch Harbor, Alaska, USA",
+      "latitude": 53.8750,
+      "longitude": -166.5400,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Unalaska, Alaska, USA",
+      "latitude": 53.8736,
+      "longitude": -166.5417,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Honolulu, Hawaii, USA",
+      "latitude": 21.3099,
+      "longitude": -157.8581,
+      "region": "Central Pacific"
+    },
+    {
+      "name": "Toronto, Ontario, Canada",
+      "latitude": 43.6629,
+      "longitude": -79.3957,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Vancouver, British Columbia, Canada",
+      "latitude": 49.2827,
+      "longitude": -123.1207,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Halifax, Nova Scotia, Canada",
+      "latitude": 44.6426,
+      "longitude": -63.2181,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Mexico City, Mexico",
+      "latitude": 19.4326,
+      "longitude": -99.1332,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Cancún, Quintana Roo, Mexico",
+      "latitude": 21.1619,
+      "longitude": -86.8515,
+      "region": "Atlantic"
+    },
+    {
+      "name": "San Juan, Puerto Rico",
+      "latitude": 18.4655,
+      "longitude": -66.1057,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Havana, Cuba",
+      "latitude": 23.1136,
+      "longitude": -82.3666,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Santiago de Cuba, Cuba",
+      "latitude": 20.0244,
+      "longitude": -75.8216,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Santo Domingo, Dominican Republic",
+      "latitude": 18.4861,
+      "longitude": -69.9312,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Kingston, Jamaica",
+      "latitude": 17.9689,
+      "longitude": -76.7891,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Negril, Jamaica",
+      "latitude": 18.3329,
+      "longitude": -78.3451,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Nassau, Bahamas",
+      "latitude": 25.0343,
+      "longitude": -77.3963,
+      "region": "Atlantic"
+    },
+    {
+      "name": "San Salvador, El Salvador",
+      "latitude": 13.6929,
+      "longitude": -89.2182,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Belmopan, Belize",
+      "latitude": 17.2508,
+      "longitude": -88.7589,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Georgetown, Guyana",
+      "latitude": 6.8016,
+      "longitude": -58.1551,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Port of Spain, Trinidad and Tobago",
+      "latitude": 10.6918,
+      "longitude": -61.2225,
+      "region": "Atlantic"
+    },
+    {
+      "name": "London, United Kingdom",
+      "latitude": 51.5074,
+      "longitude": -0.1278,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Dublin, Ireland",
+      "latitude": 53.3498,
+      "longitude": -6.2603,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Lisbon, Portugal",
+      "latitude": 38.7223,
+      "longitude": -9.1393,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Barcelona, Spain",
+      "latitude": 41.3874,
+      "longitude": 2.1686,
+      "region": "Mediterranean"
+    },
+    {
+      "name": "Marseille, France",
+      "latitude": 43.2965,
+      "longitude": 5.3698,
+      "region": "Mediterranean"
+    },
+    {
+      "name": "Monaco, Monaco",
+      "latitude": 43.7384,
+      "longitude": 7.4246,
+      "region": "Mediterranean"
+    },
+    {
+      "name": "Rome, Italy",
+      "latitude": 41.9028,
+      "longitude": 12.4964,
+      "region": "Mediterranean"
+    },
+    {
+      "name": "Athens, Greece",
+      "latitude": 37.9838,
+      "longitude": 23.7275,
+      "region": "Mediterranean"
+    },
+    {
+      "name": "Istanbul, Turkey",
+      "latitude": 41.0082,
+      "longitude": 28.9784,
+      "region": "Mediterranean"
+    },
+    {
+      "name": "Alexandria, Egypt",
+      "latitude": 31.2001,
+      "longitude": 29.9187,
+      "region": "Mediterranean"
+    },
+    {
+      "name": "Casablanca, Morocco",
+      "latitude": 33.5731,
+      "longitude": -7.5898,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Cape Town, South Africa",
+      "latitude": -33.9249,
+      "longitude": 18.4241,
+      "region": "Indian"
+    },
+    {
+      "name": "Durban, South Africa",
+      "latitude": -29.8587,
+      "longitude": 31.0292,
+      "region": "Indian"
+    },
+    {
+      "name": "Mombasa, Kenya",
+      "latitude": -4.0435,
+      "longitude": 39.6682,
+      "region": "Indian"
+    },
+    {
+      "name": "Port Louis, Mauritius",
+      "latitude": -20.1609,
+      "longitude": 57.5012,
+      "region": "Indian"
+    },
+    {
+      "name": "Dar es Salaam, Tanzania",
+      "latitude": -6.8000,
+      "longitude": 39.2833,
+      "region": "Indian"
+    },
+    {
+      "name": "Male, Maldives",
+      "latitude": 4.1755,
+      "longitude": 73.5093,
+      "region": "Indian"
+    },
+    {
+      "name": "Colombo, Sri Lanka",
+      "latitude": 6.9271,
+      "longitude": 80.7744,
+      "region": "Indian"
+    },
+    {
+      "name": "Mumbai, India",
+      "latitude": 19.0760,
+      "longitude": 72.8777,
+      "region": "Indian"
+    },
+    {
+      "name": "Karachi, Pakistan",
+      "latitude": 24.8607,
+      "longitude": 67.0011,
+      "region": "Indian"
+    },
+    {
+      "name": "Dubai, United Arab Emirates",
+      "latitude": 25.2048,
+      "longitude": 55.2708,
+      "region": "Indian"
+    },
+    {
+      "name": "Muscat, Oman",
+      "latitude": 23.6100,
+      "longitude": 58.5400,
+      "region": "Indian"
+    },
+    {
+      "name": "Aden, Yemen",
+      "latitude": 12.7855,
+      "longitude": 45.0365,
+      "region": "Indian"
+    },
+    {
+      "name": "Bangkok, Thailand",
+      "latitude": 13.7563,
+      "longitude": 100.5018,
+      "region": "Indian"
+    },
+    {
+      "name": "Ho Chi Minh City, Vietnam",
+      "latitude": 10.8231,
+      "longitude": 106.6296,
+      "region": "Indian"
+    },
+    {
+      "name": "Manila, Philippines",
+      "latitude": 14.5995,
+      "longitude": 120.9842,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Hong Kong, Hong Kong",
+      "latitude": 22.3193,
+      "longitude": 114.1694,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Haikou, China",
+      "latitude": 20.0440,
+      "longitude": 110.1999,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Haiphong, Vietnam",
+      "latitude": 20.8449,
+      "longitude": 106.6881,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Sendai, Japan",
+      "latitude": 38.2682,
+      "longitude": 140.8694,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Guam, USA",
+      "latitude": 13.4443,
+      "longitude": 144.7937,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Colonia, Federated States of Micronesia",
+      "latitude": 9.7900,
+      "longitude": 150.8140,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Palau, Federated States of Micronesia",
+      "latitude": 7.5150,
+      "longitude": 134.5825,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Okinotori Island, Japan",
+      "latitude": 20.4238766,
+      "longitude": 136.0810348,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Shanghai, China",
+      "latitude": 31.2304,
+      "longitude": 121.4737,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Tokyo, Tokyo, Japan",
+      "latitude": 35.6762,
+      "longitude": 139.6503,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Osaka, Osaka, Japan",
+      "latitude": 34.6937,
+      "longitude": 135.5023,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Hiroshima, Hiroshima, Japan",
+      "latitude": 34.3853,
+      "longitude": 132.4553,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Fukuoka, Fukuoka, Japan",
+      "latitude": 33.5904,
+      "longitude": 130.4017,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Nagasaki, Nagasaki, Japan",
+      "latitude": 32.7503,
+      "longitude": 129.8787,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Seoul, South Korea",
+      "latitude": 37.5665,
+      "longitude": 126.9780,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Busan, South Korea",
+      "latitude": 35.1796,
+      "longitude": 129.0756,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Taipei, Taiwan",
+      "latitude": 25.0330,
+      "longitude": 121.5654,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Singapore, Singapore",
+      "latitude": 1.3521,
+      "longitude": 103.8198,
+      "region": "Indian"
+    },
+    {
+      "name": "Jakarta, Indonesia",
+      "latitude": -6.2088,
+      "longitude": 106.8456,
+      "region": "Indian"
+    },
+    {
+      "name": "Surabaya, Indonesia",
+      "latitude": -7.2575,
+      "longitude": 112.7521,
+      "region": "Indian"
+    },
+    {
+      "name": "Kuala Lumpur, Malaysia",
+      "latitude": 3.1390,
+      "longitude": 101.6869,
+      "region": "Indian"
+    },
+    {
+      "name": "Brisbane, Queensland, Australia",
+      "latitude": -27.4698,
+      "longitude": 153.0251,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Sydney, New South Wales, Australia",
+      "latitude": -33.8688,
+      "longitude": 151.2093,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Cairns, Queensland, Australia",
+      "latitude": -16.9203,
+      "longitude": 145.7708,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Melbourne, Victoria, Australia",
+      "latitude": -37.8136,
+      "longitude": 144.9631,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Perth, Western Australia, Australia",
+      "latitude": -31.9505,
+      "longitude": 115.8605,
+      "region": "Indian"
+    },
+    {
+      "name": "Darwin, Northern Territory, Australia",
+      "latitude": -12.4634,
+      "longitude": 130.8456,
+      "region": "Indian"
+    },
+    {
+      "name": "Hobart, Tasmania, Australia",
+      "latitude": -42.8821,
+      "longitude": 147.3272,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Auckland, New Zealand",
+      "latitude": -37.0882,
+      "longitude": 174.8860,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Tauranga, New Zealand",
+      "latitude": -37.6878,
+      "longitude": 176.1651,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Wellington, New Zealand",
+      "latitude": -41.2865,
+      "longitude": 174.7762,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Christchurch, New Zealand",
+      "latitude": -43.5321,
+      "longitude": 172.6362,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Fiji, Fiji",
+      "latitude": -18.1248,
+      "longitude": 178.0493,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Honaria, Solomon Islands",
+      "latitude": -9.4280,
+      "longitude": 160.2029,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Port Moresby, Papua New Guinea",
+      "latitude": -9.4769,
+      "longitude": 147.1900,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Suva, Fiji",
+      "latitude": -18.1456,
+      "longitude": 178.4419,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Nadi, Fiji",
+      "latitude": -17.7768,
+      "longitude": 177.4350,
+      "region": "South Pacific"
+    },
+    {
+      "name": "Laem Chabang, Thailand",
+      "latitude": 12.9194,
+      "longitude": 100.8821,
+      "region": "Indian"
+    },
+    {
+      "name": "Penang, Malaysia",
+      "latitude": 5.3520,
+      "longitude": 100.3033,
+      "region": "Indian"
+    },
+    {
+      "name": "Yangon, Myanmar",
+      "latitude": 16.8661,
+      "longitude": 96.1951,
+      "region": "Indian"
+    },
+    {
+      "name": "Chittagong, Bangladesh",
+      "latitude": 22.3569,
+      "longitude": 91.7832,
+      "region": "Indian"
+    },
+    {
+      "name": "Cochin, India",
+      "latitude": 9.9312,
+      "longitude": 76.2673,
+      "region": "Indian"
+    },
+    {
+      "name": "Conakry, Guinea",
+      "latitude": 9.6412,
+      "longitude": -13.5784,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Dakar, Senegal",
+      "latitude": 14.6947,
+      "longitude": -17.1200,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Accra, Ghana",
+      "latitude": 5.6037,
+      "longitude": -0.1870,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Lagos, Nigeria",
+      "latitude": 6.5244,
+      "longitude": 3.3792,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Libreville, Gabon",
+      "latitude": 0.4162,
+      "longitude": 9.4673,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Luanda, Angola",
+      "latitude": -8.8383,
+      "longitude": 13.2344,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Maputo, Mozambique",
+      "latitude": -23.8646,
+      "longitude": 35.3519,
+      "region": "Indian"
+    },
+    {
+      "name": "Mauritius, Mauritius",
+      "latitude": -20.3484,
+      "longitude": 57.5522,
+      "region": "Indian"
+    },
+    {
+      "name": "Seychelles, Seychelles",
+      "latitude": -4.6796,
+      "longitude": 55.4920,
+      "region": "Indian"
+    },
+    {
+      "name": "Bali, Indonesia",
+      "latitude": -8.6706,
+      "longitude": 115.2126,
+      "region": "Indian"
+    },
+    {
+      "name": "Acapulco, Mexico",
+      "latitude": 16.8634,
+      "longitude": -99.8901,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Puerto Vallarta, Mexico",
+      "latitude": 20.6295,
+      "longitude": -105.2381,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Mazatlán, Mexico",
+      "latitude": 23.1949,
+      "longitude": -106.4104,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Hermosillo, Sonora, Mexico",
+      "latitude": 29.0729,
+      "longitude": -110.9559,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Puntarenas, Costa Rica",
+      "latitude": 9.9789,
+      "longitude": -84.8319,
+      "region": "Eastern Pacific"
+    },
+    {
+      "name": "Panama City, Panama",
+      "latitude": 8.9824,
+      "longitude": -79.5199,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Cartagena, Colombia",
+      "latitude": 10.3904,
+      "longitude": -75.5144,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Santa Marta, Colombia",
+      "latitude": 11.2437,
+      "longitude": -74.2333,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Maracaibo, Venezuela",
+      "latitude": 10.6666,
+      "longitude": -71.6243,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Bridgetown, Barbados",
+      "latitude": 13.1939,
+      "longitude": -59.5432,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Castries, Saint Lucia",
+      "latitude": 14.0083,
+      "longitude": -60.9789,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Willemstad, Curaçao",
+      "latitude": 12.1696,
+      "longitude": -68.9902,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Montego Bay, Jamaica",
+      "latitude": 18.4891,
+      "longitude": -77.9456,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Ocho Rios, Jamaica",
+      "latitude": 18.4104,
+      "longitude": -77.1075,
+      "region": "Atlantic"
+    },
+    {
+      "name": "Quang Ha, Vietnam",
+      "latitude": 21.4284387,
+      "longitude": 107.728011,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Fangchenggang, China",
+      "latitude": 21.6871383,
+      "longitude": 108.3546189,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Roro, Micronesia",
+      "latitude": 7.377445,
+      "longitude": 151.8748932,
+      "region": "Western Pacific"
+    },
+    {
+      "name": "Onoun, Micronesia",
+      "latitude": 8.5800874,
+      "longitude": 149.6830448,
+      "region": "Western Pacific"
+    }
+  ]
+}
