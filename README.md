@@ -1,9 +1,8 @@
-# Milton Weather Page
-<div>
-  <center>
-    Welcome to the Milton Weather Page, this simple web document displays data off of my weather station, this GitHub repo is the source code for it. Enjoy :)
-  </center>
-</div>
-<div>
-      <img src="https://github.com/JesseWx2011/Milton-Weather-Page/blob/master/Banner.jpg?raw=true">
-</div>
+# Urgent Update
+## November 17, 2026
+I have moved my site to [weather.windowclean.net)(https://weather.windowclean.net), and the code in this repository is no longer being used.
+By the end of 2026, this code will be archived and made private.
+
+Thank you for understanding.
+
+*JesseWx2011*
